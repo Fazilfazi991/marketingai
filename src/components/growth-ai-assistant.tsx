@@ -45,16 +45,16 @@ export function GrowthAiAssistant({ data }: { data: ClientResultsData }) {
   function submit(event: FormEvent) { event.preventDefault(); void ask(question); }
 
   return <>
-    <button className={`growth-ai-launcher${open ? " open" : ""}`} aria-label="Ask Growth1000 AI" aria-expanded={open} onClick={() => setOpen(value => !value)}>{open ? <X size={22}/> : <GrowthAiIcon/>}<span>Ask Growth1000 AI</span></button>
+    {!open && <button type="button" className="growth-ai-launcher" aria-label="Ask Growth1000 AI" aria-expanded="false" onClick={() => setOpen(true)}><GrowthAiIcon/><span>Ask Growth1000 AI</span></button>}
     {open && <aside className="growth-ai-panel" aria-label="Growth1000 AI assistant" aria-modal="true" role="dialog">
-      <header><div className="growth-ai-avatar"><GrowthAiIcon size={23}/></div><div><b>Growth Assistant</b><span><i/>Verified data · {data.periodLabel}</span></div><button aria-label="Clear conversation" title="Clear conversation" onClick={() => { setMessages([{ role: "assistant", text: `Conversation cleared. Ask me about ${data.periodLabel}.` }]); setError(""); }}><Trash2 size={16}/></button><button aria-label="Close assistant" onClick={() => setOpen(false)}><X size={18}/></button></header>
+      <header><div className="growth-ai-avatar"><GrowthAiIcon size={23}/></div><div><b>Growth Assistant</b><span><i/>Verified data · {data.periodLabel}</span></div><button type="button" aria-label="Clear conversation" title="Clear conversation" onClick={() => { setMessages([{ role: "assistant", text: `Conversation cleared. Ask me about ${data.periodLabel}.` }]); setError(""); }}><Trash2 size={16}/></button><button type="button" aria-label="Close assistant" onClick={() => setOpen(false)}><X size={18}/></button></header>
       <div className="growth-ai-log" ref={log} aria-live="polite">
         {messages.map((message, index) => <div className={`growth-ai-message ${message.role}`} key={`${message.role}-${index}`}>{message.text}</div>)}
-        {messages.length === 1 && <div className="growth-ai-suggestions">{suggestions.map(item => <button key={item} onClick={() => void ask(item)}>{item}</button>)}</div>}
+        {messages.length === 1 && <div className="growth-ai-suggestions">{suggestions.map(item => <button type="button" key={item} onClick={() => void ask(item)}>{item}</button>)}</div>}
         {loading && <div className="growth-ai-message assistant loading"><span/><span/><span/><em>Checking your dashboard…</em></div>}
-        {error && <div className="growth-ai-error"><b>I couldn’t answer that.</b><span>{error}</span><button onClick={() => void ask(lastFailed)}><RotateCcw size={12}/>Try again</button></div>}
+        {error && <div className="growth-ai-error"><b>I couldn’t answer that.</b><span>{error}</span><button type="button" onClick={() => void ask(lastFailed)}><RotateCcw size={12}/>Try again</button></div>}
       </div>
-      <form onSubmit={submit}><label htmlFor="growth-ai-question">Ask about your results</label><div><input ref={input} id="growth-ai-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Are our leads improving?" maxLength={500} autoComplete="off"/><button aria-label="Send question" disabled={!question.trim() || loading}><ArrowUp size={17}/></button></div><small><Sparkles size={11}/>Uses authorized dashboard data only</small></form>
+      <form onSubmit={submit}><label htmlFor="growth-ai-question">Ask about your results</label><div><input ref={input} id="growth-ai-question" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Are our leads improving?" maxLength={500} autoComplete="off"/><button type="submit" aria-label="Send question" disabled={!question.trim() || loading}><ArrowUp size={17}/></button></div><small><Sparkles size={11}/>Uses authorized dashboard data only</small></form>
     </aside>}
   </>;
 }
