@@ -15,50 +15,7 @@ import { useTransition } from "react";
 import type { ClientResultsData } from "@/lib/client-results";
 import { Panel } from "./ui";
 import { GrowthAiAssistant } from "./growth-ai-assistant";
-
-function TrendLine({
-  values,
-  labels,
-  tone = "light",
-  ariaLabel,
-}: {
-  values: number[];
-  labels: string[];
-  tone?: "light" | "dark";
-  ariaLabel: string;
-}) {
-  const safeValues = values.length > 1 ? values : [values[0] ?? 0, values[0] ?? 0];
-  const maximum = Math.max(...safeValues, 1);
-  const minimum = Math.min(...safeValues, 0);
-  const range = Math.max(maximum - minimum, 1);
-  const points = safeValues
-    .map((value, index) => {
-      const x = (index / (safeValues.length - 1)) * 100;
-      const y = 38 - ((value - minimum) / range) * 30;
-      return `${x},${y}`;
-    })
-    .join(" ");
-  return (
-    <div className={`trend-line ${tone}`} role="img" aria-label={ariaLabel}>
-      <svg viewBox="0 0 100 44" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <linearGradient id={`trend-fill-${tone}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="currentColor" stopOpacity=".28" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <polygon points={`0,44 ${points} 100,44`} fill={`url(#trend-fill-${tone})`} />
-        <polyline points={points} fill="none" vectorEffect="non-scaling-stroke" />
-        {safeValues.map((value, index) => {
-          const x = (index / (safeValues.length - 1)) * 100;
-          const y = 38 - ((value - minimum) / range) * 30;
-          return <circle key={`${value}-${index}`} cx={x} cy={y} r="1.7" />;
-        })}
-      </svg>
-      <div>{labels.map((label) => <span key={label}>{label}</span>)}</div>
-    </div>
-  );
-}
+import { InteractiveSourceChart, InteractiveTrendChart } from "./interactive-results-charts";
 
 export function ClientResultsDashboard({
   data,
@@ -176,7 +133,7 @@ export function ClientResultsDashboard({
               ))}
             </div>
           </div>
-          <TrendLine values={leads.trend.map((item) => item.value)} labels={leads.trend.map((item) => item.label)} ariaLabel={`Lead trend for ${data.periodLabel}`} />
+          <InteractiveTrendChart key={`leads-${data.rangeKey}-${data.rangeStart}-${data.rangeEnd}`} tone="light" unit="Leads" height={112} data={leads.trend.map((item) => ({ label: item.label, value: item.value, ...(item.value === leads.total ? { qualified: leads.qualified, general: Math.max(0, leads.total - leads.qualified) } : {}) }))} />
         </div>
         <div className="lead-hero-sources">
           {leads.sources.slice(0, 3).map(source => <span key={source.key}><small>{source.label}</small><b>{source.value}</b></span>)}
@@ -405,14 +362,7 @@ export function ClientResultsDashboard({
       </section>
       <div className="lead-insights-grid">
         <Panel title="Lead sources" meta="Verified share of tracked enquiries">
-          <div className="source-visual">
-            <div className="source-donut" style={{ background: `conic-gradient(${leads.sources.map((source, index) => { const colors = ["#42b88b", "#8c84e8", "#74addc", "#d7a85b"]; const before = leads.sources.slice(0, index).reduce((sum, item) => sum + item.value, 0); const after = before + source.value; const total = Math.max(leads.total, 1); return `${colors[index % colors.length]} ${(before / total) * 100}% ${(after / total) * 100}%`; }).join(",")})` }} aria-label={`Lead source distribution for ${data.periodLabel}`}>
-              <span><b>{leads.total}</b><small>Total</small></span>
-            </div>
-            <div className="source-legend">
-              {leads.sources.filter((source) => source.value > 0).map((source, index) => <div key={source.key}><i className={`source-tone tone-${index}`} /><span>{source.label}</span><b>{leads.total ? Math.round(source.value / leads.total * 100) : 0}%</b><small>{source.value}</small></div>)}
-            </div>
-          </div>
+          <InteractiveSourceChart data={leads.sources.filter((source) => source.value > 0).map((source) => ({ key: source.key, label: source.label, value: source.value, share: leads.total ? Math.round(source.value / leads.total * 100) : 0 }))} />
         </Panel>
         {latest}
       </div>
@@ -439,7 +389,7 @@ export function ClientResultsDashboard({
           </div>
           <div className="snapshot-chart">
             <span>Visitor trend</span>
-            <TrendLine values={reportHistory.length > 1 ? reportHistory.map((item) => item.users) : leads.trend.map((item) => item.value)} labels={reportHistory.length > 1 ? reportHistory.map((item) => item.monthLabel.split(" ")[0]) : leads.trend.map((item) => item.label)} tone="dark" ariaLabel="Website visitor trend" />
+            <InteractiveTrendChart key={`visitors-${data.rangeKey}`} unit="Visitors" height={82} data={reportHistory.length ? reportHistory.map((item) => ({ label: item.monthLabel.split(" ")[0], value: item.users })) : [{ label: data.periodLabel, value: traffic.visitors }]} />
           </div>
         </Panel>
         <Panel title="Google growth" meta="Organic visibility">
@@ -451,7 +401,7 @@ export function ClientResultsDashboard({
           </div>
           <div className="snapshot-chart">
             <span>Organic click trend</span>
-            <TrendLine values={reportHistory.length > 1 ? reportHistory.map((item) => item.clicks) : [search.clicks]} labels={reportHistory.length > 1 ? reportHistory.map((item) => item.monthLabel.split(" ")[0]) : [data.periodLabel]} tone="dark" ariaLabel="Organic click trend" />
+            <InteractiveTrendChart key={`clicks-${data.rangeKey}`} unit="Organic clicks" height={82} data={reportHistory.length ? reportHistory.map((item) => ({ label: item.monthLabel.split(" ")[0], value: item.clicks })) : [{ label: data.periodLabel, value: search.clicks }]} />
           </div>
         </Panel>
         <Panel title="AI-generated leads" meta="Qualified conversations">

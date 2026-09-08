@@ -358,6 +358,9 @@ const demoForRange = (input: ResultRangeInput): ClientResultsData => {
   const scaleCopy = (value: string) =>
     value.replace(/^\d+/, (number) => String(scale(Number(number))));
   const total = scale(demoResults.leads.total);
+  const demoTrend = bounds.key === "90d"
+      ? demoResults.leads.trend.slice(-3)
+      : [{ label: rangeLabel(bounds.key, bounds.start, bounds.end), value: total }];
   return {
     ...demoResults,
     periodLabel: rangeLabel(bounds.key, bounds.start, bounds.end),
@@ -372,10 +375,7 @@ const demoForRange = (input: ResultRangeInput): ClientResultsData => {
         ...source,
         value: scale(source.value),
       })),
-      trend: demoResults.leads.trend.map((item) => ({
-        ...item,
-        value: scale(item.value),
-      })),
+      trend: demoTrend,
       latest:
         bounds.key === "today"
           ? demoResults.leads.latest.slice(0, 2)
@@ -512,17 +512,18 @@ export async function loadClientResults(
     { key: "website_form", label: "Website form", tone: "blue" },
     { key: "other", label: "Other sources", tone: "sand" },
   ];
-  const trend = Array.from({ length: 4 }, (_, index) => {
+  const trendBucketCount = bounds.duration <= 7 ? bounds.duration : bounds.duration <= 31 ? Math.min(6, bounds.duration) : 4;
+  const trend = Array.from({ length: trendBucketCount }, (_, index) => {
     const bucketStart = addDays(
       currentStart,
-      Math.floor((bounds.duration * index) / 4),
+      Math.floor((bounds.duration * index) / trendBucketCount),
     );
     const bucketEnd =
-      index === 3
+      index === trendBucketCount - 1
         ? nextStart
         : addDays(
             currentStart,
-            Math.floor((bounds.duration * (index + 1)) / 4),
+            Math.floor((bounds.duration * (index + 1)) / trendBucketCount),
           );
     const label =
       bounds.duration <= 31
