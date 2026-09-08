@@ -82,14 +82,16 @@ export async function loadClientResults(): Promise<ClientResultsData> {
   const nextStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
   const historyStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 3, 1));
   const iso = (date: Date) => date.toISOString().slice(0, 10);
-  const [{ data: leads, error: leadsError }, { data: analytics, error: analyticsError }, { data: searchRows, error: searchError }, { data: keywords, error: keywordError }, { data: report, error: reportError }] = await Promise.all([
-    supabase.from("leads").select("source,created_at,lead_quality").eq("client_id", clientId).gte("created_at", historyStart.toISOString()).lt("created_at", nextStart.toISOString()),
+  const [{ data: leads, error: leadsError }, { data: analytics, error: analyticsError }, { data: searchRows, error: searchError }, { data: keywords, error: keywordError }, { data: report, error: reportError }, { data: content, error: contentError }, { data: completedTasks, error: taskError }] = await Promise.all([
+    supabase.from("leads").select("source,created_at,lead_quality,status").eq("client_id", clientId).gte("created_at", historyStart.toISOString()).lt("created_at", nextStart.toISOString()),
     supabase.from("analytics_daily").select("day,metrics").eq("client_id", clientId).gte("day", iso(historyStart)).lt("day", iso(nextStart)),
     supabase.from("search_console_daily").select("day,metrics").eq("client_id", clientId).gte("day", iso(currentStart)).lt("day", iso(nextStart)),
     supabase.rpc("client_keyword_results"),
     supabase.from("reports").select("summary,work_completed,analytics_summary,next_month_focus").eq("client_id", clientId).eq("month", iso(currentStart)).eq("status", "published").maybeSingle(),
+    supabase.from("content_items").select("content_kind,status").eq("client_id", clientId).eq("month", iso(currentStart)).eq("status", "published"),
+    supabase.from("tasks").select("category,status").eq("client_id", clientId).eq("deliverable_month", iso(currentStart)).in("status", ["published", "verified"]),
   ]);
-  for (const error of [leadsError, analyticsError, searchError, keywordError, reportError]) if (error) throw error;
+  for (const error of [leadsError, analyticsError, searchError, keywordError, reportError, contentError, taskError]) if (error) throw error;
 
   const currentLeads = (leads ?? []).filter(item => new Date(item.created_at) >= currentStart);
   const previousLeads = (leads ?? []).filter(item => { const date = new Date(item.created_at); return date >= new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)) && date < currentStart; });
@@ -114,8 +116,18 @@ export async function loadClientResults(): Promise<ClientResultsData> {
   const topTen = keywordRows.filter(item => Number(item.current_position) <= 10).length;
   const growth = (current: number, previous: number) => previous ? Math.round((current - previous) / previous * 100) : null;
   const sourceCount = (source: string) => currentLeads.filter(item => item.source === source).length;
-  const reportWork = report?.work_completed;
-  const work = Array.isArray(reportWork) ? reportWork.map(String) : [];
+  const publishedContent = content ?? [];
+  const tasks = completedTasks ?? [];
+  const completedCount = (categories: string[]) => tasks.filter(item => categories.includes(String(item.category).toLowerCase())).length;
+  const workCounts = [
+    { count: publishedContent.filter(item => item.content_kind === "social_post").length, label: "social posts published" },
+    { count: publishedContent.filter(item => item.content_kind === "blog").length, label: "blogs published" },
+    { count: completedCount(["seo", "seo_review", "seo_improvement"]), label: "SEO improvements completed" },
+    { count: completedCount(["website", "website_update", "website_maintenance"]), label: "website updates completed" },
+  ];
+  const work = workCounts.filter(item => item.count > 0).map(item => `${item.count} ${item.label}`);
+  const reportWorkValue = report?.work_completed;
+  const reportWork = Array.isArray(reportWorkValue) ? reportWorkValue.map(String) : [];
   const reportMetrics = report?.analytics_summary;
   const total = currentLeads.length;
   const largest = sourceDefinitions.map(source => ({ ...source, value: sourceCount(source.key) })).sort((a, b) => b.value - a.value)[0];
@@ -126,12 +138,12 @@ export async function loadClientResults(): Promise<ClientResultsData> {
     leads: { total, growth: growth(total, previousLeads.length), sources: sourceDefinitions.map(source => ({ ...source, value: sourceCount(source.key) })), trend },
     traffic: { visitors, newVisitors: sum(currentAnalytics, "newUsers", "new_visitors"), pageViews: sum(currentAnalytics, "screenPageViews", "pageViews", "page_views"), whatsappClicks: sum(currentAnalytics, "whatsappClicks", "whatsapp_clicks"), formSubmissions: sourceCount("website_form"), growth: growth(visitors, previousVisitors) },
     search: { clicks: searchClicks, impressions: searchImpressions, improved, topTen, keywords: keywordRows.slice(0, 3).map(item => ({ keyword: String(item.keyword), previous: Number(item.previous_position), current: Number(item.current_position) })) },
-    ai: { websiteConversations: sum(currentAnalytics, "websiteAiConversations", "website_ai_conversations"), websiteLeads: sourceCount("website_chatbot"), whatsappConversations: sum(currentAnalytics, "whatsappConversations", "whatsapp_conversations"), whatsappLeads: sourceCount("whatsapp") },
+    ai: { websiteConversations: sum(currentAnalytics, "websiteAiConversations", "website_ai_conversations"), websiteLeads: currentLeads.filter(item => item.source === "website_chatbot" && (["qualified", "high_intent"].includes(item.lead_quality) || ["qualified", "won"].includes(item.status))).length, whatsappConversations: sum(currentAnalytics, "whatsappConversations", "whatsapp_conversations"), whatsappLeads: currentLeads.filter(item => item.source === "whatsapp" && (["qualified", "high_intent"].includes(item.lead_quality) || ["qualified", "won"].includes(item.status))).length },
     work,
     summary: report?.summary ?? (total ? `Your business generated ${total} tracked enquiries in ${monthLabel(currentStart)}. ${largest.value ? `${largest.label} was the largest measured source.` : "Source attribution is still being collected."}` : "No tracked enquiries have been recorded for this period yet."),
     report: report ? {
       summary: report.summary ?? "Your published monthly growth results.",
-      work,
+      work: reportWork,
       nextFocus: report.next_month_focus ?? "Continue the strongest-performing growth activities.",
       users: numberFrom(reportMetrics, "users", "activeUsers", "visitors"),
       clicks: numberFrom(reportMetrics, "clicks", "organicClicks"),
