@@ -1,0 +1,7 @@
+@media(max-width:560px){
+  .panel .task-item{grid-template-columns:1fr}
+  .panel .task-item>div:last-child{flex-wrap:wrap}
+  .panel .task-item .button{padding:8px 10px}
+  section.panel>header{padding:14px}
+  section.panel .toolbar{flex-wrap:wrap}
+}
