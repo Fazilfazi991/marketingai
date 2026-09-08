@@ -6,7 +6,6 @@ import { saveBusinessKnowledge, saveClientAccess, saveServiceScope } from "@/app
 import type { AdminClientWorkspaceData } from "@/lib/admin-data";
 import { access as seedAccess, monthlyObligations } from "@/lib/demo-data";
 import { Panel, Status } from "./ui";
-import { SocialOperations } from "./social-operations";
 import { BlogsWorkspace, SeoWorkspace } from "./blogs-seo-workspace";
 import { LeadManager } from "./lead-manager";
 
@@ -48,7 +47,7 @@ export function ClientWorkspace({ section, initial, live = false }: { section: s
   if (section === "tasks") content = <Panel title="Client tasks" meta="Work generated from service scope obligations and manual requests"><div>{["Review November social batch", "Complete monthly website check", "Prepare September report"].map((item, index) => <div className="task-item" key={item}><div><b>{item}</b><p>{index === 0 ? "Due today · Maya" : "Due this week · Partner"}</p></div><Status tone={index === 2 ? "warn" : "purple"}>{index === 0 ? "Awaiting review" : index === 1 ? "In progress" : "Not started"}</Status></div>)}</div></Panel>;
   if (section === "seo") content = <SeoWorkspace />;
   if (section === "blogs") content = <BlogsWorkspace />;
-  if (section === "social") content = <SocialOperations />;
+  if (section === "social") content = <Panel title="Social content" meta="Centralized internal review and staff handoff"><div className="empty-state"><b>Manage this client’s social pipeline in the central content queue.</b><p>Generate, edit and approve posts before they move directly to staff for manual publishing.</p><Link className="button" href="/admin/content">Open social content</Link></div></Panel>;
   if (section === "leads") content = <LeadManager slug={slug} initial={initial?.leads ?? []} live={live} />;
   if (["website", "analytics", "reports", "notes"].includes(section)) content = <Panel title={labels[section] ?? section[0].toUpperCase() + section.slice(1)} meta="Client operations workspace"><div className="empty-state"><b>This workspace is ready for live client data.</b><p>Connect the relevant source to replace the clearly marked demo state.</p></div></Panel>;
 
