@@ -554,7 +554,7 @@ export function ClientResultsDashboard({
           <p>{data.summary}</p>
         </div>
       </section>
-      <GrowthAiAssistant data={data} />
+      <GrowthAiAssistant key={`${data.rangeKey}:${data.rangeStart}:${data.rangeEnd}`} data={data} />
     </>
   );
 }
