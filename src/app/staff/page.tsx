@@ -1,0 +1,2 @@
+import { AppShell } from "@/components/app-shell"; import { PostingQueue } from "@/components/posting-queue";
+export default function Staff(){return <AppShell role="staff" title="Posting queue" subtitle="Everything approved and ready for manual publishing." actions={<><button className="button secondary">November 2026</button><button className="button secondary">All clients</button></>}><PostingQueue/></AppShell>}

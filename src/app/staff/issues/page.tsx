@@ -1,0 +1,2 @@
+import { AppShell } from "@/components/app-shell"; import { Panel, Status } from "@/components/ui";
+export default function Issues(){return <AppShell role="staff" title="Posting issues" subtitle="Items that need a partner decision."><Panel title="Open issues" meta="1 item"><div className="task-item"><div><b>Image crop needs review</b><p>ABC Interiors · Instagram · 18 November</p></div><Status tone="risk">Issue</Status></div></Panel></AppShell>}

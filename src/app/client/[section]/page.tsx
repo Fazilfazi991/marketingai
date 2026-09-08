@@ -1,0 +1,3 @@
+import { AppShell } from "@/components/app-shell"; import { Panel, Status } from "@/components/ui";
+const labels:Record<string,string>={business:"Business profile",content:"Content",seo:"SEO",reports:"Reports",files:"Files",requests:"Requests"};
+export default async function Section({params}:{params:Promise<{section:string}>}){const {section}=await params;const title=labels[section]??"Workspace";return <AppShell role="client" title={title} subtitle="ABC Interiors · private client workspace"><Panel title={title} meta="Simple, client-safe view"><div className="task-item"><div><b>Demo workspace ready</b><p>This area is isolated from every other client in the production RLS design.</p></div><Status tone="purple">Demo</Status></div></Panel></AppShell>}

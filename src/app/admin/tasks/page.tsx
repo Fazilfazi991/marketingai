@@ -1,0 +1,2 @@
+import { AppShell } from "@/components/app-shell"; import { Panel, Status } from "@/components/ui"; import { tasks } from "@/lib/demo-data";
+export default function Tasks(){return <AppShell role="admin" title="Tasks" subtitle="Work across every client, in one queue."><Panel title="Current work" meta="12 open tasks"><div>{tasks.map(t=><div className="task-item" key={t.title}><div><b>{t.title}</b><p>{t.client} · Due {t.due}</p></div><Status tone={t.status==="Blocked"?"risk":"purple"}>{t.status}</Status></div>)}</div></Panel></AppShell>}

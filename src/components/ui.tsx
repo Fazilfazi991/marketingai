@@ -1,0 +1,4 @@
+import { ArrowUpRight, MoreHorizontal } from "lucide-react";
+export function Stat({ label, value, detail }: { label: string; value: string; detail: string }) { return <div className="stat"><div className="stat-label">{label}<ArrowUpRight size={15}/></div><strong>{value}</strong><small>{detail}</small></div>; }
+export function Status({ children, tone }: { children: React.ReactNode; tone?: string }) { return <span className={`status ${tone || ""}`}><i/>{children}</span>; }
+export function Panel({ title, meta, children, action }: { title: string; meta?: string; children: React.ReactNode; action?: React.ReactNode }) { return <section className="panel"><header><div><h2>{title}</h2>{meta && <p>{meta}</p>}</div>{action || <button className="ghost-icon" aria-label="More"><MoreHorizontal size={18}/></button>}</header>{children}</section>; }
