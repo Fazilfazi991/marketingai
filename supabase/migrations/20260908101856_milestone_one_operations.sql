@@ -1,4 +1,4 @@
--- Milestone 1 operations: recurring plan obligations, approval mode and storage isolation.
+-- Milestone 1 operations: recurring service-scope obligations and storage isolation.
 create table public.delivery_periods (
   id uuid primary key default gen_random_uuid(),
   client_id uuid not null references public.clients(id) on delete cascade,
@@ -11,15 +11,14 @@ create table public.delivery_periods (
 create table public.delivery_obligations (
   id uuid primary key default gen_random_uuid(),
   delivery_period_id uuid not null references public.delivery_periods(id) on delete cascade,
-  plan_deliverable_id uuid not null references public.plan_deliverables(id),
+  client_service_scope_id uuid not null references public.client_service_scopes(id),
   deliverable_type text not null,
   label text not null,
   promised_quantity integer not null check(promised_quantity > 0),
   delivered_quantity integer not null default 0 check(delivered_quantity >= 0),
   status text not null default 'pending',
-  unique(delivery_period_id, plan_deliverable_id)
+  unique(delivery_period_id, client_service_scope_id)
 );
-alter table public.clients add column content_approval_mode text not null default 'internal_only' check(content_approval_mode in ('internal_only','client_approval_required'));
 alter table public.delivery_periods enable row level security;
 alter table public.delivery_obligations enable row level security;
 
@@ -30,15 +29,13 @@ create policy "admins manage delivery obligations" on public.delivery_obligation
 
 create function private.generate_monthly_obligations(target_client uuid, target_month date)
 returns uuid language plpgsql security invoker set search_path='' as $$
-declare period_id uuid; active_plan uuid; normalized_month date := date_trunc('month',target_month)::date;
+declare period_id uuid; normalized_month date := date_trunc('month',target_month)::date;
 begin
   if not exists(select 1 from public.clients c where c.id=target_client and private.is_org_admin(c.organization_id)) then raise exception 'not authorized'; end if;
-  select s.plan_id into active_plan from public.client_subscriptions s where s.client_id=target_client and s.status='active' order by s.starts_on desc limit 1;
-  if active_plan is null then raise exception 'no active plan'; end if;
   insert into public.delivery_periods(client_id,month,generated_by) values(target_client,normalized_month,(select auth.uid())) on conflict(client_id,month) do update set generated_at=now() returning id into period_id;
-  insert into public.delivery_obligations(delivery_period_id,plan_deliverable_id,deliverable_type,label,promised_quantity)
-  select period_id,d.id,d.deliverable_type,d.label,d.quantity from public.plan_deliverables d where d.plan_id=active_plan and d.cadence='monthly'
-  on conflict(delivery_period_id,plan_deliverable_id) do nothing;
+  insert into public.delivery_obligations(delivery_period_id,client_service_scope_id,deliverable_type,label,promised_quantity)
+  select period_id,s.id,s.service_key,s.label,coalesce(s.monthly_quantity,1) from public.client_service_scopes s where s.client_id=target_client and s.enabled
+  on conflict(delivery_period_id,client_service_scope_id) do nothing;
   return period_id;
 end $$;
 revoke all on function private.generate_monthly_obligations(uuid,date) from public,anon;
@@ -60,12 +57,8 @@ $$;
 revoke all on function private.is_org_staff(uuid) from public,anon;
 grant execute on function private.is_org_staff(uuid) to authenticated;
 
-create policy "members read plans" on public.plans for select to authenticated using (private.is_org_staff(organization_id) or exists(select 1 from public.clients c join public.client_members cm on cm.client_id=c.id where c.organization_id=plans.organization_id and cm.user_id=(select auth.uid())));
-create policy "admins manage plans" on public.plans for all to authenticated using (private.is_org_admin(organization_id)) with check (private.is_org_admin(organization_id));
-create policy "members read plan deliverables" on public.plan_deliverables for select to authenticated using (exists(select 1 from public.plans p where p.id=plan_id and (private.is_org_staff(p.organization_id) or exists(select 1 from public.clients c join public.client_members cm on cm.client_id=c.id where c.organization_id=p.organization_id and cm.user_id=(select auth.uid())))));
-create policy "admins manage plan deliverables" on public.plan_deliverables for all to authenticated using (exists(select 1 from public.plans p where p.id=plan_id and private.is_org_admin(p.organization_id))) with check (exists(select 1 from public.plans p where p.id=plan_id and private.is_org_admin(p.organization_id)));
-create policy "authorized users read subscriptions" on public.client_subscriptions for select to authenticated using (private.can_access_client(client_id));
-create policy "admins manage subscriptions" on public.client_subscriptions for all to authenticated using (exists(select 1 from public.clients c where c.id=client_id and private.is_org_admin(c.organization_id))) with check (exists(select 1 from public.clients c where c.id=client_id and private.is_org_admin(c.organization_id)));
+create policy "authorized users read service scopes" on public.client_service_scopes for select to authenticated using (private.can_access_client(client_id));
+create policy "admins manage service scopes" on public.client_service_scopes for all to authenticated using (exists(select 1 from public.clients c where c.id=client_id and private.is_org_admin(c.organization_id))) with check (exists(select 1 from public.clients c where c.id=client_id and private.is_org_admin(c.organization_id)));
 create policy "members read client membership" on public.client_members for select to authenticated using (user_id=(select auth.uid()) or private.can_access_client(client_id));
 create policy "admins manage client membership" on public.client_members for all to authenticated using (exists(select 1 from public.clients c where c.id=client_id and private.is_org_admin(c.organization_id))) with check (exists(select 1 from public.clients c where c.id=client_id and private.is_org_admin(c.organization_id)));
 

@@ -1,13 +1,14 @@
 -- Deterministic application seed records. Auth demo users are created by scripts/seed-demo-users.mjs once a local/hosted project is connected.
 insert into public.organizations(id,name,slug,is_demo) values ('10000000-0000-4000-8000-000000000001','Growth1000 Demo Company','growth1000-demo',true);
-insert into public.plans(id,organization_id,name,monthly_amount) values
-('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','Start',499),
-('20000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000001','Growth',999),
-('20000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000001','Scale',1999);
-insert into public.plan_deliverables(plan_id,deliverable_type,label,quantity) values
-('20000000-0000-4000-8000-000000000002','social_post','Social posts',12),('20000000-0000-4000-8000-000000000002','seo_article','SEO articles',2),('20000000-0000-4000-8000-000000000002','seo_review','SEO review',1),('20000000-0000-4000-8000-000000000002','website_check','Website check',1),('20000000-0000-4000-8000-000000000002','monthly_report','Monthly report',1);
 insert into public.clients(id,organization_id,name,slug,industry,city,is_demo,lifecycle_status,health_status) values ('30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','ABC Interiors','abc-interiors','Interior Design / Renovation','Dubai',true,'active','needs_attention');
-insert into public.client_subscriptions(client_id,plan_id,starts_on,next_due_on,payment_status,monthly_amount) values ('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000002','2026-09-01','2026-10-01','paid',999);
+insert into public.client_service_scopes(client_id,service_key,label,monthly_quantity) values
+('30000000-0000-4000-8000-000000000001','seo','SEO',null),
+('30000000-0000-4000-8000-000000000001','social_media','Social Media',12),
+('30000000-0000-4000-8000-000000000001','blogs','Blogs',2),
+('30000000-0000-4000-8000-000000000001','website_maintenance','Website Maintenance',null),
+('30000000-0000-4000-8000-000000000001','website_chatbot','Website Chatbot',null),
+('30000000-0000-4000-8000-000000000001','whatsapp_ai','WhatsApp AI',null),
+('30000000-0000-4000-8000-000000000001','analytics_reporting','Analytics / Reporting',null);
 insert into public.business_profiles(client_id,description,target_customers,value_proposition,tone_of_voice,website,prohibited_claims) values ('30000000-0000-4000-8000-000000000001','Dubai interior design and renovation studio.','Villa and apartment owners in Dubai and Sharjah.','Thoughtful, practical spaces built around everyday life.','Warm, expert, clear','https://example.invalid','Never invent prices, guarantees, certifications or testimonials.');
 insert into public.business_services(client_id,name) values ('30000000-0000-4000-8000-000000000001','Kitchen Renovation'),('30000000-0000-4000-8000-000000000001','Villa Renovation'),('30000000-0000-4000-8000-000000000001','Wardrobes'),('30000000-0000-4000-8000-000000000001','Interior Fit-out');
 insert into public.business_locations(client_id,name) values ('30000000-0000-4000-8000-000000000001','Dubai'),('30000000-0000-4000-8000-000000000001','Sharjah');
@@ -43,6 +44,11 @@ insert into public.seo_pages(client_id,url,title,target_keyword,status,meta_desc
 ('30000000-0000-4000-8000-000000000001','/kitchen-renovation','Kitchen Renovation Dubai','kitchen renovation dubai','live','Practical kitchen renovation services for Dubai homes.','Add verified project examples.'),
 ('30000000-0000-4000-8000-000000000001','/villa-renovation','Villa Renovation Dubai','villa renovation dubai','optimizing','Thoughtful villa renovation and interior fit-out in Dubai.','Supporting guide in internal review.'),
 ('30000000-0000-4000-8000-000000000001','/wardrobes','Custom Wardrobes Dubai','custom wardrobes dubai','needs_attention','Plan fitted wardrobes around storage and everyday use.','Needs original photography.');
+
+insert into public.leads(client_id,source,name,phone,email,service,location,qualification_summary,lead_quality,status,created_at) values
+('30000000-0000-4000-8000-000000000001','whatsapp','Mariam A.','+971500000001',null,'Kitchen renovation','Dubai','Requested a design consultation for a family villa.','qualified','contacted','2026-09-03 10:20+04'),
+('30000000-0000-4000-8000-000000000001','website_chatbot','Omar H.',null,'omar@example.invalid','Villa renovation','Dubai','Shared renovation timeframe and requested a callback.','high_intent','qualified','2026-09-08 14:10+04'),
+('30000000-0000-4000-8000-000000000001','website_form','Sara K.','+971500000002','sara@example.invalid','Wardrobes','Sharjah','Submitted a fitted wardrobe enquiry.','qualified','new','2026-09-11 09:30+04');
 
 insert into public.seo_tasks(client_id,opportunity,title,target_url,impact,status,notes) values
 ('30000000-0000-4000-8000-000000000001','content','Publish villa renovation planning guide','/villa-renovation','high','in_progress','Support the service page with a useful guide and contextual links.'),

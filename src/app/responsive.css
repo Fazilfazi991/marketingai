@@ -36,4 +36,14 @@
   .seo-head,.seo-row{grid-template-columns:minmax(0,1fr) 64px!important}
   .seo-head span:nth-child(2),.seo-row>span:nth-child(2){display:none}
   .request-row{align-items:flex-start!important}
+  .results-kpis,.results-kpis.five{grid-template-columns:repeat(2,1fr)}
+  .results-kpis.five article:last-child{grid-column:1/-1}
+  .results-grid{grid-template-columns:1fr}
+  .lead-hero{padding:22px}
+  .lead-hero h2 b{font-size:48px}
+  .source-breakdown div{grid-template-columns:100px 1fr 28px}
+  .work-completed{grid-template-columns:1fr 1fr}
+  .keyword-table>div{grid-template-columns:1fr 60px 60px}
 }
+
+@media(max-width:560px){html,body,.app-main{overflow-x:hidden}.app-main{min-width:0}.service-scope-options{grid-template-columns:1fr}}
