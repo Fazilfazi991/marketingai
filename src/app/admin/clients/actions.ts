@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { parseKnowledgeFaqs, parseKnowledgeList } from "@/lib/business-knowledge";
 
 export type MutationResult = { ok: true; slug?: string } | { ok: false; error: string };
 const serviceDefinitions = [
@@ -63,8 +64,33 @@ export async function createGrowthClient(formData: FormData): Promise<MutationRe
 export async function saveBusinessKnowledge(slug: string, values: Record<string, string>): Promise<MutationResult> {
   try {
     const { supabase, clientId } = await adminContext(slug);
-    const { error } = await supabase.from("business_profiles").upsert({ client_id: clientId, description: values.description, target_customers: values.customers, value_proposition: values.value, tone_of_voice: values.tone, website: values.website, prohibited_claims: values.claims, updated_at: new Date().toISOString() });
+    const faqs = parseKnowledgeFaqs(values.faqs);
+    const { error } = await supabase.from("business_profiles").upsert({ client_id: clientId, description: values.description.trim() || null, target_customers: values.customers.trim() || null, value_proposition: values.value.trim() || null, tone_of_voice: values.tone.trim() || null, business_hours: values.businessHours.trim() || null, phone: values.phone.trim() || null, whatsapp: values.whatsapp.trim() || null, email: values.email.trim() || null, website: values.website.trim() || null, offers: values.offers.trim() || null, competitors: values.competitors.trim() || null, important_claims: values.importantClaims.trim() || null, prohibited_claims: values.claims.trim() || null, updated_at: new Date().toISOString() });
     if (error) return { ok: false, error: error.message };
+    const { error: clientError } = await supabase.from("clients").update({ industry: values.industry.trim() || null, updated_at: new Date().toISOString() }).eq("id", clientId);
+    if (clientError) return { ok: false, error: clientError.message };
+    for (const [table, requested] of [["business_services", parseKnowledgeList(values.services)], ["business_locations", parseKnowledgeList(values.locations)]] as const) {
+      const { data: existing, error: readError } = await supabase.from(table).select("id,name,status").eq("client_id", clientId);
+      if (readError) return { ok: false, error: readError.message };
+      const desired = new Map(requested.map(name => [name.toLocaleLowerCase(), name]));
+      const known = new Set((existing ?? []).map(item => String(item.name).toLocaleLowerCase()));
+      const activate = (existing ?? []).filter(item => desired.has(String(item.name).toLocaleLowerCase()) && item.status !== "active").map(item => item.id);
+      const deactivate = (existing ?? []).filter(item => !desired.has(String(item.name).toLocaleLowerCase()) && item.status === "active").map(item => item.id);
+      if (activate.length) { const { error: activateError } = await supabase.from(table).update({ status: "active" }).in("id", activate); if (activateError) return { ok: false, error: activateError.message }; }
+      if (deactivate.length) { const { error: deactivateError } = await supabase.from(table).update({ status: "inactive" }).in("id", deactivate); if (deactivateError) return { ok: false, error: deactivateError.message }; }
+      const additions = requested.filter(name => !known.has(name.toLocaleLowerCase())).map(name => ({ client_id: clientId, name }));
+      if (additions.length) { const { error: insertError } = await supabase.from(table).insert(additions); if (insertError) return { ok: false, error: insertError.message }; }
+    }
+    const { data: existingFaqs, error: faqReadError } = await supabase.from("business_faqs").select("id,question,answer").eq("client_id", clientId);
+    if (faqReadError) return { ok: false, error: faqReadError.message };
+    const desiredQuestions = new Set(faqs.map(item => item.question.toLocaleLowerCase()));
+    for (const faq of faqs) {
+      const existing = (existingFaqs ?? []).find(item => String(item.question).toLocaleLowerCase() === faq.question.toLocaleLowerCase());
+      const response = existing ? await supabase.from("business_faqs").update({ question: faq.question, answer: faq.answer, verified: true }).eq("id", existing.id) : await supabase.from("business_faqs").insert({ client_id: clientId, ...faq, verified: true });
+      if (response.error) return { ok: false, error: response.error.message };
+    }
+    const removedFaqs = (existingFaqs ?? []).filter(item => !desiredQuestions.has(String(item.question).toLocaleLowerCase())).map(item => item.id);
+    if (removedFaqs.length) { const { error: deleteError } = await supabase.from("business_faqs").delete().in("id", removedFaqs); if (deleteError) return { ok: false, error: deleteError.message }; }
     revalidatePath(`/admin/clients/${slug}/business`);
     return { ok: true };
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Unable to save business knowledge." }; }

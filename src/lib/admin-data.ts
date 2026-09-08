@@ -31,8 +31,16 @@ export type AdminClientWorkspaceData = {
     customers: string;
     value: string;
     tone: string;
+    businessHours: string;
+    phone: string;
+    whatsapp: string;
+    email: string;
     website: string;
+    offers: string;
+    competitors: string;
+    importantClaims: string;
     claims: string;
+    faqs: string;
   };
   access: Array<{ name: string; status: string; platform: string; accountReference: string; notes: string; verifiedAt?: string }>;
   scope: Array<{ key: string; label: string; enabled: boolean; quantity: number }>;
@@ -67,12 +75,20 @@ function demoAdminClient(slug: string): AdminClientWorkspaceData {
       description: `${identity.name} is a demo client workspace used to preview Growth1000 operations.`,
       industry: slug === "abc-interiors" ? "Interior Design / Renovation" : "",
       services: slug === "abc-interiors" ? "Kitchen Renovation, Villa Renovation, Wardrobes, Interior Fit-out" : "",
-      locations: identity.location.replace(", UAE", ""),
+      locations: slug === "abc-interiors" ? "Dubai, Sharjah" : identity.location.replace(", UAE", ""),
       customers: "Local customers in the UAE",
       value: "Clear, measurable growth",
       tone: "Warm, expert, clear",
-      website: "",
+      businessHours: "Monday–Saturday, 9:00 AM–6:00 PM",
+      phone: "+971 4 555 0100",
+      whatsapp: "+971 50 555 0100",
+      email: "hello@abcinteriors.example",
+      website: slug === "abc-interiors" ? "https://abcinteriors.example" : "",
+      offers: "Free initial design consultation",
+      competitors: "Local Dubai renovation and fit-out studios",
+      importantClaims: "Serves Dubai and Sharjah; specializes in practical residential renovation.",
       claims: "Never invent prices, guarantees, certifications or testimonials.",
+      faqs: "Do you renovate occupied villas? | Project feasibility is confirmed during the initial consultation.\nWhich locations do you serve? | Dubai and Sharjah.",
     },
     access: accessTypes.map(name => ({ name, status: name === "WhatsApp" ? "Pending" : "Connected", platform: name, accountReference: name === "Website" ? "abcinteriors.example" : "Demo account reference", notes: name === "WhatsApp" ? "Awaiting business account access." : "Demo access confirmed." })),
     scope: [
@@ -133,10 +149,11 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
   if (error) return null;
   const clientId = client.id as string;
   const month = new Date().toISOString().slice(0, 7), monthStart = `${month}-01`, endDate = new Date(`${monthStart}T00:00:00Z`); endDate.setUTCMonth(endDate.getUTCMonth() + 1); const monthEnd = endDate.toISOString().slice(0, 10);
-  const [{ data: profile, error: profileError }, { data: services, error: servicesError }, { data: locations, error: locationsError }, { data: access, error: accessError }, { data: scope, error: scopeError }, { data: leads, error: leadsError }, {data:tasks,error:tasksError},{data:reports,error:reportsError},{data:analytics,error:analyticsError},{data:search,error:searchError},{data:blogs,error:blogsError},{data:keywords,error:keywordsError},{data:seoActions,error:seoActionsError},{data:activity,error:activityError}] = await Promise.all([
-    supabase.from("business_profiles").select("description,target_customers,value_proposition,tone_of_voice,website,prohibited_claims").eq("client_id", clientId).maybeSingle(),
+  const [{ data: profile, error: profileError }, { data: services, error: servicesError }, { data: locations, error: locationsError }, { data: faqs, error: faqError }, { data: access, error: accessError }, { data: scope, error: scopeError }, { data: leads, error: leadsError }, {data:tasks,error:tasksError},{data:reports,error:reportsError},{data:analytics,error:analyticsError},{data:search,error:searchError},{data:blogs,error:blogsError},{data:keywords,error:keywordsError},{data:seoActions,error:seoActionsError},{data:activity,error:activityError}] = await Promise.all([
+    supabase.from("business_profiles").select("description,target_customers,value_proposition,tone_of_voice,business_hours,phone,whatsapp,email,website,offers,competitors,important_claims,prohibited_claims").eq("client_id", clientId).maybeSingle(),
     supabase.from("business_services").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
     supabase.from("business_locations").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
+    supabase.from("business_faqs").select("question,answer").eq("client_id",clientId).order("question"),
     supabase.from("client_access").select("access_type,platform,status,account_reference,notes,verified_at").eq("client_id", clientId).order("access_type"),
     supabase.from("client_service_scopes").select("service_key,label,enabled,monthly_quantity").eq("client_id", clientId).order("label"),
     supabase.from("leads").select("id,name,phone,email,source,service,lead_quality,status,created_at").eq("client_id", clientId).order("created_at", { ascending: false }).limit(100),
@@ -149,13 +166,13 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
     supabase.from("seo_tasks").select("id,title,target_url,status,impact").eq("client_id",clientId).order("updated_at",{ascending:false}).limit(30),
     supabase.from("audit_logs").select("id,action,entity_type,metadata,created_at,profiles(full_name)").eq("client_id",clientId).order("created_at",{ascending:false}).limit(40),
   ]);
-  for (const requestError of [profileError, servicesError, locationsError, accessError, scopeError, leadsError,tasksError,reportsError,analyticsError,searchError,blogsError,keywordsError,seoActionsError,activityError]) if (requestError) throw requestError;
+  for (const requestError of [profileError, servicesError, locationsError, faqError, accessError, scopeError, leadsError,tasksError,reportsError,analyticsError,searchError,blogsError,keywordsError,seoActionsError,activityError]) if (requestError) throw requestError;
   const { data: period, error: periodError } = await supabase.from("delivery_periods").select("month,delivery_obligations(deliverable_type,label,promised_quantity,delivered_quantity,status)").eq("client_id", clientId).eq("month", monthStart).maybeSingle();
   if (periodError) throw periodError;
   const obligations = (period?.delivery_obligations ?? []) as Array<{deliverable_type:string;label:string;promised_quantity:number;delivered_quantity:number;status:string}>;
   return {
     id: clientId, name: String(client.name), slug: String(client.slug), location: [client.city, client.country].filter(Boolean).join(", "), health: titleCase(String(client.health_status)), lifecycle:titleCase(String(client.lifecycle_status)),city:client.city??"",country:client.country??"UAE",
-    profile: { description: profile?.description ?? "", industry: client.industry ?? "", services: (services ?? []).map(item => item.name).join(", "), locations: (locations ?? []).map(item => item.name).join(", "), customers: profile?.target_customers ?? "", value: profile?.value_proposition ?? "", tone: profile?.tone_of_voice ?? "", website: profile?.website ?? "", claims: profile?.prohibited_claims ?? "" },
+    profile: { description: profile?.description ?? "", industry: client.industry ?? "", services: (services ?? []).map(item => item.name).join(", "), locations: (locations ?? []).map(item => item.name).join(", "), customers: profile?.target_customers ?? "", value: profile?.value_proposition ?? "", tone: profile?.tone_of_voice ?? "", businessHours: profile?.business_hours ?? "", phone: profile?.phone ?? "", whatsapp: profile?.whatsapp ?? "", email: profile?.email ?? "", website: profile?.website ?? "", offers: profile?.offers ?? "", competitors: profile?.competitors ?? "", importantClaims: profile?.important_claims ?? "", claims: profile?.prohibited_claims ?? "", faqs: (faqs ?? []).map(item => `${item.question} | ${item.answer}`).join("\n") },
     access: accessTypes.map(name => {
       const match = (access ?? []).find(item => titleCase(String(item.access_type)) === name);
       return { name, status: match ? titleCase(String(match.status)) : "Not Connected", platform: match?.platform ?? name, accountReference: match?.account_reference ?? "", notes: match?.notes ?? "", verifiedAt: match?.verified_at ? new Intl.DateTimeFormat("en-AE", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Dubai" }).format(new Date(match.verified_at)) : undefined };
