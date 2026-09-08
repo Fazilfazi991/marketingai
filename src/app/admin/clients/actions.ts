@@ -31,17 +31,27 @@ export async function createGrowthClient(formData: FormData): Promise<MutationRe
     const name = String(formData.get("name") ?? "").trim();
     const slug = slugify(name);
     if (!name || !slug) return { ok: false, error: "Business name is required." };
-    const { supabase, organizationId } = await adminContext();
+    const { supabase, user, organizationId } = await adminContext();
     const { data: client, error } = await supabase.from("clients").insert({ organization_id: organizationId, name, slug, industry: String(formData.get("industry") ?? "").trim() || null, city: String(formData.get("location") ?? "").trim() || null, lifecycle_status: "onboarding", health_status: "healthy" }).select("id").single();
     if (error) return { ok: false, error: error.code === "23505" ? "A client with this name already exists." : error.message };
     const scopes = serviceDefinitions.filter(([key]) => formData.get(key) === "on").map(([service_key, label]) => ({ client_id: client.id, service_key, label, enabled: true, monthly_quantity: service_key === "social_media" ? 12 : service_key === "blogs" ? 2 : 1 }));
+    let createdScopes: Array<{ id: string; service_key: string; label: string; monthly_quantity: number | null }> = [];
     if (scopes.length) {
-      const { error: scopeError } = await supabase.from("client_service_scopes").insert(scopes);
+      const { data, error: scopeError } = await supabase.from("client_service_scopes").insert(scopes).select("id,service_key,label,monthly_quantity");
       if (scopeError) { await supabase.from("clients").delete().eq("id", client.id); return { ok: false, error: scopeError.message }; }
+      createdScopes = (data ?? []) as typeof createdScopes;
     }
     const accessRows = ["website", "google_analytics", "search_console", "instagram", "facebook", "whatsapp"].map(access_type => ({ client_id: client.id, access_type, status: "not_connected" }));
     const { error: accessError } = await supabase.from("client_access").insert(accessRows);
     if (accessError) { await supabase.from("clients").delete().eq("id", client.id); return { ok: false, error: accessError.message }; }
+    if (createdScopes.length) {
+      const month = `${new Date().toISOString().slice(0, 7)}-01`;
+      const { data: period, error: periodError } = await supabase.from("delivery_periods").insert({ client_id: client.id, month, generated_by: user.id }).select("id").single();
+      if (periodError) { await supabase.from("clients").delete().eq("id", client.id); return { ok: false, error: periodError.message }; }
+      const obligations = createdScopes.map(scope => ({ delivery_period_id: period.id, client_service_scope_id: scope.id, deliverable_type: scope.service_key, label: scope.label, promised_quantity: Math.max(1, Number(scope.monthly_quantity ?? 1)) }));
+      const { error: obligationError } = await supabase.from("delivery_obligations").insert(obligations);
+      if (obligationError) { await supabase.from("clients").delete().eq("id", client.id); return { ok: false, error: obligationError.message }; }
+    }
     revalidatePath("/admin/clients");
     return { ok: true, slug };
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Unable to create client." }; }
@@ -78,6 +88,23 @@ export async function saveServiceScope(slug: string, scope: Array<{ key: string;
     revalidatePath(`/admin/clients/${slug}/scope`);
     return { ok: true };
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Unable to save service scope." }; }
+}
+
+export async function generateDeliveryPeriod(slug: string, month: string): Promise<MutationResult> {
+  try {
+    if (!/^\d{4}-\d{2}$/.test(month)) return { ok: false, error: "Choose a valid delivery month." };
+    const { supabase, user, clientId } = await adminContext(slug), monthStart = `${month}-01`;
+    const { data: period, error: periodError } = await supabase.from("delivery_periods").upsert({ client_id: clientId, month: monthStart, generated_by: user.id, generated_at: new Date().toISOString() }, { onConflict: "client_id,month" }).select("id").single();
+    if (periodError) return { ok: false, error: periodError.message };
+    const { data: scopes, error: scopeError } = await supabase.from("client_service_scopes").select("id,service_key,label,monthly_quantity").eq("client_id", clientId).eq("enabled", true);
+    if (scopeError) return { ok: false, error: scopeError.message };
+    if (!(scopes ?? []).length) return { ok: false, error: "Enable at least one service before generating obligations." };
+    const rows = (scopes ?? []).map(scope => ({ delivery_period_id: period.id, client_service_scope_id: scope.id, deliverable_type: scope.service_key, label: scope.label, promised_quantity: Math.max(1, Number(scope.monthly_quantity ?? 1)) }));
+    const { error } = await supabase.from("delivery_obligations").upsert(rows, { onConflict: "delivery_period_id,client_service_scope_id", ignoreDuplicates: true });
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`/admin/clients/${slug}`);
+    return { ok: true };
+  } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Unable to generate monthly obligations." }; }
 }
 
 export async function createLead(slug: string, formData: FormData): Promise<MutationResult & { id?: string }> {
