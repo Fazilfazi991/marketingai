@@ -1,7 +1,7 @@
 export const clients = [
-  { name: "ABC Interiors", plan: "Growth", value: "AED 999", status: "Active", health: "Needs attention", progress: 84, access: "WhatsApp pending", renewal: "Oct 1", owner: "Maya" },
-  { name: "Smile Dental", plan: "Scale", value: "AED 1,999", status: "Active", health: "Healthy", progress: 100, access: "All connected", renewal: "Oct 6", owner: "Maya" },
-  { name: "XYZ Maintenance", plan: "Start", value: "AED 499", status: "Onboarding", health: "At risk", progress: 58, access: "Search Console missing", renewal: "Oct 12", owner: "Omar" },
+  { name: "ABC Interiors", services: "7 active services", status: "Active", health: "Needs attention", progress: 84, access: "WhatsApp pending", owner: "Maya" },
+  { name: "Smile Dental", services: "5 active services", status: "Active", health: "Healthy", progress: 100, access: "All connected", owner: "Maya" },
+  { name: "XYZ Maintenance", services: "Service scope pending", status: "Onboarding", health: "At risk", progress: 58, access: "Search Console missing", owner: "Omar" },
 ];
 export const deliverables = [
   { label: "Social posts", value: 98, total: 120, accent: "violet" }, { label: "SEO articles", value: 16, total: 20, accent: "blue" },
@@ -26,11 +26,6 @@ export const tasks = [
   { title: "Review November social batch", client: "ABC Interiors", due: "Today", status: "Awaiting review", priority: "High" },
   { title: "Approve dental implant article", client: "Smile Dental", due: "Tomorrow", status: "Draft", priority: "Medium" },
   { title: "Confirm Search Console access", client: "XYZ Maintenance", due: "2 days", status: "Blocked", priority: "High" },
-];
-export const plans = [
-  { name:"Start", price:499, clients:3, deliverables:["6 Social posts","1 SEO article","1 Website check","1 Monthly report"] },
-  { name:"Growth", price:999, clients:5, featured:true, deliverables:["12 Social posts","2 SEO articles","1 SEO review","1 Website check","1 Monthly report"] },
-  { name:"Scale", price:1999, clients:2, deliverables:["20 Social posts","4 SEO articles","2 SEO reviews","2 Website checks","1 Monthly report"] },
 ];
 export const monthlyObligations = [
   {type:"Social posts",done:9,total:12},{type:"SEO articles",done:1,total:2},{type:"SEO review",done:1,total:1},{type:"Website check",done:1,total:1},{type:"Monthly report",done:0,total:1},

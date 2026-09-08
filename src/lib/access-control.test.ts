@@ -1,2 +1,24 @@
-import {describe,expect,it} from "vitest";import {canOpenPath,homeForRole} from "./access-control";
-describe("role route isolation",()=>{it("isolates the results-only client portal",()=>{expect(canOpenPath("client","/client/reports")).toBe(true);expect(canOpenPath("client","/client/leads")).toBe(true);expect(canOpenPath("client","/client/content")).toBe(false);expect(canOpenPath("client","/admin/clients/other")).toBe(false);expect(canOpenPath("client","/staff")).toBe(false)});it("keeps staff out of admin and client areas",()=>{expect(canOpenPath("staff","/staff/issues")).toBe(true);expect(canOpenPath("staff","/admin/plans")).toBe(false);expect(canOpenPath("staff","/client")).toBe(false)});it("routes each role to its workspace",()=>{expect(homeForRole("admin")).toBe("/admin");expect(homeForRole("staff")).toBe("/staff");expect(homeForRole("client")).toBe("/client")})});
+import { describe, expect, it } from "vitest";
+import { canOpenPath, homeForRole } from "./access-control";
+
+describe("role route isolation", () => {
+  it("isolates the results-only client portal", () => {
+    expect(canOpenPath("client", "/client/reports")).toBe(true);
+    expect(canOpenPath("client", "/client/leads")).toBe(true);
+    expect(canOpenPath("client", "/client/content")).toBe(false);
+    expect(canOpenPath("client", "/admin/clients/other")).toBe(false);
+    expect(canOpenPath("client", "/staff")).toBe(false);
+  });
+
+  it("keeps staff out of admin and client areas", () => {
+    expect(canOpenPath("staff", "/staff/issues")).toBe(true);
+    expect(canOpenPath("staff", "/admin/clients")).toBe(false);
+    expect(canOpenPath("staff", "/client")).toBe(false);
+  });
+
+  it("routes each role to its workspace", () => {
+    expect(homeForRole("admin")).toBe("/admin");
+    expect(homeForRole("staff")).toBe("/staff");
+    expect(homeForRole("client")).toBe("/client");
+  });
+});

@@ -1,4 +1,4 @@
--- Client portal permissions are tenant-scoped and exclude internal notes, automation runs, and billing administration.
+-- Client portal permissions are tenant-scoped and exclude internal notes and automation runs.
 create function private.is_client_member(target_client uuid) returns boolean language sql stable security definer set search_path='' as $$
   select exists(select 1 from public.client_members cm where cm.client_id=target_client and cm.user_id=(select auth.uid()))
 $$;
