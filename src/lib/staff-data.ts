@@ -5,13 +5,13 @@ import { isDemoMode } from "@/lib/demo-mode";
 import { createClient } from "@/lib/supabase/server";
 
 export type StaffQueueStatus = "Ready to schedule" | "Scheduled" | "Published" | "Issue";
-export type StaffQueueItem = { id:string; client:string; date:string; time:string; platform:string; topic:string; caption:string; hashtags:string; issueNote:string; status:StaffQueueStatus; color:string; storagePath:string|null };
+export type StaffQueueItem = { id:string; client:string; month:string; date:string; time:string; platform:string; topic:string; caption:string; hashtags:string; issueNote:string; status:StaffQueueStatus; color:string; storagePath:string|null };
 export type StaffQueueData = { items:StaffQueueItem[]; clients:string[]; periodLabel:string; isDemo:boolean };
 const statusLabel:Record<string,StaffQueueStatus>={ready_to_post:"Ready to schedule",scheduled:"Scheduled",published:"Published",issue:"Issue"};
 const palettes=["coral","sage","sand","blue"];
 
-function formatSchedule(value:string|null){if(!value)return{date:"Date pending",time:"Time pending"};const date=new Date(value);return{date:new Intl.DateTimeFormat("en",{day:"2-digit",month:"short",timeZone:"Asia/Dubai"}).format(date),time:new Intl.DateTimeFormat("en",{hour:"numeric",minute:"2-digit",timeZone:"Asia/Dubai"}).format(date)}}
-const demoItems:StaffQueueItem[]=posts.filter(post=>["Ready to schedule","Scheduled","Published","Issue"].includes(post.status)).map(post=>({id:String(post.id),client:"ABC Interiors",date:post.date,time:post.time,platform:post.platform,topic:post.topic,caption:post.caption,hashtags:"#DubaiInteriors #InteriorDesignUAE #HomeRenovation",issueNote:"",status:post.status as StaffQueueStatus,color:post.color,storagePath:null}));
+function formatSchedule(value:string|null){if(!value)return{month:"Unscheduled",date:"Date pending",time:"Time pending"};const date=new Date(value);return{month:new Intl.DateTimeFormat("en",{month:"long",year:"numeric",timeZone:"Asia/Dubai"}).format(date),date:new Intl.DateTimeFormat("en",{day:"2-digit",month:"short",timeZone:"Asia/Dubai"}).format(date),time:new Intl.DateTimeFormat("en",{hour:"numeric",minute:"2-digit",timeZone:"Asia/Dubai"}).format(date)}}
+const demoItems:StaffQueueItem[]=posts.filter(post=>["Ready to schedule","Scheduled","Published","Issue"].includes(post.status)).map(post=>({id:String(post.id),client:"ABC Interiors",month:"November 2026",date:post.date,time:post.time,platform:post.platform,topic:post.topic,caption:post.caption,hashtags:"#DubaiInteriors #InteriorDesignUAE #HomeRenovation",issueNote:"",status:post.status as StaffQueueStatus,color:post.color,storagePath:null}));
 
 export async function loadStaffQueue():Promise<StaffQueueData>{
   if(isDemoMode())return{items:demoItems,clients:["ABC Interiors"],periodLabel:"November 2026",isDemo:true};

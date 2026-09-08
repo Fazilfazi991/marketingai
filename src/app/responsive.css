@@ -27,8 +27,8 @@
   .editor-drawer{width:100%!important}
   .editor-drawer footer{flex-wrap:wrap}
   .editor-drawer footer span{display:none}
-  .posting-filters{align-items:stretch!important}
-  .posting-filters select{display:none}
+  .posting-filters{align-items:stretch!important;flex-wrap:wrap}
+  .posting-filters select{display:block;flex:1 1 100%}
   .client-kpis{grid-template-columns:1fr!important}
   .portal-content-grid{grid-template-columns:1fr!important}
   .portal-form{grid-template-columns:1fr!important}
