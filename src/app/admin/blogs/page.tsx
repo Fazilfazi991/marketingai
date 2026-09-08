@@ -1,2 +1,2 @@
-import { AppShell } from "@/components/app-shell"; import { BlogsWorkspace } from "@/components/blogs-seo-workspace";
-export default function BlogsPage(){return <AppShell role="admin" title="Blogs" subtitle="Research, draft and approve client articles without automatic website publishing."><BlogsWorkspace/></AppShell>}
+import {AppShell} from "@/components/app-shell";import {AdminBlogs} from "@/components/admin-growth-workspaces";import {loadAdminGrowth} from "@/lib/admin-growth-data";
+export default async function BlogsPage(){const data=await loadAdminGrowth();return <AppShell role="admin" title="Blogs" subtitle="Research, draft and internally approve client articles for implementation."><AdminBlogs initial={data.blogs} clients={data.clients} isDemo={data.isDemo}/></AppShell>}
