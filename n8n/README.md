@@ -1,5 +1,7 @@
 # Growth1000 n8n workflows
 
+`DAILY_GOOGLE_SYNC.json` is the generic daily live-data worker. It calls one authenticated Growth1000 endpoint, which discovers every active non-demo client with connected Google properties, normalizes real API responses into daily tables, records import outcomes, and marks failed integrations as needing attention. It is intentionally inactive in source; activate it in n8n only after the feature branch is approved and deployed.
+
 These workflows are generic. Never duplicate them per client.
 
 - `MONTHLY_SOCIAL(client_id, month, run_id)` loads verified business knowledge through Growth1000, generates the configured quantity, creates image placeholders, and stops at `needs_review`.

@@ -41,4 +41,5 @@ describe("Supabase migration security",()=>{
     expect(sql).toContain("revoke all on function public.client_keyword_results() from public, anon");
     expect(sql).toContain("grant execute on function public.client_keyword_results() to authenticated");
   });
+  it("protects real-client integration tables and scoped result health",()=>{expect(sql).toContain("alter table public.analytics_page_daily enable row level security");expect(sql).toContain("alter table public.client_sites enable row level security");expect(sql).toContain("revoke all on public.client_sites from anon");expect(sql).toContain("where m.client_id=i.client_id and m.user_id=(select auth.uid())")});
 });

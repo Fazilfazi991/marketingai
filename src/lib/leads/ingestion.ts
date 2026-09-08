@@ -1,6 +1,6 @@
 export const leadSources = ["website_form", "website_chatbot", "whatsapp", "manual", "instagram", "facebook", "google_business", "phone", "other"] as const;
 export const leadQualities = ["unqualified", "qualified", "high_intent", "disqualified"] as const;
-export const leadStatuses = ["new", "contacted", "qualified", "won", "lost", "spam"] as const;
+export const leadStatuses = ["new", "qualified", "general", "contacted", "won", "lost", "spam"] as const;
 
 type LeadSource = typeof leadSources[number];
 type LeadQuality = typeof leadQualities[number];

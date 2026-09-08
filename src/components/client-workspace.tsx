@@ -2,68 +2,1218 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { generateDeliveryPeriod, saveBusinessKnowledge, saveClientAccess, saveClientDetails, saveServiceScope } from "@/app/admin/clients/actions";
+import {
+  createClientSite,
+  generateDeliveryPeriod,
+  inviteClientUser,
+  saveBusinessKnowledge,
+  saveClientAccess,
+  saveClientDetails,
+  saveGoogleIntegrations,
+  saveServiceScope,
+} from "@/app/admin/clients/actions";
 import type { AdminClientWorkspaceData } from "@/lib/admin-data";
 import { access as seedAccess, monthlyObligations } from "@/lib/demo-data";
 import { Panel, Status } from "./ui";
 import { LeadManager } from "./lead-manager";
 
-const tabs = ["overview", "business", "access", "scope", "social", "blogs", "seo", "website", "analytics", "leads", "reports", "tasks", "notes"];
-const labels: Record<string, string> = { business: "Business Knowledge", scope: "Service Scope" };
-const initialProfile = { description: "ABC Interiors is a Dubai interior design and renovation studio focused on thoughtful, practical spaces.", industry: "Interior Design / Renovation", services: "Kitchen Renovation, Villa Renovation, Wardrobes, Interior Fit-out", locations: "Dubai, Sharjah", customers: "Villa and apartment owners", value: "Thoughtful spaces built around everyday life", tone: "Warm, expert, clear", businessHours: "Monday–Saturday, 9:00 AM–6:00 PM", phone: "+971 4 555 0100", whatsapp: "+971 50 555 0100", email: "hello@abcinteriors.example", website: "https://abcinteriors.example", offers: "Free initial design consultation", competitors: "Local Dubai renovation and fit-out studios", importantClaims: "Serves Dubai and Sharjah; specializes in practical residential renovation.", claims: "Never invent prices, guarantees, certifications or testimonials.", faqs: "Do you renovate occupied villas? | Project feasibility is confirmed during the initial consultation.\nWhich locations do you serve? | Dubai and Sharjah." };
+const tabs = [
+  "overview",
+  "business",
+  "access",
+  "scope",
+  "social",
+  "blogs",
+  "seo",
+  "website",
+  "analytics",
+  "leads",
+  "reports",
+  "tasks",
+  "notes",
+];
+const labels: Record<string, string> = {
+  business: "Business Knowledge",
+  scope: "Service Scope",
+};
+const initialProfile = {
+  description:
+    "ABC Interiors is a Dubai interior design and renovation studio focused on thoughtful, practical spaces.",
+  industry: "Interior Design / Renovation",
+  services: "Kitchen Renovation, Villa Renovation, Wardrobes, Interior Fit-out",
+  locations: "Dubai, Sharjah",
+  customers: "Villa and apartment owners",
+  value: "Thoughtful spaces built around everyday life",
+  tone: "Warm, expert, clear",
+  businessHours: "Monday–Saturday, 9:00 AM–6:00 PM",
+  phone: "+971 4 555 0100",
+  whatsapp: "+971 50 555 0100",
+  email: "hello@abcinteriors.example",
+  website: "https://abcinteriors.example",
+  offers: "Free initial design consultation",
+  competitors: "Local Dubai renovation and fit-out studios",
+  importantClaims:
+    "Serves Dubai and Sharjah; specializes in practical residential renovation.",
+  claims: "Never invent prices, guarantees, certifications or testimonials.",
+  faqs: "Do you renovate occupied villas? | Project feasibility is confirmed during the initial consultation.\nWhich locations do you serve? | Dubai and Sharjah.",
+};
 const initialScope = [
   { key: "seo", label: "SEO", enabled: true, quantity: 1 },
-  { key: "social_media", label: "Social media posts", enabled: true, quantity: 12 },
+  {
+    key: "social_media",
+    label: "Social media posts",
+    enabled: true,
+    quantity: 12,
+  },
   { key: "blogs", label: "SEO blogs", enabled: true, quantity: 2 },
-  { key: "website_maintenance", label: "Website maintenance", enabled: true, quantity: 1 },
-  { key: "website_chatbot", label: "Website AI chatbot", enabled: true, quantity: 1 },
+  {
+    key: "website_maintenance",
+    label: "Website maintenance",
+    enabled: true,
+    quantity: 1,
+  },
+  {
+    key: "website_chatbot",
+    label: "Website AI chatbot",
+    enabled: true,
+    quantity: 1,
+  },
   { key: "whatsapp_ai", label: "WhatsApp AI", enabled: true, quantity: 1 },
-  { key: "analytics_reporting", label: "Analytics and reporting", enabled: true, quantity: 1 },
+  {
+    key: "analytics_reporting",
+    label: "Analytics and reporting",
+    enabled: true,
+    quantity: 1,
+  },
 ];
 
-export function ClientWorkspace({ section, initial, live = false }: { section: string; initial?: AdminClientWorkspaceData; live?: boolean }) {
+export function ClientWorkspace({
+  section,
+  initial,
+  live = false,
+}: {
+  section: string;
+  initial?: AdminClientWorkspaceData;
+  live?: boolean;
+}) {
   const slug = initial?.slug ?? "abc-interiors";
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState("");
   const [profile, setProfile] = useState(initial?.profile ?? initialProfile);
-  const [connections, setConnections] = useState(initial?.access ?? seedAccess.map(([name, status]) => ({ name, status: status as string, platform: name, accountReference: "Demo account reference", notes: status === "Pending" ? "Access is still required." : "Demo access confirmed.", verifiedAt: undefined as string | undefined })));
+  const [connections, setConnections] = useState(
+    initial?.access ??
+      seedAccess.map(([name, status]) => ({
+        name,
+        status: status as string,
+        platform: name,
+        accountReference: "Demo account reference",
+        notes:
+          status === "Pending"
+            ? "Access is still required."
+            : "Demo access confirmed.",
+        verifiedAt: undefined as string | undefined,
+      })),
+  );
   const [scope, setScope] = useState(initial?.scope ?? initialScope);
   const [generated, setGenerated] = useState(false);
-  const [deliveryMonth, setDeliveryMonth] = useState(initial?.delivery.month ?? "2026-09");
-  const [editingClient,setEditingClient]=useState(false),[details,setDetails]=useState({name:initial?.name??"ABC Interiors",industry:initial?.profile.industry??"",city:initial?.city??"Dubai",country:initial?.country??"UAE",lifecycle:initial?.lifecycle??"Active",health:initial?.health??"Healthy"});
+  const [deliveryMonth, setDeliveryMonth] = useState(
+    initial?.delivery.month ?? "2026-09",
+  );
+  const [editingClient, setEditingClient] = useState(false),
+    [details, setDetails] = useState({
+      name: initial?.name ?? "ABC Interiors",
+      industry: initial?.profile.industry ?? "",
+      city: initial?.city ?? "Dubai",
+      country: initial?.country ?? "UAE",
+      lifecycle: initial?.lifecycle ?? "Active",
+      health: initial?.health ?? "Healthy",
+    });
+  const [google, setGoogle] = useState(
+    initial?.integrations ?? {
+      ga4PropertyId: "",
+      ga4Status: "not_connected",
+      searchConsoleSiteUrl: "",
+      searchStatus: "not_connected",
+    },
+  );
+  const [invite, setInvite] = useState({ email: "", name: "" }),
+    [siteOrigin, setSiteOrigin] = useState(initial?.profile.website ?? ""),
+    [siteCredential, setSiteCredential] = useState<{
+      siteIdentifier: string;
+      siteKey: string;
+    } | null>(null);
 
-  const saveProfile = async () => { if (live) { const result = await saveBusinessKnowledge(slug, profile); setNotice(result.ok ? "Business knowledge saved securely." : result.error); } else { localStorage.setItem("g1-abc-profile", JSON.stringify(profile)); setNotice("Business knowledge saved in local demo mode."); } setSaved(true); };
-  const updateAccess = (name: string, values: Partial<(typeof connections)[number]>) => setConnections(items => items.map(item => item.name === name ? { ...item, ...values } : item));
-  const persistAccess = async (name: string) => { const item = connections.find(connection => connection.name === name); if (!item) return; if (live) { const result = await saveClientAccess(slug, item); setNotice(result.ok ? `${name} access details updated securely.` : result.error); if (result.ok) window.location.reload(); } else { localStorage.setItem("g1-abc-access", JSON.stringify(connections)); setNotice("Access details saved in local demo mode."); } setSaved(true); };
-  const saveScope = async () => { if (live) { const result = await saveServiceScope(slug, scope); setNotice(result.ok ? "Service scope saved securely." : result.error); } else { localStorage.setItem("g1-abc-service-scope", JSON.stringify(scope)); setNotice("Service scope saved in local demo mode."); } setSaved(true); };
-  const generateDelivery = async () => { if (live) { const result = await generateDeliveryPeriod(slug, deliveryMonth); setNotice(result.ok ? "Monthly obligations generated from the active service scope." : result.error); if (result.ok) window.location.reload(); } else { setNotice("Monthly obligations generated in local demo mode."); setGenerated(true); } setSaved(true); };
-  const saveDetails=async()=>{if(live){const result=await saveClientDetails(slug,details);setNotice(result.ok?"Client details updated.":result.error);if(result.ok)window.location.reload()}else setNotice("Client details updated in local demo mode.");setSaved(true);setEditingClient(false)};
+  const saveProfile = async () => {
+    if (live) {
+      const result = await saveBusinessKnowledge(slug, profile);
+      setNotice(
+        result.ok ? "Business knowledge saved securely." : result.error,
+      );
+    } else {
+      localStorage.setItem("g1-abc-profile", JSON.stringify(profile));
+      setNotice("Business knowledge saved in local demo mode.");
+    }
+    setSaved(true);
+  };
+  const updateAccess = (
+    name: string,
+    values: Partial<(typeof connections)[number]>,
+  ) =>
+    setConnections((items) =>
+      items.map((item) => (item.name === name ? { ...item, ...values } : item)),
+    );
+  const persistAccess = async (name: string) => {
+    const item = connections.find((connection) => connection.name === name);
+    if (!item) return;
+    if (live) {
+      const result = await saveClientAccess(slug, item);
+      setNotice(
+        result.ok ? `${name} access details updated securely.` : result.error,
+      );
+      if (result.ok) window.location.reload();
+    } else {
+      localStorage.setItem("g1-abc-access", JSON.stringify(connections));
+      setNotice("Access details saved in local demo mode.");
+    }
+    setSaved(true);
+  };
+  const saveScope = async () => {
+    if (live) {
+      const result = await saveServiceScope(slug, scope);
+      setNotice(result.ok ? "Service scope saved securely." : result.error);
+    } else {
+      localStorage.setItem("g1-abc-service-scope", JSON.stringify(scope));
+      setNotice("Service scope saved in local demo mode.");
+    }
+    setSaved(true);
+  };
+  const generateDelivery = async () => {
+    if (live) {
+      const result = await generateDeliveryPeriod(slug, deliveryMonth);
+      setNotice(
+        result.ok
+          ? "Monthly obligations generated from the active service scope."
+          : result.error,
+      );
+      if (result.ok) window.location.reload();
+    } else {
+      setNotice("Monthly obligations generated in local demo mode.");
+      setGenerated(true);
+    }
+    setSaved(true);
+  };
+  const saveDetails = async () => {
+    if (live) {
+      const result = await saveClientDetails(slug, details);
+      setNotice(result.ok ? "Client details updated." : result.error);
+      if (result.ok) window.location.reload();
+    } else setNotice("Client details updated in local demo mode.");
+    setSaved(true);
+    setEditingClient(false);
+  };
+  const saveGoogle = async () => {
+    if (!live) return;
+    const result = await saveGoogleIntegrations(slug, google);
+    setNotice(
+      result.ok ? "Google property configuration saved." : result.error,
+    );
+    setSaved(true);
+  };
+  const provision = async () => {
+    if (!live) return;
+    const result = await inviteClientUser(slug, invite.email, invite.name);
+    setNotice(
+      result.ok
+        ? "Client user invited and linked to this workspace."
+        : result.error,
+    );
+    setSaved(true);
+  };
+  const issueSite = async () => {
+    if (!live) return;
+    const result = await createClientSite(slug, siteOrigin);
+    if (result.ok && result.siteIdentifier && result.siteKey)
+      setSiteCredential({
+        siteIdentifier: result.siteIdentifier,
+        siteKey: result.siteKey,
+      });
+    setNotice(
+      result.ok
+        ? "Site credential created. Copy it now; the key is shown once."
+        : result.error,
+    );
+    setSaved(true);
+  };
 
-  const delivery = initial?.delivery.obligations ?? monthlyObligations.map(item => ({ type: item.type, label: item.type, done: item.done, total: item.total, status: item.done >= item.total ? "Complete" : "In Progress" }));
-  const connectedCount = connections.filter(item => item.status === "Connected").length, attentionCount = connections.length - connectedCount;
+  const delivery =
+    initial?.delivery.obligations ??
+    monthlyObligations.map((item) => ({
+      type: item.type,
+      label: item.type,
+      done: item.done,
+      total: item.total,
+      status: item.done >= item.total ? "Complete" : "In Progress",
+    }));
+  const connectedCount = connections.filter(
+      (item) => item.status === "Connected",
+    ).length,
+    attentionCount = connections.length - connectedCount;
 
-  const overview = <div className="workspace-layout">
-    <Panel title={`${initial?.delivery.label ?? "September 2026"} delivery`} meta="Generated from the active client service scope"><div className="panel-body">{delivery.length ? delivery.map(item => <div className="obligation" key={item.type}><div className="obligation-top"><b>{item.label}</b><span>{item.done} / {item.total}</span></div><div className="progress-track"><i style={{ width: `${Math.min(100, item.total ? item.done / item.total * 100 : 0)}%` }} /></div></div>) : <div className="empty-state"><b>No obligations generated for this month.</b><p>Choose a month and generate work from the active service scope.</p></div>}<div className="save-row"><input aria-label="Delivery month" type="month" value={deliveryMonth} onChange={event => setDeliveryMonth(event.target.value)} /><button className="button secondary" onClick={generateDelivery}>{generated ? "Obligations generated" : "Generate obligations"}</button></div></div></Panel>
-    <Panel title="Access health" meta={`${connectedCount} connected · ${attentionCount} need attention`}><div className="access-list">{connections.map(item => <div className="access-row" key={item.name}><span>{item.name}</span><Status tone={item.status === "Connected" ? "" : "warn"}>{item.status}</Status></div>)}</div></Panel>
-  </div>;
+  const overview = (
+    <div className="workspace-layout">
+      <Panel
+        title={`${initial?.delivery.label ?? "September 2026"} delivery`}
+        meta="Generated from the active client service scope"
+      >
+        <div className="panel-body">
+          {delivery.length ? (
+            delivery.map((item) => (
+              <div className="obligation" key={item.type}>
+                <div className="obligation-top">
+                  <b>{item.label}</b>
+                  <span>
+                    {item.done} / {item.total}
+                  </span>
+                </div>
+                <div className="progress-track">
+                  <i
+                    style={{
+                      width: `${Math.min(100, item.total ? (item.done / item.total) * 100 : 0)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              <b>No obligations generated for this month.</b>
+              <p>
+                Choose a month and generate work from the active service scope.
+              </p>
+            </div>
+          )}
+          <div className="save-row">
+            <input
+              aria-label="Delivery month"
+              type="month"
+              value={deliveryMonth}
+              onChange={(event) => setDeliveryMonth(event.target.value)}
+            />
+            <button className="button secondary" onClick={generateDelivery}>
+              {generated ? "Obligations generated" : "Generate obligations"}
+            </button>
+          </div>
+        </div>
+      </Panel>
+      <Panel
+        title="Access health"
+        meta={`${connectedCount} connected · ${attentionCount} need attention`}
+      >
+        <div className="access-list">
+          {connections.map((item) => (
+            <div className="access-row" key={item.name}>
+              <span>{item.name}</span>
+              <Status tone={item.status === "Connected" ? "" : "warn"}>
+                {item.status}
+              </Status>
+            </div>
+          ))}
+        </div>
+      </Panel>
+    </div>
+  );
 
   let content = overview;
-  if (section === "business") content = <Panel title="Business knowledge" meta="Verified information used by content, SEO and AI workflows"><div className="panel-body form-grid"><Field label="Company description" full value={profile.description} onChange={value => setProfile({ ...profile, description: value })} area /><Field label="Industry" value={profile.industry} onChange={value => setProfile({ ...profile, industry: value })} /><Field label="Services (comma separated)" value={profile.services} onChange={value => setProfile({ ...profile, services: value })} /><Field label="Locations (comma separated)" value={profile.locations} onChange={value => setProfile({ ...profile, locations: value })} /><Field label="Target customers" value={profile.customers} onChange={value => setProfile({ ...profile, customers: value })} /><Field label="Value proposition" full value={profile.value} onChange={value => setProfile({ ...profile, value: value })} /><Field label="Tone of voice" value={profile.tone} onChange={value => setProfile({ ...profile, tone: value })} /><Field label="Business hours" value={profile.businessHours} onChange={value => setProfile({ ...profile, businessHours: value })} /><Field label="Phone" value={profile.phone} onChange={value => setProfile({ ...profile, phone: value })} /><Field label="WhatsApp" value={profile.whatsapp} onChange={value => setProfile({ ...profile, whatsapp: value })} /><Field label="Email" value={profile.email} onChange={value => setProfile({ ...profile, email: value })} /><Field label="Website" value={profile.website} onChange={value => setProfile({ ...profile, website: value })} /><Field label="Offers" full value={profile.offers} onChange={value => setProfile({ ...profile, offers: value })} area /><Field label="Competitors" full value={profile.competitors} onChange={value => setProfile({ ...profile, competitors: value })} area /><Field label="Important verified claims" full value={profile.importantClaims} onChange={value => setProfile({ ...profile, importantClaims: value })} area /><Field label="Prohibited claims / AI guardrails" full value={profile.claims} onChange={value => setProfile({ ...profile, claims: value })} area /><Field label="FAQs (one Question | Answer per line)" full value={profile.faqs} onChange={value => setProfile({ ...profile, faqs: value })} area /><div className="field full save-row"><button className="button" onClick={saveProfile}>Save business knowledge</button></div></div></Panel>;
-  if (section === "access") content = <Panel title="Access & integrations" meta="Account references only—never store client passwords here"><div className="panel-body access-editor-list">{connections.map(item => <section className="access-editor" key={item.name}><header><div><b>{item.name}</b><small>{item.verifiedAt ? `Verified ${item.verifiedAt}` : "Not verified"}</small></div><Status tone={item.status === "Connected" ? "" : item.status === "Demo" ? "purple" : "warn"}>{item.status}</Status></header><div className="access-editor-grid"><label className="field"><span>Status</span><select aria-label={`${item.name} status`} value={item.status} onChange={event => updateAccess(item.name, { status: event.target.value })}><option>Connected</option><option>Pending</option><option>Not Connected</option><option>Demo</option><option>Coming Later</option></select></label><Field label="Platform" value={item.platform} onChange={platform => updateAccess(item.name, { platform })}/><Field label="Account / property reference" value={item.accountReference} onChange={accountReference => updateAccess(item.name, { accountReference })}/><Field label="Internal access notes" value={item.notes} onChange={notes => updateAccess(item.name, { notes })}/></div><div className="save-row"><button className="button secondary" onClick={() => persistAccess(item.name)}>Save {item.name}</button></div></section>)}</div></Panel>;
-  if (section === "scope") content = <Panel title="Client service scope" meta="Internal configuration that controls monthly work obligations"><div className="panel-body">{scope.map((service, index) => <div className="scope-row" key={service.key}><label><input type="checkbox" checked={service.enabled} onChange={event => setScope(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, enabled: event.target.checked } : item))} /> <b>{service.label}</b></label><label>Monthly quantity<input type="number" min="1" value={service.quantity} disabled={!service.enabled} onChange={event => setScope(items => items.map((item, itemIndex) => itemIndex === index ? { ...item, quantity: Number(event.target.value) } : item))} /></label></div>)}<div className="save-row"><button className="button" onClick={saveScope}>Save service scope</button></div></div></Panel>;
-  if (section === "tasks") content = <Panel title="Client tasks" meta="Work generated from service scope obligations and manual operations"><div>{initial?.tasks.length ? initial.tasks.map(item => <div className="task-item" key={item.id}><div><b>{item.title}</b><p>{item.category} · Due {item.due}</p></div><Status tone={item.status === "Blocked" ? "warn" : "purple"}>{item.status}</Status></div>) : <div className="empty-state"><b>No active tasks for this client.</b><p>Create work in the central task queue or generate monthly obligations.</p></div>}<div className="panel-body"><Link className="button secondary" href="/admin/tasks">Open central task queue</Link></div></div></Panel>;
-  if (section === "seo") content = <><div className="seo-summary"><div><span><b>{initial?.keywords.length ?? 0}</b>Tracked keywords</span></div><div><span><b>{initial?.keywords.filter(item => item.current !== null && item.current <= 10).length ?? 0}</b>Top 10</span></div><div><span><b>{initial?.seoActions.filter(item => !["Approved", "Complete"].includes(item.status)).length ?? 0}</b>Open actions</span></div></div><div className="seo-layout"><Panel title="Tracked keywords" meta="Current position and movement"><div className="keyword-table"><div className="keyword-head"><span>Keyword</span><span>Target</span><span>Position</span><span>Priority</span></div>{initial?.keywords.length ? initial.keywords.map(item => <div className="keyword-row" key={item.id}><span><b>{item.keyword}</b></span><span>{item.url}</span><span><b>{item.current ?? "—"}</b>{item.current !== null && item.previous !== null && <small className={item.current < item.previous ? "up" : "down"}>{item.current < item.previous ? "↑" : "↓"}{Math.abs(item.previous - item.current)}</small>}</span><Status tone={item.priority === "High" ? "warn" : "purple"}>{item.priority}</Status></div>) : <div className="empty-state"><b>No tracked keywords.</b></div>}</div></Panel><Panel title="SEO actions" meta="Internal implementation work"><div>{initial?.seoActions.length ? initial.seoActions.map(item => <div className="opportunity" key={item.id}><div><span>{item.impact} impact</span><b>{item.title}</b><small>{item.page}</small></div><Status tone={["Awaiting Review", "Open"].includes(item.status) ? "warn" : "purple"}>{item.status}</Status></div>) : <div className="empty-state"><b>No SEO actions.</b></div>}<div className="panel-body"><Link className="button secondary" href="/admin/seo">Open SEO workspace</Link></div></div></Panel></div></>;
-  if (section === "blogs") content = <Panel title="Blog pipeline" meta="Research through internal review and manual implementation"><div>{initial?.blogs.length ? initial.blogs.map(item => <div className="task-item" key={item.id}><div><b>{item.title}</b><p>{item.keyword} · Updated {item.updated}</p></div><Status tone={item.status === "Internal Review" ? "warn" : item.status === "Published" ? "" : "purple"}>{item.status}</Status></div>) : <div className="empty-state"><b>No articles for this client.</b><p>Create research and briefs in the central blog workspace.</p></div>}<div className="panel-body"><Link className="button" href="/admin/blogs">Open blog workspace</Link></div></div></Panel>;
-  if (section === "social") content = <Panel title="Social content" meta="Centralized internal review and staff handoff"><div className="empty-state"><b>Manage this client’s social pipeline in the central content queue.</b><p>Generate, edit and approve posts before they move directly to staff for manual publishing.</p><Link className="button" href="/admin/content">Open social content</Link></div></Panel>;
-  if (section === "leads") content = <LeadManager slug={slug} initial={initial?.leads ?? []} live={live} />;
-  if (section === "website") { const websiteAccess = connections.find(item => item.name === "Website"); content = <div className="workspace-layout"><Panel title="Website" meta="Growth1000 tracks access and authorized maintenance work only"><div className="panel-body"><div className="task-item"><div><b>{profile.website || "No website URL recorded"}</b><p>Client websites remain independently hosted and are never edited automatically.</p></div><Status tone={websiteAccess?.status === "Connected" ? "" : "warn"}>{websiteAccess?.status ?? "Not Connected"}</Status></div></div></Panel><Panel title="Website operations" meta="Manual implementation boundary"><div className="empty-state"><b>Changes require an authorized task.</b><p>Use the task queue to plan, assign, implement, and verify website maintenance.</p><Link className="button secondary" href="/admin/tasks">Open tasks</Link></div></Panel></div> }
-  if (section === "analytics") content = <><div className="analytics-kpis"><div><span>Website users</span><b>{(initial?.analytics.users ?? 0).toLocaleString()}</b><small>Current month</small></div><div><span>Sessions</span><b>{(initial?.analytics.sessions ?? 0).toLocaleString()}</b><small>Current month</small></div><div><span>Search clicks</span><b>{(initial?.analytics.clicks ?? 0).toLocaleString()}</b><small>Current month</small></div><div><span>Impressions</span><b>{(initial?.analytics.impressions ?? 0).toLocaleString()}</b><small>Current month</small></div></div><Panel title="Analytics operations" meta="Normalized GA4 and Search Console records"><div className="empty-state"><b>{(initial?.analytics.users ?? 0) || (initial?.analytics.clicks ?? 0) ? "Imported performance is available." : "No imported performance for this month."}</b><p>Inspect provenance, daily trends, search queries, and data-source status in the analytics workspace.</p><Link className="button" href={`/admin/analytics?client=${encodeURIComponent(initial?.id ?? "")}`}>Open client analytics</Link></div></Panel></>;
-  if (section === "reports") content = <Panel title="Monthly reports" meta="Internal review and client publication status"><div>{initial?.reports.length ? initial.reports.map(report => <div className="task-item" key={report.id}><div><b>{report.month}</b><p>{report.summary}</p></div><Status tone={report.status === "Published" ? "" : "warn"}>{report.status}</Status></div>) : <div className="empty-state"><b>No reports created for this client.</b><p>Generate a report from recorded delivery and growth results.</p></div>}<div className="panel-body"><Link className="button" href="/admin/reports">Open report workflow</Link></div></div></Panel>;
-  if (section === "notes") content = <Panel title="Activity history" meta="Immutable partner actions for this client"><div>{initial?.activity.length ? initial.activity.map(item => <div className="activity-row" key={item.id}><span className="activity-dot"/><div><b>{item.action}</b><p>{item.detail} · by {item.actor}</p></div><small>{item.createdAt}</small></div>) : <div className="empty-state"><b>No client activity recorded yet.</b><p>Client, access, service-scope, and delivery updates will appear here.</p></div>}</div></Panel>;
+  if (section === "business")
+    content = (
+      <Panel
+        title="Business knowledge"
+        meta="Verified information used by content, SEO and AI workflows"
+      >
+        <div className="panel-body form-grid">
+          <Field
+            label="Company description"
+            full
+            value={profile.description}
+            onChange={(value) => setProfile({ ...profile, description: value })}
+            area
+          />
+          <Field
+            label="Industry"
+            value={profile.industry}
+            onChange={(value) => setProfile({ ...profile, industry: value })}
+          />
+          <Field
+            label="Services (comma separated)"
+            value={profile.services}
+            onChange={(value) => setProfile({ ...profile, services: value })}
+          />
+          <Field
+            label="Locations (comma separated)"
+            value={profile.locations}
+            onChange={(value) => setProfile({ ...profile, locations: value })}
+          />
+          <Field
+            label="Target customers"
+            value={profile.customers}
+            onChange={(value) => setProfile({ ...profile, customers: value })}
+          />
+          <Field
+            label="Value proposition"
+            full
+            value={profile.value}
+            onChange={(value) => setProfile({ ...profile, value: value })}
+          />
+          <Field
+            label="Tone of voice"
+            value={profile.tone}
+            onChange={(value) => setProfile({ ...profile, tone: value })}
+          />
+          <Field
+            label="Business hours"
+            value={profile.businessHours}
+            onChange={(value) =>
+              setProfile({ ...profile, businessHours: value })
+            }
+          />
+          <Field
+            label="Phone"
+            value={profile.phone}
+            onChange={(value) => setProfile({ ...profile, phone: value })}
+          />
+          <Field
+            label="WhatsApp"
+            value={profile.whatsapp}
+            onChange={(value) => setProfile({ ...profile, whatsapp: value })}
+          />
+          <Field
+            label="Email"
+            value={profile.email}
+            onChange={(value) => setProfile({ ...profile, email: value })}
+          />
+          <Field
+            label="Website"
+            value={profile.website}
+            onChange={(value) => setProfile({ ...profile, website: value })}
+          />
+          <Field
+            label="Offers"
+            full
+            value={profile.offers}
+            onChange={(value) => setProfile({ ...profile, offers: value })}
+            area
+          />
+          <Field
+            label="Competitors"
+            full
+            value={profile.competitors}
+            onChange={(value) => setProfile({ ...profile, competitors: value })}
+            area
+          />
+          <Field
+            label="Important verified claims"
+            full
+            value={profile.importantClaims}
+            onChange={(value) =>
+              setProfile({ ...profile, importantClaims: value })
+            }
+            area
+          />
+          <Field
+            label="Prohibited claims / AI guardrails"
+            full
+            value={profile.claims}
+            onChange={(value) => setProfile({ ...profile, claims: value })}
+            area
+          />
+          <Field
+            label="FAQs (one Question | Answer per line)"
+            full
+            value={profile.faqs}
+            onChange={(value) => setProfile({ ...profile, faqs: value })}
+            area
+          />
+          <div className="field full save-row">
+            <button className="button" onClick={saveProfile}>
+              Save business knowledge
+            </button>
+          </div>
+        </div>
+      </Panel>
+    );
+  if (section === "access")
+    content = (
+      <div className="workspace-stack">
+        <Panel
+          title="Access checklist"
+          meta="References and verification only—never store passwords"
+        >
+          <div className="panel-body access-editor-list">
+            {connections.map((item) => (
+              <section className="access-editor" key={item.name}>
+                <header>
+                  <div>
+                    <b>{item.name}</b>
+                    <small>
+                      {item.verifiedAt
+                        ? `Verified ${item.verifiedAt}`
+                        : "Not verified"}
+                    </small>
+                  </div>
+                  <Status tone={item.status === "Connected" ? "" : "warn"}>
+                    {item.status}
+                  </Status>
+                </header>
+                <div className="access-editor-grid">
+                  <label className="field">
+                    <span>Status</span>
+                    <select
+                      aria-label={`${item.name} status`}
+                      value={item.status}
+                      onChange={(event) =>
+                        updateAccess(item.name, { status: event.target.value })
+                      }
+                    >
+                      <option>Connected</option>
+                      <option>Pending</option>
+                      <option>Not Required</option>
+                      <option>Issue</option>
+                    </select>
+                  </label>
+                  <Field
+                    label="Platform"
+                    value={item.platform}
+                    onChange={(platform) =>
+                      updateAccess(item.name, { platform })
+                    }
+                  />
+                  <Field
+                    label="Account / property reference"
+                    value={item.accountReference}
+                    onChange={(accountReference) =>
+                      updateAccess(item.name, { accountReference })
+                    }
+                  />
+                  <Field
+                    label="Internal notes"
+                    value={item.notes}
+                    onChange={(notes) => updateAccess(item.name, { notes })}
+                  />
+                </div>
+                <div className="save-row">
+                  <button
+                    className="button secondary"
+                    onClick={() => persistAccess(item.name)}
+                  >
+                    Save {item.name}
+                  </button>
+                </div>
+              </section>
+            ))}
+          </div>
+        </Panel>
+        <Panel
+          title="Google data connections"
+          meta="The Growth1000 service identity must have Viewer access"
+        >
+          <div className="panel-body form-grid">
+            <Field
+              label="GA4 property ID"
+              value={google.ga4PropertyId}
+              onChange={(ga4PropertyId) =>
+                setGoogle({ ...google, ga4PropertyId })
+              }
+            />
+            <label className="field">
+              <span>GA4 status</span>
+              <select
+                value={google.ga4Status}
+                onChange={(e) =>
+                  setGoogle({ ...google, ga4Status: e.target.value })
+                }
+              >
+                <option value="not_connected">Not connected</option>
+                <option value="connected">Connected</option>
+              </select>
+            </label>
+            <Field
+              label="Search Console property"
+              value={google.searchConsoleSiteUrl}
+              onChange={(searchConsoleSiteUrl) =>
+                setGoogle({ ...google, searchConsoleSiteUrl })
+              }
+            />
+            <label className="field">
+              <span>Search Console status</span>
+              <select
+                value={google.searchStatus}
+                onChange={(e) =>
+                  setGoogle({ ...google, searchStatus: e.target.value })
+                }
+              >
+                <option value="not_connected">Not connected</option>
+                <option value="connected">Connected</option>
+              </select>
+            </label>
+            {google.syncIssue && (
+              <div className="field full">
+                <Status tone="warn">Needs Attention</Status>
+                <p>{google.syncIssue}</p>
+              </div>
+            )}
+            <div className="field full">
+              <span>Data freshness</span>
+              <p>
+                Google Analytics: {google.lastGa4Sync ? `updated ${new Date(google.lastGa4Sync).toLocaleString()}` : "not synced yet"} · Search Console: {google.lastSearchSync ? `updated ${new Date(google.lastSearchSync).toLocaleString()}` : "not synced yet"}
+              </p>
+            </div>
+            <div className="field full save-row">
+              <button className="button" onClick={saveGoogle}>
+                Save Google properties
+              </button>
+            </div>
+          </div>
+        </Panel>
+        <Panel
+          title="Website lead intake"
+          meta="Issue one credential per website; keys are never stored in plain text"
+        >
+          <div className="panel-body form-grid">
+            <Field
+              label="Allowed website origin"
+              full
+              value={siteOrigin}
+              onChange={setSiteOrigin}
+            />
+            <div className="field full save-row">
+              <button className="button" onClick={issueSite}>
+                Create site credential
+              </button>
+            </div>
+            {siteCredential && (
+              <div className="field full">
+                <b>Copy now — secret shown once</b>
+                <pre>{`Site: ${siteCredential.siteIdentifier}\nKey: ${siteCredential.siteKey}\nPOST /api/leads`}</pre>
+              </div>
+            )}
+            {initial?.sites.map((site) => (
+              <div className="task-item field full" key={site.siteIdentifier}>
+                <div>
+                  <b>{site.siteIdentifier}</b>
+                  <p>
+                    {site.origin || "Any origin"} ·{" "}
+                    {site.lastLeadAt
+                      ? `Last lead ${site.lastLeadAt}`
+                      : "No leads received"}
+                  </p>
+                </div>
+                <Status>{site.status}</Status>
+              </div>
+            ))}
+          </div>
+        </Panel>
+        <Panel
+          title="Client login"
+          meta="Each invited user is linked to exactly this client"
+        >
+          <div className="panel-body form-grid">
+            <Field
+              label="Full name"
+              value={invite.name}
+              onChange={(name) => setInvite({ ...invite, name })}
+            />
+            <Field
+              label="Email"
+              value={invite.email}
+              onChange={(email) => setInvite({ ...invite, email })}
+            />
+            <div className="field full save-row">
+              <button className="button" onClick={provision}>
+                Invite client user
+              </button>
+            </div>
+          </div>
+        </Panel>
+      </div>
+    );
+  if (section === "scope")
+    content = (
+      <Panel
+        title="Client service scope"
+        meta="Internal configuration that controls monthly work obligations"
+      >
+        <div className="panel-body">
+          {scope.map((service, index) => (
+            <div className="scope-row" key={service.key}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={service.enabled}
+                  onChange={(event) =>
+                    setScope((items) =>
+                      items.map((item, itemIndex) =>
+                        itemIndex === index
+                          ? { ...item, enabled: event.target.checked }
+                          : item,
+                      ),
+                    )
+                  }
+                />{" "}
+                <b>{service.label}</b>
+              </label>
+              <label>
+                Monthly quantity
+                <input
+                  type="number"
+                  min="1"
+                  value={service.quantity}
+                  disabled={!service.enabled}
+                  onChange={(event) =>
+                    setScope((items) =>
+                      items.map((item, itemIndex) =>
+                        itemIndex === index
+                          ? { ...item, quantity: Number(event.target.value) }
+                          : item,
+                      ),
+                    )
+                  }
+                />
+              </label>
+            </div>
+          ))}
+          <div className="save-row">
+            <button className="button" onClick={saveScope}>
+              Save service scope
+            </button>
+          </div>
+        </div>
+      </Panel>
+    );
+  if (section === "tasks")
+    content = (
+      <Panel
+        title="Client tasks"
+        meta="Work generated from service scope obligations and manual operations"
+      >
+        <div>
+          {initial?.tasks.length ? (
+            initial.tasks.map((item) => (
+              <div className="task-item" key={item.id}>
+                <div>
+                  <b>{item.title}</b>
+                  <p>
+                    {item.category} · Due {item.due}
+                  </p>
+                </div>
+                <Status tone={item.status === "Blocked" ? "warn" : "purple"}>
+                  {item.status}
+                </Status>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              <b>No active tasks for this client.</b>
+              <p>
+                Create work in the central task queue or generate monthly
+                obligations.
+              </p>
+            </div>
+          )}
+          <div className="panel-body">
+            <Link className="button secondary" href="/admin/tasks">
+              Open central task queue
+            </Link>
+          </div>
+        </div>
+      </Panel>
+    );
+  if (section === "seo")
+    content = (
+      <>
+        <div className="seo-summary">
+          <div>
+            <span>
+              <b>{initial?.keywords.length ?? 0}</b>Tracked keywords
+            </span>
+          </div>
+          <div>
+            <span>
+              <b>
+                {initial?.keywords.filter(
+                  (item) => item.current !== null && item.current <= 10,
+                ).length ?? 0}
+              </b>
+              Top 10
+            </span>
+          </div>
+          <div>
+            <span>
+              <b>
+                {initial?.seoActions.filter(
+                  (item) => !["Approved", "Complete"].includes(item.status),
+                ).length ?? 0}
+              </b>
+              Open actions
+            </span>
+          </div>
+        </div>
+        <div className="seo-layout">
+          <Panel title="Tracked keywords" meta="Current position and movement">
+            <div className="keyword-table">
+              <div className="keyword-head">
+                <span>Keyword</span>
+                <span>Target</span>
+                <span>Position</span>
+                <span>Priority</span>
+              </div>
+              {initial?.keywords.length ? (
+                initial.keywords.map((item) => (
+                  <div className="keyword-row" key={item.id}>
+                    <span>
+                      <b>{item.keyword}</b>
+                    </span>
+                    <span>{item.url}</span>
+                    <span>
+                      <b>{item.current ?? "—"}</b>
+                      {item.current !== null && item.previous !== null && (
+                        <small
+                          className={
+                            item.current < item.previous ? "up" : "down"
+                          }
+                        >
+                          {item.current < item.previous ? "↑" : "↓"}
+                          {Math.abs(item.previous - item.current)}
+                        </small>
+                      )}
+                    </span>
+                    <Status tone={item.priority === "High" ? "warn" : "purple"}>
+                      {item.priority}
+                    </Status>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <b>No tracked keywords.</b>
+                </div>
+              )}
+            </div>
+          </Panel>
+          <Panel title="SEO actions" meta="Internal implementation work">
+            <div>
+              {initial?.seoActions.length ? (
+                initial.seoActions.map((item) => (
+                  <div className="opportunity" key={item.id}>
+                    <div>
+                      <span>{item.impact} impact</span>
+                      <b>{item.title}</b>
+                      <small>{item.page}</small>
+                    </div>
+                    <Status
+                      tone={
+                        ["Awaiting Review", "Open"].includes(item.status)
+                          ? "warn"
+                          : "purple"
+                      }
+                    >
+                      {item.status}
+                    </Status>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <b>No SEO actions.</b>
+                </div>
+              )}
+              <div className="panel-body">
+                <Link className="button secondary" href="/admin/seo">
+                  Open SEO workspace
+                </Link>
+              </div>
+            </div>
+          </Panel>
+        </div>
+      </>
+    );
+  if (section === "blogs")
+    content = (
+      <Panel
+        title="Blog pipeline"
+        meta="Research through internal review and manual implementation"
+      >
+        <div>
+          {initial?.blogs.length ? (
+            initial.blogs.map((item) => (
+              <div className="task-item" key={item.id}>
+                <div>
+                  <b>{item.title}</b>
+                  <p>
+                    {item.keyword} · Updated {item.updated}
+                  </p>
+                </div>
+                <Status
+                  tone={
+                    item.status === "Internal Review"
+                      ? "warn"
+                      : item.status === "Published"
+                        ? ""
+                        : "purple"
+                  }
+                >
+                  {item.status}
+                </Status>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              <b>No articles for this client.</b>
+              <p>Create research and briefs in the central blog workspace.</p>
+            </div>
+          )}
+          <div className="panel-body">
+            <Link className="button" href="/admin/blogs">
+              Open blog workspace
+            </Link>
+          </div>
+        </div>
+      </Panel>
+    );
+  if (section === "social")
+    content = (
+      <Panel
+        title="Social content"
+        meta="Centralized internal review and staff handoff"
+      >
+        <div className="empty-state">
+          <b>
+            Manage this client’s social pipeline in the central content queue.
+          </b>
+          <p>
+            Generate, edit and approve posts before they move directly to staff
+            for manual publishing.
+          </p>
+          <Link className="button" href="/admin/content">
+            Open social content
+          </Link>
+        </div>
+      </Panel>
+    );
+  if (section === "leads")
+    content = (
+      <LeadManager slug={slug} initial={initial?.leads ?? []} live={live} />
+    );
+  if (section === "website") {
+    const websiteAccess = connections.find((item) => item.name === "Website");
+    content = (
+      <div className="workspace-layout">
+        <Panel
+          title="Website"
+          meta="Growth1000 tracks access and authorized maintenance work only"
+        >
+          <div className="panel-body">
+            <div className="task-item">
+              <div>
+                <b>{profile.website || "No website URL recorded"}</b>
+                <p>
+                  Client websites remain independently hosted and are never
+                  edited automatically.
+                </p>
+              </div>
+              <Status
+                tone={websiteAccess?.status === "Connected" ? "" : "warn"}
+              >
+                {websiteAccess?.status ?? "Not Connected"}
+              </Status>
+            </div>
+          </div>
+        </Panel>
+        <Panel title="Website operations" meta="Manual implementation boundary">
+          <div className="empty-state">
+            <b>Changes require an authorized task.</b>
+            <p>
+              Use the task queue to plan, assign, implement, and verify website
+              maintenance.
+            </p>
+            <Link className="button secondary" href="/admin/tasks">
+              Open tasks
+            </Link>
+          </div>
+        </Panel>
+      </div>
+    );
+  }
+  if (section === "analytics")
+    content = (
+      <>
+        <div className="analytics-kpis">
+          <div>
+            <span>Website users</span>
+            <b>{(initial?.analytics.users ?? 0).toLocaleString()}</b>
+            <small>Current month</small>
+          </div>
+          <div>
+            <span>Sessions</span>
+            <b>{(initial?.analytics.sessions ?? 0).toLocaleString()}</b>
+            <small>Current month</small>
+          </div>
+          <div>
+            <span>Search clicks</span>
+            <b>{(initial?.analytics.clicks ?? 0).toLocaleString()}</b>
+            <small>Current month</small>
+          </div>
+          <div>
+            <span>Impressions</span>
+            <b>{(initial?.analytics.impressions ?? 0).toLocaleString()}</b>
+            <small>Current month</small>
+          </div>
+        </div>
+        <Panel
+          title="Analytics operations"
+          meta="Normalized GA4 and Search Console records"
+        >
+          <div className="empty-state">
+            <b>
+              {(initial?.analytics.users ?? 0) ||
+              (initial?.analytics.clicks ?? 0)
+                ? "Imported performance is available."
+                : "No imported performance for this month."}
+            </b>
+            <p>
+              Inspect provenance, daily trends, search queries, and data-source
+              status in the analytics workspace.
+            </p>
+            <Link
+              className="button"
+              href={`/admin/analytics?client=${encodeURIComponent(initial?.id ?? "")}`}
+            >
+              Open client analytics
+            </Link>
+          </div>
+        </Panel>
+      </>
+    );
+  if (section === "reports")
+    content = (
+      <Panel
+        title="Monthly reports"
+        meta="Internal review and client publication status"
+      >
+        <div>
+          {initial?.reports.length ? (
+            initial.reports.map((report) => (
+              <div className="task-item" key={report.id}>
+                <div>
+                  <b>{report.month}</b>
+                  <p>{report.summary}</p>
+                </div>
+                <Status tone={report.status === "Published" ? "" : "warn"}>
+                  {report.status}
+                </Status>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              <b>No reports created for this client.</b>
+              <p>
+                Generate a report from recorded delivery and growth results.
+              </p>
+            </div>
+          )}
+          <div className="panel-body">
+            <Link className="button" href="/admin/reports">
+              Open report workflow
+            </Link>
+          </div>
+        </div>
+      </Panel>
+    );
+  if (section === "notes")
+    content = (
+      <Panel
+        title="Activity history"
+        meta="Immutable partner actions for this client"
+      >
+        <div>
+          {initial?.activity.length ? (
+            initial.activity.map((item) => (
+              <div className="activity-row" key={item.id}>
+                <span className="activity-dot" />
+                <div>
+                  <b>{item.action}</b>
+                  <p>
+                    {item.detail} · by {item.actor}
+                  </p>
+                </div>
+                <small>{item.createdAt}</small>
+              </div>
+            ))
+          ) : (
+            <div className="empty-state">
+              <b>No client activity recorded yet.</b>
+              <p>
+                Client, access, service-scope, and delivery updates will appear
+                here.
+              </p>
+            </div>
+          )}
+        </div>
+      </Panel>
+    );
 
-  return <><div className="workspace-head"><span className="avatar">{details.name.split(" ").map(part => part[0]).join("").slice(0, 2)}</span><div><h2>{details.name}</h2><p>{scope.filter(item => item.enabled).length} active services · {[details.city,details.country].filter(Boolean).join(", ")}</p></div><span className="workspace-head-actions"><Status tone={details.health === "Healthy" ? "" : "warn"}>{details.health}</Status><button className="button secondary" onClick={()=>setEditingClient(true)}>Edit client</button></span></div><div className="workspace-tabs">{tabs.map(tab => <Link className={section === tab ? "active" : ""} key={tab} href={`/admin/clients/${slug}/${tab === "overview" ? "" : tab}`}>{labels[tab] ?? tab[0].toUpperCase() + tab.slice(1)}</Link>)}</div>{saved && <div className="toast" role="status">{notice}</div>}{content}{editingClient&&<div className="modal-wrap" role="dialog" aria-modal="true"><div className="modal"><header><h2>Edit client</h2><button className="ghost-icon" onClick={()=>setEditingClient(false)} aria-label="Close">×</button></header><div className="modal-body form-grid"><Field label="Business name" full value={details.name} onChange={name=>setDetails({...details,name})}/><Field label="Industry" value={details.industry} onChange={industry=>setDetails({...details,industry})}/><Field label="City" value={details.city} onChange={city=>setDetails({...details,city})}/><Field label="Country" value={details.country} onChange={country=>setDetails({...details,country})}/><label className="field"><span>Lifecycle</span><select value={details.lifecycle} onChange={event=>setDetails({...details,lifecycle:event.target.value})}><option>Onboarding</option><option>Active</option><option>Paused</option></select></label><label className="field"><span>Health</span><select value={details.health} onChange={event=>setDetails({...details,health:event.target.value})}><option>Healthy</option><option>Needs Attention</option><option>At Risk</option></select></label></div><div className="modal-actions"><button className="button secondary" onClick={()=>setEditingClient(false)}>Cancel</button><button className="button" onClick={saveDetails}>Save client</button></div></div></div>}</>;
+  return (
+    <>
+      <div className="workspace-head">
+        <span className="avatar">
+          {details.name
+            .split(" ")
+            .map((part) => part[0])
+            .join("")
+            .slice(0, 2)}
+        </span>
+        <div>
+          <h2>{details.name}</h2>
+          <p>
+            {scope.filter((item) => item.enabled).length} active services ·{" "}
+            {[details.city, details.country].filter(Boolean).join(", ")}
+          </p>
+        </div>
+        <span className="workspace-head-actions">
+          <Status tone={details.health === "Healthy" ? "" : "warn"}>
+            {details.health}
+          </Status>
+          <button
+            className="button secondary"
+            onClick={() => setEditingClient(true)}
+          >
+            Edit client
+          </button>
+        </span>
+      </div>
+      <div className="workspace-tabs">
+        {tabs.map((tab) => (
+          <Link
+            className={section === tab ? "active" : ""}
+            key={tab}
+            href={`/admin/clients/${slug}/${tab === "overview" ? "" : tab}`}
+          >
+            {labels[tab] ?? tab[0].toUpperCase() + tab.slice(1)}
+          </Link>
+        ))}
+      </div>
+      {saved && (
+        <div className="toast" role="status">
+          {notice}
+        </div>
+      )}
+      {content}
+      {editingClient && (
+        <div className="modal-wrap" role="dialog" aria-modal="true">
+          <div className="modal">
+            <header>
+              <h2>Edit client</h2>
+              <button
+                className="ghost-icon"
+                onClick={() => setEditingClient(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </header>
+            <div className="modal-body form-grid">
+              <Field
+                label="Business name"
+                full
+                value={details.name}
+                onChange={(name) => setDetails({ ...details, name })}
+              />
+              <Field
+                label="Industry"
+                value={details.industry}
+                onChange={(industry) => setDetails({ ...details, industry })}
+              />
+              <Field
+                label="City"
+                value={details.city}
+                onChange={(city) => setDetails({ ...details, city })}
+              />
+              <Field
+                label="Country"
+                value={details.country}
+                onChange={(country) => setDetails({ ...details, country })}
+              />
+              <label className="field">
+                <span>Lifecycle</span>
+                <select
+                  value={details.lifecycle}
+                  onChange={(event) =>
+                    setDetails({ ...details, lifecycle: event.target.value })
+                  }
+                >
+                  <option>Onboarding</option>
+                  <option>Active</option>
+                  <option>Paused</option>
+                  <option>Needs Attention</option>
+                  <option>Archived</option>
+                </select>
+              </label>
+              <label className="field">
+                <span>Health</span>
+                <select
+                  value={details.health}
+                  onChange={(event) =>
+                    setDetails({ ...details, health: event.target.value })
+                  }
+                >
+                  <option>Healthy</option>
+                  <option>Needs Attention</option>
+                  <option>At Risk</option>
+                </select>
+              </label>
+            </div>
+            <div className="modal-actions">
+              <button
+                className="button secondary"
+                onClick={() => setEditingClient(false)}
+              >
+                Cancel
+              </button>
+              <button className="button" onClick={saveDetails}>
+                Save client
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
-function Field({ label, value, onChange, full, area }: { label: string; value: string; onChange: (value: string) => void; full?: boolean; area?: boolean }) {
-  return <label className={`field ${full ? "full" : ""}`}><span>{label}</span>{area ? <textarea value={value} onChange={event => onChange(event.target.value)} /> : <input value={value} onChange={event => onChange(event.target.value)} />}</label>;
+function Field({
+  label,
+  value,
+  onChange,
+  full,
+  area,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  full?: boolean;
+  area?: boolean;
+}) {
+  return (
+    <label className={`field ${full ? "full" : ""}`}>
+      <span>{label}</span>
+      {area ? (
+        <textarea
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      ) : (
+        <input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      )}
+    </label>
+  );
 }

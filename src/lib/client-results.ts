@@ -37,6 +37,8 @@ export type ClientResultsData = {
     whatsappClicks: number;
     formSubmissions: number;
     growth: number | null;
+    connected?: boolean;
+    trend?: Array<{ label: string; value: number }>;
   };
   search: {
     clicks: number;
@@ -44,6 +46,8 @@ export type ClientResultsData = {
     improved: number;
     topTen: number;
     keywords: Array<{ keyword: string; previous: number; current: number }>;
+    connected?: boolean;
+    trend?: Array<{ label: string; value: number }>;
   };
   ai: {
     websiteConversations: number;
@@ -62,7 +66,14 @@ export type ClientResultsData = {
 };
 
 export type ResultRangeKey =
-  "today" | "7d" | "month" | "last-month" | "30d" | "90d" | "year" | "custom";
+  | "today"
+  | "7d"
+  | "month"
+  | "last-month"
+  | "30d"
+  | "90d"
+  | "year"
+  | "custom";
 
 export type ResultRangeInput = { range?: string; from?: string; to?: string };
 
@@ -148,6 +159,13 @@ const demoResults: ClientResultsData = {
     whatsappClicks: 186,
     formSubmissions: 12,
     growth: 24,
+    connected: true,
+    trend: [
+      { label: "Jun", value: 2100 },
+      { label: "Jul", value: 2380 },
+      { label: "Aug", value: 2500 },
+      { label: "Sep", value: 2840 },
+    ],
   },
   search: {
     clicks: 684,
@@ -158,6 +176,13 @@ const demoResults: ClientResultsData = {
       { keyword: "kitchen renovation dubai", previous: 14.2, current: 8.4 },
       { keyword: "villa renovation dubai", previous: 22.1, current: 13.7 },
       { keyword: "interior company dubai", previous: 11.6, current: 7.9 },
+    ],
+    connected: true,
+    trend: [
+      { label: "Jun", value: 410 },
+      { label: "Jul", value: 495 },
+      { label: "Aug", value: 570 },
+      { label: "Sep", value: 684 },
     ],
   },
   ai: {
@@ -358,9 +383,15 @@ const demoForRange = (input: ResultRangeInput): ClientResultsData => {
   const scaleCopy = (value: string) =>
     value.replace(/^\d+/, (number) => String(scale(Number(number))));
   const total = scale(demoResults.leads.total);
-  const demoTrend = bounds.key === "90d"
+  const demoTrend =
+    bounds.key === "90d"
       ? demoResults.leads.trend.slice(-3)
-      : [{ label: rangeLabel(bounds.key, bounds.start, bounds.end), value: total }];
+      : [
+          {
+            label: rangeLabel(bounds.key, bounds.start, bounds.end),
+            value: total,
+          },
+        ];
   return {
     ...demoResults,
     periodLabel: rangeLabel(bounds.key, bounds.start, bounds.end),
@@ -445,10 +476,14 @@ export async function loadClientResults(
     { data: reports, error: reportError },
     { data: content, error: contentError },
     { data: completedTasks, error: taskError },
+    { data: pageRows, error: pageError },
+    { data: integrationHealth, error: healthError },
   ] = await Promise.all([
     supabase
       .from("leads")
-      .select("id,name,service,source,created_at,lead_quality,status")
+      .select(
+        "id,name,service,source,source_url,created_at,lead_quality,status",
+      )
       .eq("client_id", clientId)
       .gte("created_at", historyStart.toISOString())
       .lt("created_at", nextStart.toISOString()),
@@ -457,13 +492,15 @@ export async function loadClientResults(
       .select("day,metrics")
       .eq("client_id", clientId)
       .gte("day", iso(historyStart))
-      .lt("day", iso(nextStart)),
+      .lt("day", iso(nextStart))
+      .order("day"),
     supabase
       .from("search_console_daily")
       .select("day,metrics")
       .eq("client_id", clientId)
       .gte("day", iso(currentStart))
-      .lt("day", iso(nextStart)),
+      .lt("day", iso(nextStart))
+      .order("day"),
     supabase.rpc("client_keyword_results"),
     supabase
       .from("reports")
@@ -486,6 +523,13 @@ export async function loadClientResults(
       .gte("deliverable_month", iso(currentStart))
       .lt("deliverable_month", iso(nextStart))
       .in("status", ["published", "verified"]),
+    supabase
+      .from("analytics_page_daily")
+      .select("page_path,users")
+      .eq("client_id", clientId)
+      .gte("day", iso(currentStart))
+      .lt("day", iso(nextStart)),
+    supabase.rpc("client_result_health"),
   ]);
   for (const error of [
     leadsError,
@@ -495,6 +539,8 @@ export async function loadClientResults(
     reportError,
     contentError,
     taskError,
+    pageError,
+    healthError,
   ])
     if (error) throw error;
 
@@ -512,7 +558,12 @@ export async function loadClientResults(
     { key: "website_form", label: "Website form", tone: "blue" },
     { key: "other", label: "Other sources", tone: "sand" },
   ];
-  const trendBucketCount = bounds.duration <= 7 ? bounds.duration : bounds.duration <= 31 ? Math.min(6, bounds.duration) : 4;
+  const trendBucketCount =
+    bounds.duration <= 7
+      ? bounds.duration
+      : bounds.duration <= 31
+        ? Math.min(6, bounds.duration)
+        : 4;
   const trend = Array.from({ length: trendBucketCount }, (_, index) => {
     const bucketStart = addDays(
       currentStart,
@@ -575,6 +626,38 @@ export async function loadClientResults(
     previous ? Math.round(((current - previous) / previous) * 100) : null;
   const sourceCount = (source: string) =>
     currentLeads.filter((item) => item.source === source).length;
+  const gaHealth = (integrationHealth ?? []).find(
+    (item: { provider: string }) => item.provider === "google_analytics",
+  ) as { status?: string; last_synced_at?: string } | undefined;
+  const scHealth = (integrationHealth ?? []).find(
+    (item: { provider: string }) => item.provider === "search_console",
+  ) as { status?: string; last_synced_at?: string } | undefined;
+  const dayLabel = (day: string) =>
+    new Intl.DateTimeFormat("en", {
+      day: "numeric",
+      month: "short",
+      timeZone: "UTC",
+    }).format(new Date(`${day}T00:00:00Z`));
+  const trafficTrend = currentAnalytics.map((item) => ({
+    label: dayLabel(String(item.day)),
+    value: numberFrom(item.metrics, "activeUsers", "users", "visitors"),
+  }));
+  const searchByDay = new Map<string, number>();
+  for (const item of searchRows ?? [])
+    searchByDay.set(
+      String(item.day),
+      (searchByDay.get(String(item.day)) ?? 0) +
+        numberFrom(item.metrics, "clicks"),
+    );
+  const searchTrend = [...searchByDay]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([day, value]) => ({ label: dayLabel(day), value }));
+  const pages = new Map<string, number>();
+  for (const item of pageRows ?? [])
+    pages.set(
+      String(item.page_path),
+      (pages.get(String(item.page_path)) ?? 0) + Number(item.users ?? 0),
+    );
   const previousSourceCount = (source: string) =>
     previousLeads.filter((item) => item.source === source).length;
   const publishedContent = content ?? [];
@@ -660,7 +743,25 @@ export async function loadClientResults(
     rangeKey: bounds.key,
     rangeStart: isoDay(currentStart),
     rangeEnd: isoDay(addDays(nextStart, -1)),
-    updatedAt: "from the latest connected data",
+    updatedAt: [gaHealth?.last_synced_at, scHealth?.last_synced_at]
+      .filter(Boolean)
+      .sort()
+      .at(-1)
+      ? new Intl.DateTimeFormat("en-AE", {
+          day: "numeric",
+          month: "short",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: "Asia/Dubai",
+        }).format(
+          new Date(
+            [gaHealth?.last_synced_at, scHealth?.last_synced_at]
+              .filter(Boolean)
+              .sort()
+              .at(-1)!,
+          ),
+        )
+      : "when a connected source first syncs",
     leads: {
       total,
       qualified: currentLeads.filter(
@@ -708,6 +809,8 @@ export async function loadClientResults(
       ),
       formSubmissions: sourceCount("website_form"),
       growth: growth(visitors, previousVisitors),
+      connected: gaHealth?.status === "connected",
+      trend: trafficTrend,
     },
     search: {
       clicks: searchClicks,
@@ -719,6 +822,8 @@ export async function loadClientResults(
         previous: Number(item.previous_position),
         current: Number(item.current_position),
       })),
+      connected: scHealth?.status === "connected",
+      trend: searchTrend,
     },
     ai: {
       websiteConversations: sum(
@@ -745,7 +850,18 @@ export async function loadClientResults(
       ).length,
     },
     work,
-    topPages: [],
+    topPages: [...pages]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([page, visitors]) => ({
+        page,
+        visitors,
+        leads: currentLeads.filter((item) =>
+          String((item as { source_url?: string }).source_url ?? "").includes(
+            page,
+          ),
+        ).length,
+      })),
     opportunities: keywordRows
       .filter(
         (item) =>

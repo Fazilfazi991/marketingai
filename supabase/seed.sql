@@ -68,3 +68,19 @@ insert into public.automation_runs(id,job_id,client_id,started_at,finished_at,st
 ('71000000-0000-4000-8000-000000000001','70000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','2026-09-01 08:04+04','2026-09-01 08:05+04','succeeded','{"month":"2026-09"}','{"content_records":12,"status":"needs_review"}',0.1842,'openai-compatible','demo'),
 ('71000000-0000-4000-8000-000000000002','70000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000001','2026-08-31 10:03+04','2026-08-31 10:03+04','failed','{"month":"2026-08"}','{}',null,null,null);
 insert into public.automation_errors(run_id,error_code,message,details) values ('71000000-0000-4000-8000-000000000002','DATA_SOURCE_UNAVAILABLE','Analytics data was unavailable; no report was published.','{"retryable":true}');
+-- Separate non-demo QA tenant for Goal 2 live-data verification.
+update public.organizations set is_demo=false,name='Growth1000' where slug='growth1000-demo';
+insert into public.clients(id,organization_id,name,slug,industry,city,emirate,country,lifecycle_status,health_status,is_demo,contact_name,contact_email,website_url,start_date)
+values('40000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','Growth1000 QA Business','growth1000-qa-business','Recruitment','Dubai','Dubai','UAE','active','healthy',false,'Growth1000 QA','qa@kaamcareer.com','https://kaamcareer.com',current_date)
+on conflict(id) do nothing;
+insert into public.business_profiles(client_id,description,website,email)
+values('40000000-0000-4000-8000-000000000001','Non-demo QA workspace for validating isolated live ingestion.','https://kaamcareer.com','qa@kaamcareer.com') on conflict(client_id) do nothing;
+insert into public.client_integrations(client_id,provider,status,is_demo,external_reference,configuration)
+values
+ ('40000000-0000-4000-8000-000000000001','google_analytics','connected',false,'545982719','{"propertyId":"545982719"}'),
+ ('40000000-0000-4000-8000-000000000001','search_console','connected',false,'sc-domain:kaamcareer.com','{"siteUrl":"sc-domain:kaamcareer.com"}')
+on conflict(client_id,provider) do update set status=excluded.status,is_demo=false,external_reference=excluded.external_reference,configuration=excluded.configuration;
+insert into public.client_access(client_id,access_type,status,platform)
+select '40000000-0000-4000-8000-000000000001',v.access_type,'pending',v.platform from (values
+ ('website','Website'),('github','GitHub'),('vercel','Vercel'),('wordpress','WordPress'),('hosting','Hosting'),('domain','Domain'),('google_analytics','GA4'),('search_console','Search Console'),('google_business_profile','Google Business Profile'),('facebook','Facebook'),('instagram','Instagram'),('whatsapp','WhatsApp')) v(access_type,platform)
+on conflict(client_id,access_type) do nothing;

@@ -15,4 +15,5 @@ describe("lead ingestion payloads", () => {
     expect(parseLeadIngestion({ client_id: "abc", event_id: "1", source: "phone", phone: "1" })).toEqual({ ok: false, error: "client_id must be a UUID." });
     expect(parseLeadIngestion({ client_id: "10000000-0000-4000-8000-000000000001", event_id: "1", source: "email", email: "a@b.com" })).toEqual({ ok: false, error: "source is not supported." });
   });
+  it("supports the intentionally small lead lifecycle",()=>{const result=parseLeadIngestion({client_id:"10000000-0000-4000-8000-000000000001",event_id:"general-1",source:"website_form",email:"a@b.com",status:"general"});expect(result.ok&&result.value.status).toBe("general")});
 });

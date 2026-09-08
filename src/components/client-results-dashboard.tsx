@@ -46,7 +46,6 @@ export function ClientResultsDashboard({
     value === null
       ? "No previous-period baseline"
       : `${value >= 0 ? "↑" : "↓"} ${Math.abs(value)}% vs ${comparison}`;
-  const reportHistory = data.reports.slice(0, 6).reverse();
   const leadBlock = (detailed = true) => (
     <>
       <div className="results-toolbar">
@@ -200,6 +199,8 @@ export function ClientResultsDashboard({
   );
   const trafficBlock = (
     <>
+      {!traffic.connected && <div className="empty-state"><b>Google Analytics not connected</b><p>Traffic results will appear after Growth1000 completes the first verified sync.</p></div>}
+      {!search.connected && <div className="empty-state"><b>Search Console not connected</b><p>Google visibility results will appear after the property is connected and synced.</p></div>}
       <div className="results-kpis five">
         <article>
           <span>Website visitors</span>
@@ -389,7 +390,7 @@ export function ClientResultsDashboard({
           </div>
           <div className="snapshot-chart">
             <span>Visitor trend</span>
-            <InteractiveTrendChart key={`visitors-${data.rangeKey}`} unit="Visitors" height={82} data={reportHistory.length ? reportHistory.map((item) => ({ label: item.monthLabel.split(" ")[0], value: item.users })) : [{ label: data.periodLabel, value: traffic.visitors }]} />
+            {traffic.trend?.length ? <InteractiveTrendChart key={`visitors-${data.rangeKey}`} unit="Visitors" height={82} data={traffic.trend} /> : <p>No daily analytics data available yet.</p>}
           </div>
         </Panel>
         <Panel title="Google growth" meta="Organic visibility">
@@ -401,7 +402,7 @@ export function ClientResultsDashboard({
           </div>
           <div className="snapshot-chart">
             <span>Organic click trend</span>
-            <InteractiveTrendChart key={`clicks-${data.rangeKey}`} unit="Organic clicks" height={82} data={reportHistory.length ? reportHistory.map((item) => ({ label: item.monthLabel.split(" ")[0], value: item.clicks })) : [{ label: data.periodLabel, value: search.clicks }]} />
+            {search.trend?.length ? <InteractiveTrendChart key={`clicks-${data.rangeKey}`} unit="Organic clicks" height={82} data={search.trend} /> : <p>No daily Search Console data available yet.</p>}
           </div>
         </Panel>
         <Panel title="AI-generated leads" meta="Qualified conversations">
