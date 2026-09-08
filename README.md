@@ -46,6 +46,21 @@ The pgTAP policy tests live under `supabase/tests`.
 
 Generic n8n exports are stored under `n8n/`; one workflow serves every client. Configure credentials inside n8n and validate `X-Growth1000-Key` before activating production webhooks.
 
+External lead sources post normalized events to `POST /api/webhooks/leads` with `X-Growth1000-Key: <N8N_WEBHOOK_SECRET>`. The route requires the canonical `client_id` plus a stable `event_id` for retry safety, and never exposes the Supabase secret key. Example body:
+
+```json
+{
+  "client_id": "10000000-0000-4000-8000-000000000001",
+  "event_id": "website-form-4831",
+  "source": "website_form",
+  "contact": { "name": "Aisha", "phone": "+971500000000" },
+  "requirement": "Villa renovation",
+  "qualification": { "quality": "qualified", "summary": "Dubai project" }
+}
+```
+
+The first accepted delivery returns `201` with `created: true`; safe retries return the same lead ID with `200` and `created: false`.
+
 The AI layer uses an OpenAI-compatible provider abstraction and reads `AI_BASE_URL`, `AI_API_KEY`, and `AI_MODEL` only on the server. Missing image-generation credentials do not block monthly social preparation: records remain reviewable with explicit placeholder state.
 
 GA4 and Search Console imports are normalized into daily source records with provenance. Source access must be marked accurately; demo values must never be presented as live integrations.
