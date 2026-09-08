@@ -1,19 +1,13 @@
-import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest } from "next/server";
 import { parseLeadIngestion } from "@/lib/leads/ingestion";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { matchesWebhookSecret } from "@/lib/webhook-auth";
 
 export const runtime = "nodejs";
 
 const json = (body: Record<string, unknown>, status: number) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
-const matchesSecret = (received: string | null, expected: string | undefined) => {
-  if (!received || !expected) return false;
-  const left = createHash("sha256").update(received).digest(), right = createHash("sha256").update(expected).digest();
-  return timingSafeEqual(left, right);
-};
-
 export async function POST(request: NextRequest) {
-  if (!matchesSecret(request.headers.get("x-growth1000-key"), process.env.N8N_WEBHOOK_SECRET)) return json({ error: "Unauthorized" }, 401);
+  if (!matchesWebhookSecret(request.headers.get("x-growth1000-key"), process.env.N8N_WEBHOOK_SECRET)) return json({ error: "Unauthorized" }, 401);
   const contentLength = Number(request.headers.get("content-length") ?? 0);
   if (contentLength > 64_000) return json({ error: "Payload too large" }, 413);
   let payload: unknown;

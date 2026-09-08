@@ -46,6 +46,8 @@ The pgTAP policy tests live under `supabase/tests`.
 
 Generic n8n exports are stored under `n8n/`; one workflow serves every client. Configure credentials inside n8n and validate `X-Growth1000-Key` before activating production webhooks.
 
+`MONTHLY_SOCIAL` is the first implemented end-to-end workflow. The app creates a run and passes `run_id`, `client_id`, and `month` to n8n; n8n authenticates the request and calls the server-only preparation endpoint. Growth1000 loads verified business knowledge, active services and locations, verified FAQs, prohibited claims, and recent topics; generated records are committed transactionally as `needs_review` with independent image placeholders. Configure n8n variables `GROWTH1000_APP_URL` and `GROWTH1000_WEBHOOK_SECRET`, and set the app’s `N8N_API_KEY` and `N8N_WEBHOOK_SECRET` to the same secret value.
+
 External lead sources post normalized events to `POST /api/webhooks/leads` with `X-Growth1000-Key: <N8N_WEBHOOK_SECRET>`. The route requires the canonical `client_id` plus a stable `event_id` for retry safety, and never exposes the Supabase secret key. Example body:
 
 ```json
