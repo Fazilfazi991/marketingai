@@ -1,2 +1,2 @@
-import { AppShell } from "@/components/app-shell"; import { PostingQueue } from "@/components/posting-queue";
-export default function Staff(){return <AppShell role="staff" title="Posting queue" subtitle="Everything approved and ready for manual publishing." actions={<><button className="button secondary">November 2026</button><button className="button secondary">All clients</button></>}><PostingQueue/></AppShell>}
+import {AppShell} from "@/components/app-shell";import {PostingQueue} from "@/components/posting-queue";import {loadStaffQueue} from "@/lib/staff-data";
+export default async function Staff(){const queue=await loadStaffQueue();return <AppShell role="staff" title="Posting queue" subtitle="Everything internally reviewed and ready for manual publishing." actions={<button className="button secondary">{queue.periodLabel}</button>}><PostingQueue initial={queue.items} clients={queue.clients} isDemo={queue.isDemo}/></AppShell>}
