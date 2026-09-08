@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link"; import { usePathname } from "next/navigation";
-import { Bell, Building2, CalendarCheck2, ChartNoAxesCombined, ClipboardCheck, FileText, FolderOpen, LayoutDashboard, Menu, Search, Settings, Users, WandSparkles, X } from "lucide-react";
+import { Bell, BookOpenText, Building2, CalendarCheck2, ChartNoAxesCombined, ClipboardCheck, FileText, FolderOpen, LayoutDashboard, Menu, Search, Settings, Users, WandSparkles, X } from "lucide-react";
 import { useState } from "react"; import { Brand } from "./brand";
 const nav = {
- admin: [["Overview","/admin",LayoutDashboard],["Clients","/admin/clients",Building2],["Plans","/admin/plans",FileText],["Tasks","/admin/tasks",ClipboardCheck],["Content","/admin/content",CalendarCheck2],["Approvals","/admin/approvals",WandSparkles],["SEO","/admin/seo",Search],["Reports","/admin/reports",ChartNoAxesCombined],["Assets","/admin/assets",FolderOpen],["Automations","/admin/automations",Settings]],
+ admin: [["Overview","/admin",LayoutDashboard],["Clients","/admin/clients",Building2],["Plans","/admin/plans",FileText],["Tasks","/admin/tasks",ClipboardCheck],["Content","/admin/content",CalendarCheck2],["Blogs","/admin/blogs",BookOpenText],["Approvals","/admin/approvals",WandSparkles],["SEO","/admin/seo",Search],["Reports","/admin/reports",ChartNoAxesCombined],["Assets","/admin/assets",FolderOpen],["Automations","/admin/automations",Settings]],
  staff: [["Posting queue","/staff",CalendarCheck2],["Issues","/staff/issues",ClipboardCheck]],
  client: [["Overview","/client",LayoutDashboard],["Business profile","/client/business",Building2],["Content","/client/content",CalendarCheck2],["SEO","/client/seo",Search],["Reports","/client/reports",FileText],["Files","/client/files",FolderOpen],["Requests","/client/requests",ClipboardCheck]],
 };

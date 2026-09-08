@@ -1,2 +1,2 @@
 import { AppShell } from "@/components/app-shell"; import { ApprovalQueue } from "@/components/approval-queue"; import { Panel } from "@/components/ui";
-export default function Approvals(){return <AppShell role="admin" title="Approval queue" subtitle="Review content and SEO work without opening every client."><Panel title="Needs review" meta="Human approval is required before publishing"><ApprovalQueue/></Panel></AppShell>}
+export default function Approvals(){return <AppShell role="admin" title="Approval queue" subtitle="Review social, blog and SEO work without opening every client."><Panel title="Needs review" meta="Human approval is required before publishing"><ApprovalQueue/></Panel></AppShell>}

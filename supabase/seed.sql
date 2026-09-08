@@ -27,3 +27,26 @@ from (values
 ('Facebook','Renovation questions','What should you ask a fit-out team before appointing them?','2026-11-27 12:00+04'::timestamptz,'approved'),
 ('Instagram + Facebook','Dubai design','Designed for Dubai living.','2026-11-29 11:00+04'::timestamptz,'published'),
 ('Instagram','November recap','A month of thoughtful details and spaces taking shape.','2026-11-30 19:30+04'::timestamptz,'published')) as v(platform,topic,caption,publish_at,status);
+
+insert into public.content_items(client_id,content_kind,month,topic,concept,target_keyword,body,seo_metadata,status,internal_notes) values
+('30000000-0000-4000-8000-000000000001','blog','2026-09-01','The complete guide to villa renovation in Dubai','Practical homeowner planning guide','villa renovation dubai','Renovating a villa is easier when the decisions happen in the right order.',jsonb_build_object('title','Villa Renovation Dubai: A Practical Homeowner Guide','description','Plan a Dubai villa renovation with a clear guide to scope, timelines and selecting an interior fit-out partner.'),'internal_review','Do not invent costs, timelines or authority approvals.'),
+('30000000-0000-4000-8000-000000000001','blog','2026-09-01','Kitchen layouts that work for Dubai homes','Compare practical layouts and circulation','kitchen renovation dubai','The right layout makes a kitchen feel calm long before finishes are selected.',jsonb_build_object('title','Kitchen Renovation Dubai: Layout Planning Guide','description','Compare practical kitchen layouts, storage ideas and circulation tips for Dubai homes.'),'draft','Use only verified ABC Interiors services.'),
+('30000000-0000-4000-8000-000000000001','blog','2026-08-01','Interior fit-out checklist for business owners','Commercial fit-out preparation checklist','interior fit out dubai','Clear requirements reduce costly changes once work begins.',jsonb_build_object('title','Interior Fit-Out Dubai: Client Checklist','description','Prepare for an interior fit-out with a clear checklist for scope, approvals and delivery.'),'published','Published manually to the client website.');
+
+insert into public.seo_keywords(client_id,keyword,intent,target_url,current_position,previous_position,priority,status,notes) values
+('30000000-0000-4000-8000-000000000001','kitchen renovation dubai','commercial','/kitchen-renovation',8,11,'high','improving','Strengthen service proof and FAQs.'),
+('30000000-0000-4000-8000-000000000001','villa renovation dubai','commercial','/villa-renovation',14,19,'high','opportunity','Publish supporting guide and add internal links.'),
+('30000000-0000-4000-8000-000000000001','custom wardrobes dubai','commercial','/wardrobes',21,19,'medium','tracking','Add materials and project photography.'),
+('30000000-0000-4000-8000-000000000001','interior fit out dubai','commercial','/fit-out',17,18,'medium','improving','Expand process section.');
+
+insert into public.seo_pages(client_id,url,title,target_keyword,status,meta_description,notes) values
+('30000000-0000-4000-8000-000000000001','/kitchen-renovation','Kitchen Renovation Dubai','kitchen renovation dubai','live','Practical kitchen renovation services for Dubai homes.','Add verified project examples.'),
+('30000000-0000-4000-8000-000000000001','/villa-renovation','Villa Renovation Dubai','villa renovation dubai','optimizing','Thoughtful villa renovation and interior fit-out in Dubai.','Supporting guide in internal review.'),
+('30000000-0000-4000-8000-000000000001','/wardrobes','Custom Wardrobes Dubai','custom wardrobes dubai','needs_attention','Plan fitted wardrobes around storage and everyday use.','Needs original photography.');
+
+insert into public.seo_tasks(client_id,opportunity,title,target_url,impact,status,notes) values
+('30000000-0000-4000-8000-000000000001','content','Publish villa renovation planning guide','/villa-renovation','high','in_progress','Support the service page with a useful guide and contextual links.'),
+('30000000-0000-4000-8000-000000000001','on_page','Add project proof to wardrobe page','/wardrobes','high','open','Add original photography and a verified case-study section.'),
+('30000000-0000-4000-8000-000000000001','metadata','Improve fit-out title and description','/fit-out','medium','complete','Aligned metadata with the primary commercial query.');
+insert into public.seo_tasks(client_id,opportunity,title,target_url,impact,status,notes) values
+('30000000-0000-4000-8000-000000000001','technical','Add renovation FAQ schema','/villa-renovation','medium','awaiting_review','Review the proposed verified questions before implementation.');

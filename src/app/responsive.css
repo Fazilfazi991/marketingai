@@ -1,4 +1,12 @@
 @media(max-width:560px){
+  .seo-summary{grid-template-columns:1fr!important}
+  .seo-layout{grid-template-columns:1fr!important}
+  .article-editor>footer{align-items:flex-start;gap:10px;flex-direction:column}
+  .blog-head,.blog-row{min-width:0!important;grid-template-columns:minmax(0,1fr) 20px!important;padding:12px 14px}
+  .blog-head span:not(:first-child),.blog-row>span:nth-child(2),.blog-row>span:nth-child(3),.blog-row>span:nth-child(4){display:none}
+  .keyword-head,.keyword-row{min-width:0!important;grid-template-columns:minmax(0,1fr) 62px!important;padding:12px 14px}
+  .keyword-head span:nth-child(2),.keyword-head span:nth-child(4),.keyword-row>span:nth-child(2),.keyword-row>span:nth-child(4){display:none}
+  .opportunity{align-items:flex-start;flex-direction:column}
   .panel .task-item{grid-template-columns:1fr}
   .panel .task-item>div:last-child{flex-wrap:wrap}
   .panel .task-item .button{padding:8px 10px}
