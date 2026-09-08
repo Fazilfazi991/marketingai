@@ -1,0 +1,2 @@
+import {describe,expect,it} from "vitest";import {getReportSnapshot,regenerateReport,updateReport} from "./report-store";
+describe("monthly reports",()=>{it("publishes only through an explicit status transition",()=>{const id=getReportSnapshot().reports[0].id;updateReport(id,{status:"Published"},"Published by partner");expect(getReportSnapshot().reports[0].status).toBe("Published")});it("regeneration returns a report to human review",()=>{const id=getReportSnapshot().reports[0].id;regenerateReport(id);expect(getReportSnapshot().reports[0].status).toBe("Needs review")})});

@@ -1,0 +1,9 @@
+"use client";
+import {useSyncExternalStore} from "react";
+export type ReportStatus="Draft"|"Needs review"|"Published";
+export type MonthlyReport={id:number;client:string;month:string;summary:string;work:string[];users:number;userChange:number;clicks:number;clickChange:number;posts:number;nextFocus:string;status:ReportStatus;source:"Demo"|"Connected";updated:string;history:string[]};
+let reports:MonthlyReport[]=[{id:1,client:"ABC Interiors",month:"September 2026",summary:"Strong social delivery, improving visibility for renovation searches, and a clear focus for October.",work:["9 social posts delivered","1 SEO article drafted","SEO review completed","Website health check completed"],users:1842,userChange:12,clicks:624,clickChange:18,posts:12,nextFocus:"Build visibility for villa renovation searches, publish the wardrobe service article, and strengthen project-led social proof using verified original photography.",status:"Needs review",source:"Demo",updated:"30 Sep · 18:10",history:["Prepared from demo delivery and analytics data","Moved to Needs review"]}];
+let version=0;const listeners=new Set<()=>void>();const emit=()=>{version++;listeners.forEach(fn=>fn())};
+export const getReportSnapshot=()=>({version,reports});export const subscribeReports=(fn:()=>void)=>{listeners.add(fn);return()=>listeners.delete(fn)};export const useReports=()=>useSyncExternalStore(subscribeReports,getReportSnapshot,getReportSnapshot);
+export function updateReport(id:number,patch:Partial<MonthlyReport>,event:string){reports=reports.map(r=>r.id===id?{...r,...patch,updated:"Just now",history:[event,...r.history]}:r);emit()}
+export function regenerateReport(id:number){updateReport(id,{status:"Needs review",summary:"Consistent delivery and stronger organic discovery created a useful base for next month’s service-led growth work."},"Regenerated report draft from current demo records")}
