@@ -63,7 +63,7 @@ External lead sources post normalized events to `POST /api/webhooks/leads` with 
 
 The first accepted delivery returns `201` with `created: true`; safe retries return the same lead ID with `200` and `created: false`.
 
-The AI layer uses an OpenAI-compatible provider abstraction and reads `AI_BASE_URL`, `AI_API_KEY`, and `AI_MODEL` only on the server. Missing image-generation credentials do not block monthly social preparation: records remain reviewable with explicit placeholder state.
+The AI layer uses OpenAI-compatible provider abstractions and reads text and image credentials only on the server. Text generation uses `AI_BASE_URL`, `AI_API_KEY`, and `AI_MODEL`. Image generation can use dedicated `IMAGE_BASE_URL`, `IMAGE_API_KEY`, and `IMAGE_MODEL` values, or fall back to the shared AI endpoint and key. Generated PNG files are validated, written to the private `client-assets` bucket under a versioned path, recorded in `assets` and `image_generations`, and attached through `content_assets`. Missing image-generation credentials do not block monthly social preparation: records remain reviewable with explicit placeholder state.
 
 GA4 and Search Console imports are normalized into daily source records with provenance. Source access must be marked accurately; demo values must never be presented as live integrations.
 

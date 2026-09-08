@@ -178,8 +178,9 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
                 imageStatus: result.image.status,
                 imageModel: result.image.model,
                 storagePath: result.image.storagePath,
+                imageUrl: result.image.url,
                 history: [
-                  `Image placeholder regenerated · v${result.image.version}`,
+                  `${result.image.status} creative prepared · v${result.image.version}`,
                   ...row.history,
                 ],
               }
@@ -187,7 +188,9 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
         ),
       );
       setNotice(
-        `Image version ${result.image.version} is ready for generation.`,
+        result.image.status === "Generated"
+          ? `Image version ${result.image.version} generated and stored securely.`
+          : `Image version ${result.image.version} is a placeholder because no image provider is configured.`,
       );
     }
     setImageGenerating(false);
@@ -280,7 +283,22 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
         <div className="social-grid">
           {visible.map((post) => (
             <article className="social-card" key={post.id}>
-              <div className={`social-visual ${post.color}`}>
+              <div
+                className={`social-visual ${post.color} ${post.imageUrl ? "generated" : ""}`}
+                style={
+                  post.imageUrl
+                    ? {
+                        backgroundImage: `linear-gradient(#15241b22,#15241b99),url("${post.imageUrl}")`,
+                      }
+                    : undefined
+                }
+                role={post.imageUrl ? "img" : undefined}
+                aria-label={
+                  post.imageUrl
+                    ? `Generated creative for ${post.topic}`
+                    : undefined
+                }
+              >
                 <span>{post.topic}</span>
                 <small>{post.date}</small>
                 <i>
@@ -380,7 +398,20 @@ function Editor({
             <X size={19} />
           </button>
         </header>
-        <div className={`editor-preview ${post.color}`}>
+        <div
+          className={`editor-preview ${post.color} ${post.imageUrl ? "generated" : ""}`}
+          style={
+            post.imageUrl
+              ? {
+                  backgroundImage: `linear-gradient(#15241b22,#15241baa),url("${post.imageUrl}")`,
+                }
+              : undefined
+          }
+          role={post.imageUrl ? "img" : undefined}
+          aria-label={
+            post.imageUrl ? `Generated creative for ${post.topic}` : undefined
+          }
+        >
           <span>{post.topic}</span>
           <small>
             {post.imageStatus} creative · version {post.imageVersion}
