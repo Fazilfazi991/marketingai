@@ -8,13 +8,13 @@ import {
   MessageCircle,
   MessagesSquare,
   Target,
-  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTransition } from "react";
 import type { ClientResultsData } from "@/lib/client-results";
 import { Panel } from "./ui";
+import { GrowthAiAssistant } from "./growth-ai-assistant";
 
 export function ClientResultsDashboard({
   data,
@@ -122,7 +122,9 @@ export function ClientResultsDashboard({
             {Math.max(0, leads.total - leads.qualified)} general enquiries
           </small>
         </div>
-        <Users size={42} />
+        <div className="lead-hero-sources">
+          {leads.sources.slice(0, 3).map(source => <span key={source.key}><small>{source.label}</small><b>{source.value}</b></span>)}
+        </div>
       </section>
       <div className="results-kpis">
         {leads.sources.map((source) => (
@@ -442,6 +444,7 @@ export function ClientResultsDashboard({
           <p>{data.summary}</p>
         </div>
       </section>
+      <GrowthAiAssistant data={data} />
     </>
   );
 }
