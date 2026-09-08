@@ -1,16 +1,134 @@
 "use server";
-import {revalidatePath} from "next/cache";import {createClient} from "@/lib/supabase/server";
-type Result={ok:true}|{ok:false;error:string};const allowed=new Set(["ready_to_post","scheduled","published","issue"]);
-async function authorizedClient(){const supabase=await createClient();const{data:{user}}=await supabase.auth.getUser();if(!user)return null;const{data}=await supabase.from("organization_members").select("role").eq("user_id",user.id).eq("status","active").in("role",["admin","staff"]).limit(1).maybeSingle();return data?supabase:null}
-export async function updatePostingStatus(id:string,status:string,note=""):Promise<Result>{
-  return updatePostingStatuses([id],status,note);
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+type Result = { ok: true } | { ok: false; error: string };
+const allowed = new Set(["ready_to_post", "scheduled", "published", "issue"]);
+async function authorizedClient() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from("organization_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .in("role", ["admin", "staff"])
+    .limit(1)
+    .maybeSingle();
+  return data ? supabase : null;
 }
-export async function updatePostingStatuses(ids:string[],status:string,note=""):Promise<Result>{
-  const unique=[...new Set(ids)];if(!unique.length||unique.length>100||unique.some(id=>!/^[0-9a-f-]{36}$/i.test(id))||!allowed.has(status))return{ok:false,error:"Invalid posting update."};
-  try{const supabase=await createClient();const{data:{user}}=await supabase.auth.getUser();if(!user)return{ok:false,error:"Sign in before updating the queue."};
-    const{data:membership,error:membershipError}=await supabase.from("organization_members").select("organization_id,role").eq("user_id",user.id).eq("status","active").in("role",["admin","staff"]).limit(1).maybeSingle();if(membershipError||!membership)return{ok:false,error:"Your account cannot update the posting queue."};
-    const{data:available,error:readError}=await supabase.from("content_items").select("id,clients!inner(organization_id)").in("id",unique).eq("content_kind","social_post").eq("clients.organization_id",membership.organization_id);if(readError)return{ok:false,error:readError.message};if((available??[]).length!==unique.length)return{ok:false,error:"One or more posts are unavailable."};
-    const{data:updated,error}=await supabase.from("content_items").update({status,staff_note:note.trim()||null}).in("id",unique).select("id");if(error)return{ok:false,error:error.message};if((updated??[]).length!==unique.length)return{ok:false,error:"One or more posts could not be updated."};revalidatePath("/staff");revalidatePath("/staff/issues");return{ok:true};
-  }catch(error){return{ok:false,error:error instanceof Error?error.message:"The posting queue could not be updated."}}
+export async function updatePostingStatus(
+  id: string,
+  status: string,
+  note = "",
+): Promise<Result> {
+  return updatePostingStatuses([id], status, note);
 }
-export async function getPostingImageUrl(id:string):Promise<{ok:true;url:string}|{ok:false;error:string}>{if(!/^[0-9a-f-]{36}$/i.test(id))return{ok:false,error:"Invalid creative."};try{const supabase=await authorizedClient();if(!supabase)return{ok:false,error:"Your account cannot access posting creatives."};const{data,error}=await supabase.from("content_assets").select("assets(storage_path)").eq("content_item_id",id).limit(1).maybeSingle();if(error)return{ok:false,error:error.message};const relation=data?.assets as unknown as {storage_path?:string}|{storage_path?:string}[]|null;const asset=Array.isArray(relation)?relation[0]:relation;if(!asset?.storage_path)return{ok:false,error:"No creative asset is attached to this post yet."};const signed=await supabase.storage.from("client-assets").createSignedUrl(asset.storage_path,60);if(signed.error)return{ok:false,error:signed.error.message};return{ok:true,url:signed.data.signedUrl}}catch(error){return{ok:false,error:error instanceof Error?error.message:"The creative could not be opened."}}}
+export async function updatePostingStatuses(
+  ids: string[],
+  status: string,
+  note = "",
+): Promise<Result> {
+  const unique = [...new Set(ids)];
+  if (
+    !unique.length ||
+    unique.length > 100 ||
+    unique.some((id) => !/^[0-9a-f-]{36}$/i.test(id)) ||
+    !allowed.has(status)
+  )
+    return { ok: false, error: "Invalid posting update." };
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user)
+      return { ok: false, error: "Sign in before updating the queue." };
+    const { data: membership, error: membershipError } = await supabase
+      .from("organization_members")
+      .select("organization_id,role")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .in("role", ["admin", "staff"])
+      .limit(1)
+      .maybeSingle();
+    if (membershipError || !membership)
+      return {
+        ok: false,
+        error: "Your account cannot update the posting queue.",
+      };
+    const { data: available, error: readError } = await supabase
+      .from("content_items")
+      .select("id,clients!inner(organization_id)")
+      .in("id", unique)
+      .eq("content_kind", "social_post")
+      .eq("clients.organization_id", membership.organization_id);
+    if (readError) return { ok: false, error: readError.message };
+    if ((available ?? []).length !== unique.length)
+      return { ok: false, error: "One or more posts are unavailable." };
+    const { data: updated, error } = await supabase
+      .from("content_items")
+      .update({ status, staff_note: note.trim() || null })
+      .in("id", unique)
+      .select("id");
+    if (error) return { ok: false, error: error.message };
+    if ((updated ?? []).length !== unique.length)
+      return { ok: false, error: "One or more posts could not be updated." };
+    revalidatePath("/staff");
+    revalidatePath("/staff/issues");
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "The posting queue could not be updated.",
+    };
+  }
+}
+export async function getPostingImageUrl(
+  id: string,
+): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  if (!/^[0-9a-f-]{36}$/i.test(id))
+    return { ok: false, error: "Invalid creative." };
+  try {
+    const supabase = await authorizedClient();
+    if (!supabase)
+      return {
+        ok: false,
+        error: "Your account cannot access posting creatives.",
+      };
+    const { data, error } = await supabase
+      .from("content_assets")
+      .select("version,assets(storage_path)")
+      .eq("content_item_id", id)
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) return { ok: false, error: error.message };
+    const relation = data?.assets as unknown as
+      { storage_path?: string } | { storage_path?: string }[] | null;
+    const asset = Array.isArray(relation) ? relation[0] : relation;
+    if (!asset?.storage_path)
+      return {
+        ok: false,
+        error: "No creative asset is attached to this post yet.",
+      };
+    const signed = await supabase.storage
+      .from("client-assets")
+      .createSignedUrl(asset.storage_path, 60);
+    if (signed.error) return { ok: false, error: signed.error.message };
+    return { ok: true, url: signed.data.signedUrl };
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "The creative could not be opened.",
+    };
+  }
+}
