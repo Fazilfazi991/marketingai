@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { saveBusinessKnowledge, saveClientAccess, saveServiceScope } from "@/app/admin/clients/actions";
+import type { AdminClientWorkspaceData } from "@/lib/admin-data";
 import { access as seedAccess, monthlyObligations } from "@/lib/demo-data";
 import { Panel, Status } from "./ui";
 import { SocialOperations } from "./social-operations";
@@ -20,16 +22,18 @@ const initialScope = [
   { key: "analytics_reporting", label: "Analytics and reporting", enabled: true, quantity: 1 },
 ];
 
-export function ClientWorkspace({ section }: { section: string }) {
+export function ClientWorkspace({ section, initial, live = false }: { section: string; initial?: AdminClientWorkspaceData; live?: boolean }) {
+  const slug = initial?.slug ?? "abc-interiors";
   const [saved, setSaved] = useState(false);
-  const [profile, setProfile] = useState(initialProfile);
-  const [connections, setConnections] = useState(seedAccess.map(([name, status]) => ({ name, status: status as string })));
-  const [scope, setScope] = useState(initialScope);
+  const [notice, setNotice] = useState("");
+  const [profile, setProfile] = useState(initial?.profile ?? initialProfile);
+  const [connections, setConnections] = useState(initial?.access ?? seedAccess.map(([name, status]) => ({ name, status: status as string })));
+  const [scope, setScope] = useState(initial?.scope ?? initialScope);
   const [generated, setGenerated] = useState(false);
 
-  const saveProfile = () => { localStorage.setItem("g1-abc-profile", JSON.stringify(profile)); setSaved(true); };
-  const setAccess = (name: string, status: string) => { const next = connections.map(item => item.name === name ? { ...item, status } : item); setConnections(next); localStorage.setItem("g1-abc-access", JSON.stringify(next)); setSaved(true); };
-  const saveScope = () => { localStorage.setItem("g1-abc-service-scope", JSON.stringify(scope)); setSaved(true); };
+  const saveProfile = async () => { if (live) { const result = await saveBusinessKnowledge(slug, profile); setNotice(result.ok ? "Business knowledge saved securely." : result.error); } else { localStorage.setItem("g1-abc-profile", JSON.stringify(profile)); setNotice("Business knowledge saved in local demo mode."); } setSaved(true); };
+  const setAccess = async (name: string, status: string) => { const next = connections.map(item => item.name === name ? { ...item, status } : item); setConnections(next); if (live) { const result = await saveClientAccess(slug, name, status); setNotice(result.ok ? `${name} access updated securely.` : result.error); } else { localStorage.setItem("g1-abc-access", JSON.stringify(next)); setNotice("Access status saved in local demo mode."); } setSaved(true); };
+  const saveScope = async () => { if (live) { const result = await saveServiceScope(slug, scope); setNotice(result.ok ? "Service scope saved securely." : result.error); } else { localStorage.setItem("g1-abc-service-scope", JSON.stringify(scope)); setNotice("Service scope saved in local demo mode."); } setSaved(true); };
 
   const overview = <div className="workspace-layout">
     <Panel title="September delivery" meta="Generated from the active client service scope"><div className="panel-body">{monthlyObligations.map(item => <div className="obligation" key={item.type}><div className="obligation-top"><b>{item.type}</b><span>{item.done} / {item.total}</span></div><div className="progress-track"><i style={{ width: `${item.done / item.total * 100}%` }} /></div></div>)}<div className="save-row"><button className="button secondary" onClick={() => setGenerated(true)}>{generated ? "October obligations generated" : "Generate October obligations"}</button></div></div></Panel>
@@ -46,7 +50,7 @@ export function ClientWorkspace({ section }: { section: string }) {
   if (section === "social") content = <SocialOperations />;
   if (["website", "analytics", "leads", "reports", "notes"].includes(section)) content = <Panel title={labels[section] ?? section[0].toUpperCase() + section.slice(1)} meta="Client operations workspace"><div className="empty-state"><b>This workspace is ready for live client data.</b><p>Connect the relevant source to replace the clearly marked demo state.</p></div></Panel>;
 
-  return <><div className="workspace-head"><span className="avatar">AI</span><div><h2>ABC Interiors</h2><p>7 active services · Dubai, UAE</p></div><span style={{ marginLeft: "auto" }}><Status tone="warn">Needs attention</Status></span></div><div className="workspace-tabs">{tabs.map(tab => <Link className={section === tab ? "active" : ""} key={tab} href={`/admin/clients/abc-interiors/${tab === "overview" ? "" : tab}`}>{labels[tab] ?? tab[0].toUpperCase() + tab.slice(1)}</Link>)}</div>{saved && <div className="toast">Changes saved in local demo mode.</div>}{content}</>;
+  return <><div className="workspace-head"><span className="avatar">{(initial?.name ?? "ABC Interiors").split(" ").map(part => part[0]).join("").slice(0, 2)}</span><div><h2>{initial?.name ?? "ABC Interiors"}</h2><p>{scope.filter(item => item.enabled).length} active services · {initial?.location ?? "Dubai, UAE"}</p></div><span style={{ marginLeft: "auto" }}><Status tone={initial?.health === "Healthy" ? "" : "warn"}>{initial?.health ?? "Needs attention"}</Status></span></div><div className="workspace-tabs">{tabs.map(tab => <Link className={section === tab ? "active" : ""} key={tab} href={`/admin/clients/${slug}/${tab === "overview" ? "" : tab}`}>{labels[tab] ?? tab[0].toUpperCase() + tab.slice(1)}</Link>)}</div>{saved && <div className="toast" role="status">{notice}</div>}{content}</>;
 }
 
 function Field({ label, value, onChange, full, area }: { label: string; value: string; onChange: (value: string) => void; full?: boolean; area?: boolean }) {
