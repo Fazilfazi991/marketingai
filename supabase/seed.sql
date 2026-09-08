@@ -50,3 +50,14 @@ insert into public.seo_tasks(client_id,opportunity,title,target_url,impact,statu
 ('30000000-0000-4000-8000-000000000001','metadata','Improve fit-out title and description','/fit-out','medium','complete','Aligned metadata with the primary commercial query.');
 insert into public.seo_tasks(client_id,opportunity,title,target_url,impact,status,notes) values
 ('30000000-0000-4000-8000-000000000001','technical','Add renovation FAQ schema','/villa-renovation','medium','awaiting_review','Review the proposed verified questions before implementation.');
+
+insert into public.automation_jobs(id,organization_id,workflow_key,name,status,configuration,schedule,next_run_at,last_run_at,n8n_workflow_id) values
+('70000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','MONTHLY_SOCIAL','Monthly social preparation','active','{"review_boundary":"needs_review","content_count":12}','0 8 1 * *','2026-10-01 08:00+04','2026-09-01 08:04+04','SNsT3tzXQNT4KMHh'),
+('70000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000001','MONTHLY_BLOG','Monthly blog preparation','active','{"review_boundary":"internal_review","content_count":2}','0 8 2 * *','2026-10-02 08:00+04','2026-09-02 08:02+04','pcQN9KSzSGg0fHVR'),
+('70000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000001','SEO_REVIEW','SEO review','active','{"review_boundary":"awaiting_review"}','0 9 5 * *','2026-10-05 09:00+04','2026-09-05 09:01+04','4SbYlnVSwlkow8hM'),
+('70000000-0000-4000-8000-000000000004','10000000-0000-4000-8000-000000000001','MONTHLY_REPORT','Monthly report','active','{"review_boundary":"draft"}','0 10 L * *','2026-09-30 10:00+04','2026-08-31 10:03+04','FVdVKXFldvRu9yU6');
+
+insert into public.automation_runs(id,job_id,client_id,started_at,finished_at,status,input_reference,output_reference,cost,provider,model) values
+('71000000-0000-4000-8000-000000000001','70000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','2026-09-01 08:04+04','2026-09-01 08:05+04','succeeded','{"month":"2026-09"}','{"content_records":12,"status":"needs_review"}',0.1842,'openai-compatible','demo'),
+('71000000-0000-4000-8000-000000000002','70000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000001','2026-08-31 10:03+04','2026-08-31 10:03+04','failed','{"month":"2026-08"}','{}',null,null,null);
+insert into public.automation_errors(run_id,error_code,message,details) values ('71000000-0000-4000-8000-000000000002','DATA_SOURCE_UNAVAILABLE','Analytics data was unavailable; no report was published.','{"retryable":true}');

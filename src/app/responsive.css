@@ -1,4 +1,9 @@
 @media(max-width:560px){
+  .automation-stats{grid-template-columns:1fr!important}
+  .workflow-grid{grid-template-columns:1fr!important;padding:10px}
+  .run-head,.run-row{min-width:0!important;grid-template-columns:minmax(0,1fr) 78px!important}
+  .run-head span:not(:first-child):not(:nth-child(3)),.run-row>span:nth-child(2),.run-row>span:nth-child(4),.run-row>span:nth-child(5){display:none}
+  .failure-row{grid-template-columns:20px 1fr}.failure-row .button{grid-column:2}
   .seo-summary{grid-template-columns:1fr!important}
   .seo-layout{grid-template-columns:1fr!important}
   .article-editor>footer{align-items:flex-start;gap:10px;flex-direction:column}

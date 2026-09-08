@@ -1,0 +1,4 @@
+import "server-only";
+export type N8nWorkflowKey="MONTHLY_SOCIAL"|"MONTHLY_BLOG"|"SEO_REVIEW"|"MONTHLY_REPORT";
+export type WorkflowInput={client_id:string;month?:string;callback_url?:string};
+export async function triggerN8nWorkflow(workflow:N8nWorkflowKey,input:WorkflowInput,env:Record<string,string|undefined>=process.env){const baseUrl=env.N8N_BASE_URL,key=env.N8N_API_KEY;if(!baseUrl||!key)throw new Error("n8n is not configured");const response=await fetch(`${baseUrl.replace(/\/$/,"")}/webhook/${workflow.toLowerCase().replaceAll("_","-")}`,{method:"POST",headers:{"Content-Type":"application/json","X-Growth1000-Key":key},body:JSON.stringify(input),cache:"no-store"});if(!response.ok)throw new Error(`n8n workflow ${workflow} failed with status ${response.status}`);return response.json() as Promise<{run_id?:string;status:string}>}
