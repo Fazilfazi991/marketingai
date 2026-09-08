@@ -1,3 +1,3 @@
-import { AppShell } from "@/components/app-shell"; import { ClientPortalSection } from "@/components/client-portal-section";
+import { AppShell } from "@/components/app-shell"; import { ClientPortalSection } from "@/components/client-portal-section";import {loadClientPortalData} from "@/lib/client-portal-data";
 const labels:Record<string,string>={business:"Business profile",content:"Content",seo:"SEO",reports:"Reports",files:"Files",requests:"Requests"};
-export default async function Section({params}:{params:Promise<{section:string}>}){const {section}=await params;return <AppShell role="client" title={labels[section]??"Workspace"} subtitle="ABC Interiors · private client workspace"><ClientPortalSection section={section}/></AppShell>}
+export default async function Section({params}:{params:Promise<{section:string}>}){const {section}=await params;const data=await loadClientPortalData(section);return <AppShell role="client" title={labels[section]??"Workspace"} subtitle="Private client workspace"><ClientPortalSection section={section} data={data}/></AppShell>}
