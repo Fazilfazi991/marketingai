@@ -13,6 +13,8 @@ const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]
 const leadSources = new Set(["website_form", "website_chatbot", "whatsapp", "manual", "instagram", "facebook", "google_business", "phone", "other"]);
 const leadStatuses = new Set(["new", "contacted", "qualified", "won", "lost", "spam"]);
 const leadQualities = new Set(["unqualified", "qualified", "high_intent", "disqualified"]);
+const lifecycleStatuses = new Set(["onboarding", "active", "paused"]);
+const healthStatuses = new Set(["healthy", "needs_attention", "at_risk"]);
 
 async function adminContext(slug?: string) {
   const supabase = await createClient();
@@ -65,6 +67,10 @@ export async function saveBusinessKnowledge(slug: string, values: Record<string,
     revalidatePath(`/admin/clients/${slug}/business`);
     return { ok: true };
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Unable to save business knowledge." }; }
+}
+
+export async function saveClientDetails(slug:string,values:{name:string;industry:string;city:string;country:string;lifecycle:string;health:string}):Promise<MutationResult>{
+  try{const name=values.name.trim(),lifecycle=values.lifecycle.toLowerCase().replaceAll(" ","_"),health=values.health.toLowerCase().replaceAll(" ","_");if(!name)return{ok:false,error:"Business name is required."};if(!lifecycleStatuses.has(lifecycle)||!healthStatuses.has(health))return{ok:false,error:"Invalid client status."};const{supabase,clientId}=await adminContext(slug);const{error}=await supabase.from("clients").update({name,industry:values.industry.trim()||null,city:values.city.trim()||null,country:values.country.trim()||"UAE",lifecycle_status:lifecycle,health_status:health,updated_at:new Date().toISOString()}).eq("id",clientId);if(error)return{ok:false,error:error.message};revalidatePath("/admin/clients");revalidatePath(`/admin/clients/${slug}`);return{ok:true}}catch(error){return{ok:false,error:error instanceof Error?error.message:"Unable to update client."}}
 }
 
 export async function saveClientAccess(slug: string, accessType: string, status: string): Promise<MutationResult> {

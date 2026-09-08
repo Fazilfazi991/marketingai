@@ -20,6 +20,9 @@ export type AdminClientWorkspaceData = {
   slug: string;
   location: string;
   health: string;
+  lifecycle: string;
+  city: string;
+  country: string;
   profile: {
     description: string;
     industry: string;
@@ -58,7 +61,7 @@ function demoAdminClient(slug: string): AdminClientWorkspaceData {
   return {
     id: `demo-${slug}`,
     slug,
-    ...identity,
+    ...identity, lifecycle:"Active", city:identity.location.split(",")[0], country:"UAE",
     profile: {
       description: `${identity.name} is a demo client workspace used to preview Growth1000 operations.`,
       industry: slug === "abc-interiors" ? "Interior Design / Renovation" : "",
@@ -124,7 +127,7 @@ export async function loadAdminClients(): Promise<AdminClientListItem[] | undefi
 export async function loadAdminClient(slug: string): Promise<AdminClientWorkspaceData | null | undefined> {
   if (isDemoMode()) return demoAdminClient(slug);
   const supabase = await createClient();
-  const { data: client, error } = await supabase.from("clients").select("id,name,slug,industry,city,country,health_status").eq("slug", slug).is("deleted_at", null).single();
+  const { data: client, error } = await supabase.from("clients").select("id,name,slug,industry,city,country,lifecycle_status,health_status").eq("slug", slug).is("deleted_at", null).single();
   if (error) return null;
   const clientId = client.id as string;
   const month = new Date().toISOString().slice(0, 7), monthStart = `${month}-01`, endDate = new Date(`${monthStart}T00:00:00Z`); endDate.setUTCMonth(endDate.getUTCMonth() + 1); const monthEnd = endDate.toISOString().slice(0, 10);
@@ -148,7 +151,7 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
   if (periodError) throw periodError;
   const obligations = (period?.delivery_obligations ?? []) as Array<{deliverable_type:string;label:string;promised_quantity:number;delivered_quantity:number;status:string}>;
   return {
-    id: clientId, name: String(client.name), slug: String(client.slug), location: [client.city, client.country].filter(Boolean).join(", "), health: titleCase(String(client.health_status)),
+    id: clientId, name: String(client.name), slug: String(client.slug), location: [client.city, client.country].filter(Boolean).join(", "), health: titleCase(String(client.health_status)), lifecycle:titleCase(String(client.lifecycle_status)),city:client.city??"",country:client.country??"UAE",
     profile: { description: profile?.description ?? "", industry: client.industry ?? "", services: (services ?? []).map(item => item.name).join(", "), locations: (locations ?? []).map(item => item.name).join(", "), customers: profile?.target_customers ?? "", value: profile?.value_proposition ?? "", tone: profile?.tone_of_voice ?? "", website: profile?.website ?? "", claims: profile?.prohibited_claims ?? "" },
     access: accessTypes.map(name => {
       const match = (access ?? []).find(item => titleCase(String(item.access_type)) === name);
