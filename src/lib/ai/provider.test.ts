@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { OpenAICompatibleProvider } from "./provider";
+import { DemoAIProvider } from "./demo-provider";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -16,5 +17,18 @@ describe("OpenAI-compatible provider", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ items: [] }) } }] }), { status: 200 })));
     const provider = new OpenAICompatibleProvider({ baseUrl: "https://example.test/v1", apiKey: "test-key", model: "test-model" });
     await expect(provider.analyzeSEO({ clientId: "client", businessKnowledge: "Verified", services: [], offers: [], prohibitedClaims: [] }, "input")).rejects.toThrow("data field");
+  });
+});
+
+describe("demo blog generation", () => {
+  it("creates a reviewable draft from verified services without unsupported claims", async () => {
+    const provider = new DemoAIProvider();
+    const context = { clientId: "demo", businessKnowledge: "ABC Interiors is verified.", services: ["Villa Renovation", "Wardrobes"], offers: [], prohibitedClaims: ["Prices", "Guarantees"] };
+    const brief = await provider.generateBlogBrief(context, "villa renovation dubai");
+    const draft = await provider.generateBlogDraft(context, brief.data);
+    expect(brief.data).toContain("villa renovation dubai");
+    expect(brief.data).toContain("Avoid prices, guarantees");
+    expect(draft.data).toContain("Villa Renovation");
+    expect(draft.data.length).toBeGreaterThan(500);
   });
 });
