@@ -1,0 +1,26 @@
+import "server-only";
+import {isDemoMode} from "@/lib/demo-mode";
+import {createClient} from "@/lib/supabase/server";
+import type {AutomationError,AutomationJob,AutomationRun} from "@/lib/automation-store";
+
+export type AdminAutomationData={jobs:AutomationJob[];runs:AutomationRun[];errors:AutomationError[];clients:Array<{id:string;name:string}>;isDemo:boolean};
+const demoJobs:AutomationJob[]=[{id:1,key:"MONTHLY_SOCIAL",name:"Monthly social preparation",schedule:"1st monthly · 08:00 GST",status:"Active",lastRun:"1 Sep · 08:04",nextRun:"1 Oct · 08:00",health:"Healthy"},{id:2,key:"MONTHLY_BLOG",name:"Monthly blog preparation",schedule:"2nd monthly · 08:00 GST",status:"Active",lastRun:"2 Sep · 08:02",nextRun:"2 Oct · 08:00",health:"Healthy"},{id:3,key:"SEO_REVIEW",name:"SEO review",schedule:"5th monthly · 09:00 GST",status:"Active",lastRun:"5 Sep · 09:01",nextRun:"5 Oct · 09:00",health:"Healthy"},{id:4,key:"MONTHLY_REPORT",name:"Monthly report",schedule:"Last day · 10:00 GST",status:"Active",lastRun:"31 Aug · 10:03",nextRun:"30 Sep · 10:00",health:"Failed"}];
+const demoRuns:AutomationRun[]=[{id:104,jobId:1,client:"ABC Interiors",workflow:"MONTHLY_SOCIAL",started:"1 Sep · 08:04",finished:"1 Sep · 08:05",status:"Succeeded",input:"client_id + 2026-09",output:"12 content records · Needs review",cost:.1842},{id:101,jobId:4,client:"ABC Interiors",workflow:"MONTHLY_REPORT",started:"31 Aug · 10:03",finished:"31 Aug · 10:03",status:"Failed",input:"client_id + 2026-08",output:"No report created",cost:null}];
+const demoErrors:AutomationError[]=[{runId:101,code:"DATA_SOURCE_UNAVAILABLE",message:"Analytics data was not available. The run stopped without publishing a report.",time:"31 Aug · 10:03"}];
+const dateTime=(value:string|null)=>value?new Intl.DateTimeFormat("en-AE",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Dubai"}).format(new Date(value)):"Never";
+const scheduleLabel=(key:string)=>({MONTHLY_SOCIAL:"1st monthly · 08:00 GST",MONTHLY_BLOG:"2nd monthly · 08:00 GST",SEO_REVIEW:"5th monthly · 09:00 GST",MONTHLY_REPORT:"Last day · 10:00 GST"}[key]??"Configured schedule");
+
+export async function loadAdminAutomations():Promise<AdminAutomationData>{
+ if(isDemoMode())return{jobs:demoJobs,runs:demoRuns,errors:demoErrors,clients:[{id:"demo-abc-interiors",name:"ABC Interiors"}],isDemo:true};
+ const supabase=await createClient();const{data:{user}}=await supabase.auth.getUser();if(!user)throw new Error("Sign in as a partner.");
+ const[{data:jobRows,error:jobError},{data:runRows,error:runError},{data:errorRows,error:errorError},{data:clientRows,error:clientError}]=await Promise.all([
+  supabase.from("automation_jobs").select("id,workflow_key,name,status,last_run_at,next_run_at").order("name"),
+  supabase.from("automation_runs").select("id,job_id,client_id,started_at,finished_at,status,input_reference,output_reference,cost,automation_jobs(workflow_key),clients(name)").order("started_at",{ascending:false}).limit(100),
+  supabase.from("automation_errors").select("run_id,error_code,message,created_at").order("created_at",{ascending:false}).limit(100),
+  supabase.from("clients").select("id,name").is("deleted_at",null).order("name")
+ ]);if(jobError)throw jobError;if(runError)throw runError;if(errorError)throw errorError;if(clientError)throw clientError;
+ const runs:AutomationRun[]=(runRows??[]).map((row,index)=>{const job=Array.isArray(row.automation_jobs)?row.automation_jobs[0]:row.automation_jobs,client=Array.isArray(row.clients)?row.clients[0]:row.clients,input=row.input_reference as Record<string,unknown>|null,output=row.output_reference as Record<string,unknown>|null;return{id:index+1,dbId:String(row.id),jobDbId:String(row.job_id),jobId:0,client:client?.name??"Organization-wide",workflow:String(job?.workflow_key??"SEO_REVIEW") as AutomationRun["workflow"],started:dateTime(row.started_at),finished:row.finished_at?dateTime(row.finished_at):null,status:String(row.status).replace(/^./,c=>c.toUpperCase()) as AutomationRun["status"],input:input?Object.entries(input).map(([key,value])=>`${key}: ${String(value)}`).join(" · "):"No input reference",output:output&&Object.keys(output).length?Object.entries(output).map(([key,value])=>`${key}: ${String(value)}`).join(" · "):"No output recorded",cost:row.cost===null?null:Number(row.cost)}});
+ const jobs:AutomationJob[]=(jobRows??[]).map((row,index)=>{const related=runs.find(run=>run.jobDbId===String(row.id)),health=related?.status==="Failed"?"Failed":related?.status==="Running"?"Running":"Healthy";return{id:index+1,dbId:String(row.id),key:String(row.workflow_key) as AutomationJob["key"],name:String(row.name),schedule:scheduleLabel(String(row.workflow_key)),status:String(row.status)==="active"?"Active":"Paused",lastRun:dateTime(row.last_run_at),nextRun:dateTime(row.next_run_at),health}});
+ const errors:AutomationError[]=(errorRows??[]).map(row=>{const run=runs.find(item=>item.dbId===String(row.run_id));return{runId:run?.id??-1,runDbId:String(row.run_id),code:String(row.error_code??"AUTOMATION_FAILED"),message:String(row.message),time:dateTime(row.created_at)}});
+ return{jobs,runs,errors,clients:(clientRows??[]).map(row=>({id:String(row.id),name:String(row.name)})),isDemo:false};
+}

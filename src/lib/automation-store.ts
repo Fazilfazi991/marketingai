@@ -2,9 +2,9 @@
 import { useSyncExternalStore } from "react";
 
 export type WorkflowKey="MONTHLY_SOCIAL"|"MONTHLY_BLOG"|"SEO_REVIEW"|"MONTHLY_REPORT";
-export type AutomationJob={id:number;key:WorkflowKey;name:string;schedule:string;status:"Active"|"Paused";lastRun:string;nextRun:string;health:"Healthy"|"Running"|"Failed"};
-export type AutomationRun={id:number;jobId:number;client:string;workflow:WorkflowKey;started:string;finished:string|null;status:"Running"|"Succeeded"|"Failed";input:string;output:string;cost:number|null};
-export type AutomationError={runId:number;code:string;message:string;time:string};
+export type AutomationJob={id:number;dbId?:string;key:WorkflowKey;name:string;schedule:string;status:"Active"|"Paused";lastRun:string;nextRun:string;health:"Healthy"|"Running"|"Failed"};
+export type AutomationRun={id:number;dbId?:string;jobDbId?:string;jobId:number;client:string;workflow:WorkflowKey;started:string;finished:string|null;status:"Running"|"Succeeded"|"Failed";input:string;output:string;cost:number|null};
+export type AutomationError={runId:number;runDbId?:string;code:string;message:string;time:string};
 
 let jobs:AutomationJob[]=[
  {id:1,key:"MONTHLY_SOCIAL",name:"Monthly social preparation",schedule:"1st monthly · 08:00 GST",status:"Active",lastRun:"1 Sep · 08:04",nextRun:"1 Oct · 08:00",health:"Healthy"},

@@ -1,2 +1,2 @@
-import { AppShell } from "@/components/app-shell"; import { AutomationDashboard } from "@/components/automation-dashboard";
-export default function AutomationsPage(){return <AppShell role="admin" title="Automations" subtitle="Workflow health, schedules, runs and failures across every client."><AutomationDashboard/></AppShell>}
+import {AppShell} from "@/components/app-shell";import {AutomationDashboard} from "@/components/automation-dashboard";import {loadAdminAutomations} from "@/lib/admin-automation-data";
+export default async function AutomationsPage(){const data=await loadAdminAutomations();return <AppShell role="admin" title="Automations" subtitle="Workflow health, schedules, runs and failures across every client."><AutomationDashboard initial={data}/></AppShell>}
