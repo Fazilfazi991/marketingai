@@ -1,4 +1,6 @@
 @media(max-width:560px){
+  .generate-button{margin-left:0;width:100%;justify-content:center}
+  .image-meta{grid-template-columns:1fr}
   .automation-stats{grid-template-columns:1fr!important}
   .workflow-grid{grid-template-columns:1fr!important;padding:10px}
   .run-head,.run-row{min-width:0!important;grid-template-columns:minmax(0,1fr) 78px!important}
