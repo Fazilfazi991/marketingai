@@ -38,6 +38,9 @@ export type AdminClientWorkspaceData = {
   tasks: Array<{ id: string; title: string; status: string; category: string; due: string }>;
   reports: Array<{ id: string; month: string; status: string; summary: string }>;
   analytics: { users: number; sessions: number; clicks: number; impressions: number };
+  blogs: Array<{id:string;title:string;keyword:string;status:string;updated:string}>;
+  keywords: Array<{id:string;keyword:string;url:string;current:number|null;previous:number|null;priority:string}>;
+  seoActions: Array<{id:string;title:string;page:string;status:string;impact:string}>;
 };
 
 export type AdminLeadItem = { id: string; name: string; contact: string; source: string; service: string; quality: string; status: string; createdAt: string };
@@ -86,6 +89,9 @@ function demoAdminClient(slug: string): AdminClientWorkspaceData {
     tasks: [{id:"demo-task-1",title:"Review November social batch",status:"Awaiting Internal Review",category:"Social",due:"Today"},{id:"demo-task-2",title:"Complete monthly website check",status:"In Progress",category:"Website",due:"This week"},{id:"demo-task-3",title:"Prepare September report",status:"Not Started",category:"Reporting",due:"30 Sep"}],
     reports: [{id:"demo-report-1",month:"September 2026",status:"Needs Review",summary:"Strong delivery and improving organic discovery created a clear base for next month’s growth work."}],
     analytics: {users:1842,sessions:2369,clicks:624,impressions:18420},
+    blogs:[{id:"demo-blog-1",title:"The complete guide to villa renovation in Dubai",keyword:"villa renovation dubai",status:"Internal Review",updated:"Today"},{id:"demo-blog-2",title:"Kitchen layouts that work for Dubai homes",keyword:"kitchen renovation dubai",status:"Draft",updated:"6 Sep"}],
+    keywords:[{id:"demo-keyword-1",keyword:"kitchen renovation dubai",url:"/kitchen-renovation",current:8,previous:11,priority:"High"},{id:"demo-keyword-2",keyword:"villa renovation dubai",url:"/villa-renovation",current:14,previous:19,priority:"High"}],
+    seoActions:[{id:"demo-seo-1",title:"Publish villa renovation planning guide",page:"/villa-renovation",status:"In Progress",impact:"High"},{id:"demo-seo-2",title:"Add project proof to wardrobe page",page:"/wardrobes",status:"Open",impact:"High"}],
   };
 }
 
@@ -122,7 +128,7 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
   if (error) return null;
   const clientId = client.id as string;
   const month = new Date().toISOString().slice(0, 7), monthStart = `${month}-01`, endDate = new Date(`${monthStart}T00:00:00Z`); endDate.setUTCMonth(endDate.getUTCMonth() + 1); const monthEnd = endDate.toISOString().slice(0, 10);
-  const [{ data: profile, error: profileError }, { data: services, error: servicesError }, { data: locations, error: locationsError }, { data: access, error: accessError }, { data: scope, error: scopeError }, { data: leads, error: leadsError }, {data:tasks,error:tasksError},{data:reports,error:reportsError},{data:analytics,error:analyticsError},{data:search,error:searchError}] = await Promise.all([
+  const [{ data: profile, error: profileError }, { data: services, error: servicesError }, { data: locations, error: locationsError }, { data: access, error: accessError }, { data: scope, error: scopeError }, { data: leads, error: leadsError }, {data:tasks,error:tasksError},{data:reports,error:reportsError},{data:analytics,error:analyticsError},{data:search,error:searchError},{data:blogs,error:blogsError},{data:keywords,error:keywordsError},{data:seoActions,error:seoActionsError}] = await Promise.all([
     supabase.from("business_profiles").select("description,target_customers,value_proposition,tone_of_voice,website,prohibited_claims").eq("client_id", clientId).maybeSingle(),
     supabase.from("business_services").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
     supabase.from("business_locations").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
@@ -133,8 +139,11 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
     supabase.from("reports").select("id,month,status,summary").eq("client_id",clientId).order("month",{ascending:false}).limit(6),
     supabase.from("analytics_daily").select("metrics").eq("client_id",clientId).gte("day",monthStart).lt("day",monthEnd),
     supabase.from("search_console_daily").select("metrics").eq("client_id",clientId).gte("day",monthStart).lt("day",monthEnd),
+    supabase.from("content_items").select("id,topic,target_keyword,status,updated_at").eq("client_id",clientId).eq("content_kind","blog").order("updated_at",{ascending:false}).limit(20),
+    supabase.from("seo_keywords").select("id,keyword,target_url,current_position,previous_position,priority").eq("client_id",clientId).order("updated_at",{ascending:false}).limit(30),
+    supabase.from("seo_tasks").select("id,title,target_url,status,impact").eq("client_id",clientId).order("updated_at",{ascending:false}).limit(30),
   ]);
-  for (const requestError of [profileError, servicesError, locationsError, accessError, scopeError, leadsError,tasksError,reportsError,analyticsError,searchError]) if (requestError) throw requestError;
+  for (const requestError of [profileError, servicesError, locationsError, accessError, scopeError, leadsError,tasksError,reportsError,analyticsError,searchError,blogsError,keywordsError,seoActionsError]) if (requestError) throw requestError;
   const { data: period, error: periodError } = await supabase.from("delivery_periods").select("month,delivery_obligations(deliverable_type,label,promised_quantity,delivered_quantity,status)").eq("client_id", clientId).eq("month", monthStart).maybeSingle();
   if (periodError) throw periodError;
   const obligations = (period?.delivery_obligations ?? []) as Array<{deliverable_type:string;label:string;promised_quantity:number;delivered_quantity:number;status:string}>;
@@ -151,5 +160,8 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
     tasks:(tasks??[]).map(item=>({id:String(item.id),title:String(item.title),status:titleCase(String(item.status)),category:titleCase(String(item.category)),due:item.due_at?new Intl.DateTimeFormat("en-AE",{day:"numeric",month:"short",timeZone:"Asia/Dubai"}).format(new Date(item.due_at)):"No due date"})),
     reports:(reports??[]).map(item=>({id:String(item.id),month:new Intl.DateTimeFormat("en-AE",{month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${item.month}T00:00:00Z`)),status:titleCase(String(item.status)),summary:item.summary??"No summary recorded."})),
     analytics:{users:(analytics??[]).reduce((sum,row)=>sum+(Number((row.metrics as Record<string,unknown>)?.users)||Number((row.metrics as Record<string,unknown>)?.visitors)||0),0),sessions:(analytics??[]).reduce((sum,row)=>sum+(Number((row.metrics as Record<string,unknown>)?.sessions)||0),0),clicks:(search??[]).reduce((sum,row)=>sum+(Number((row.metrics as Record<string,unknown>)?.clicks)||0),0),impressions:(search??[]).reduce((sum,row)=>sum+(Number((row.metrics as Record<string,unknown>)?.impressions)||0),0)},
+    blogs:(blogs??[]).map(item=>({id:String(item.id),title:item.topic??"Untitled article",keyword:item.target_keyword??"No target keyword",status:titleCase(String(item.status)),updated:new Intl.DateTimeFormat("en-AE",{day:"numeric",month:"short",timeZone:"Asia/Dubai"}).format(new Date(item.updated_at))})),
+    keywords:(keywords??[]).map(item=>({id:String(item.id),keyword:String(item.keyword),url:item.target_url??"No target page",current:item.current_position,previous:item.previous_position,priority:titleCase(String(item.priority??"medium"))})),
+    seoActions:(seoActions??[]).map(item=>({id:String(item.id),title:item.title??"SEO action",page:item.target_url??"No target page",status:titleCase(String(item.status??"open")),impact:titleCase(String(item.impact??"medium"))})),
   };
 }
