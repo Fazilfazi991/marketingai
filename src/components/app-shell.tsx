@@ -4,7 +4,7 @@ import { Bell, BookOpenText, Building2, CalendarCheck2, ChartNoAxesCombined, Cli
 import { useState } from "react"; import { Brand } from "./brand";
 import { signOut } from "@/app/auth/actions";
 const nav = {
- admin: [["Overview","/admin",LayoutDashboard],["Clients","/admin/clients",Building2],["Tasks","/admin/tasks",ClipboardCheck],["Content","/admin/content",CalendarCheck2],["Blogs","/admin/blogs",BookOpenText],["Approvals","/admin/approvals",WandSparkles],["SEO","/admin/seo",Search],["Analytics","/admin/analytics",ChartNoAxesCombined],["Reports","/admin/reports",FileText],["Assets","/admin/assets",FolderOpen],["Automations","/admin/automations",Settings]],
+ admin: [["Overview","/admin",LayoutDashboard],["Clients","/admin/clients",Building2],["Tasks","/admin/tasks",ClipboardCheck],["Content","/admin/content",CalendarCheck2],["Blogs","/admin/blogs",BookOpenText],["Approvals","/admin/approvals",WandSparkles],["SEO","/admin/seo",Search],["Analytics","/admin/analytics",ChartNoAxesCombined],["Reports","/admin/reports",FileText],["Assets","/admin/assets",FolderOpen],["Automations","/admin/automations",Settings],["Staff","/admin/staff",Users]],
  staff: [["Posting queue","/staff",CalendarCheck2],["Issues","/staff/issues",ClipboardCheck]],
  client: [["Overview","/client",LayoutDashboard],["Leads","/client/leads",Users],["Traffic & SEO","/client/traffic",ChartNoAxesCombined],["Reports","/client/reports",FileText]],
 };
