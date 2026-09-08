@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canOpenPath, homeForRole } from "./access-control";
+import { canOpenPath, homeForRole, resolveAppRole } from "./access-control";
 
 describe("role route isolation", () => {
   it("isolates the results-only client portal", () => {
@@ -20,5 +20,13 @@ describe("role route isolation", () => {
     expect(homeForRole("admin")).toBe("/admin");
     expect(homeForRole("staff")).toBe("/staff");
     expect(homeForRole("client")).toBe("/client");
+  });
+
+  it("never promotes a client from membership-supplied role data", () => {
+    expect(resolveAppRole(undefined, true)).toBe("client");
+    expect(resolveAppRole("admin", true)).toBe("admin");
+    expect(resolveAppRole("staff", true)).toBe("staff");
+    expect(resolveAppRole("client", false)).toBeUndefined();
+    expect(resolveAppRole("owner", true)).toBe("client");
   });
 });
