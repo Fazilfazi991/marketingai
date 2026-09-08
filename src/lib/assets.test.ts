@@ -1,0 +1,2 @@
+import {describe,expect,it} from "vitest";import {categoryForFile,safeAssetName} from "./assets";
+describe("asset uploads",()=>{it("removes path control characters from filenames",()=>{expect(safeAssetName("../../Villa hero (final).jpg")).toBe("..-..-Villa-hero-final-.jpg")});it("classifies supported media",()=>{expect(categoryForFile({type:"image/jpeg"})).toBe("Original Photos");expect(categoryForFile({type:"video/mp4"})).toBe("Videos");expect(categoryForFile({type:"application/pdf"})).toBe("Documents")})});
