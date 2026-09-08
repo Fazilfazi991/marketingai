@@ -44,6 +44,7 @@ export type AdminClientWorkspaceData = {
   blogs: Array<{id:string;title:string;keyword:string;status:string;updated:string}>;
   keywords: Array<{id:string;keyword:string;url:string;current:number|null;previous:number|null;priority:string}>;
   seoActions: Array<{id:string;title:string;page:string;status:string;impact:string}>;
+  activity: Array<{ id: string; action: string; detail: string; actor: string; createdAt: string }>;
 };
 
 export type AdminLeadItem = { id: string; name: string; contact: string; source: string; service: string; quality: string; status: string; createdAt: string };
@@ -95,6 +96,7 @@ function demoAdminClient(slug: string): AdminClientWorkspaceData {
     blogs:[{id:"demo-blog-1",title:"The complete guide to villa renovation in Dubai",keyword:"villa renovation dubai",status:"Internal Review",updated:"Today"},{id:"demo-blog-2",title:"Kitchen layouts that work for Dubai homes",keyword:"kitchen renovation dubai",status:"Draft",updated:"6 Sep"}],
     keywords:[{id:"demo-keyword-1",keyword:"kitchen renovation dubai",url:"/kitchen-renovation",current:8,previous:11,priority:"High"},{id:"demo-keyword-2",keyword:"villa renovation dubai",url:"/villa-renovation",current:14,previous:19,priority:"High"}],
     seoActions:[{id:"demo-seo-1",title:"Publish villa renovation planning guide",page:"/villa-renovation",status:"In Progress",impact:"High"},{id:"demo-seo-2",title:"Add project proof to wardrobe page",page:"/wardrobes",status:"Open",impact:"High"}],
+    activity:[{id:"demo-audit-1",action:"Access updated",detail:"WhatsApp marked Pending",actor:"Fazil",createdAt:"Today · 10:24"},{id:"demo-audit-2",action:"Service scope updated",detail:"7 enabled services",actor:"Fazil",createdAt:"7 Sep · 16:40"},{id:"demo-audit-3",action:"Monthly delivery generated",detail:"September 2026",actor:"Growth1000",createdAt:"1 Sep · 08:05"}],
   };
 }
 
@@ -131,7 +133,7 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
   if (error) return null;
   const clientId = client.id as string;
   const month = new Date().toISOString().slice(0, 7), monthStart = `${month}-01`, endDate = new Date(`${monthStart}T00:00:00Z`); endDate.setUTCMonth(endDate.getUTCMonth() + 1); const monthEnd = endDate.toISOString().slice(0, 10);
-  const [{ data: profile, error: profileError }, { data: services, error: servicesError }, { data: locations, error: locationsError }, { data: access, error: accessError }, { data: scope, error: scopeError }, { data: leads, error: leadsError }, {data:tasks,error:tasksError},{data:reports,error:reportsError},{data:analytics,error:analyticsError},{data:search,error:searchError},{data:blogs,error:blogsError},{data:keywords,error:keywordsError},{data:seoActions,error:seoActionsError}] = await Promise.all([
+  const [{ data: profile, error: profileError }, { data: services, error: servicesError }, { data: locations, error: locationsError }, { data: access, error: accessError }, { data: scope, error: scopeError }, { data: leads, error: leadsError }, {data:tasks,error:tasksError},{data:reports,error:reportsError},{data:analytics,error:analyticsError},{data:search,error:searchError},{data:blogs,error:blogsError},{data:keywords,error:keywordsError},{data:seoActions,error:seoActionsError},{data:activity,error:activityError}] = await Promise.all([
     supabase.from("business_profiles").select("description,target_customers,value_proposition,tone_of_voice,website,prohibited_claims").eq("client_id", clientId).maybeSingle(),
     supabase.from("business_services").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
     supabase.from("business_locations").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
@@ -145,8 +147,9 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
     supabase.from("content_items").select("id,topic,target_keyword,status,updated_at").eq("client_id",clientId).eq("content_kind","blog").order("updated_at",{ascending:false}).limit(20),
     supabase.from("seo_keywords").select("id,keyword,target_url,current_position,previous_position,priority").eq("client_id",clientId).order("updated_at",{ascending:false}).limit(30),
     supabase.from("seo_tasks").select("id,title,target_url,status,impact").eq("client_id",clientId).order("updated_at",{ascending:false}).limit(30),
+    supabase.from("audit_logs").select("id,action,entity_type,metadata,created_at,profiles(full_name)").eq("client_id",clientId).order("created_at",{ascending:false}).limit(40),
   ]);
-  for (const requestError of [profileError, servicesError, locationsError, accessError, scopeError, leadsError,tasksError,reportsError,analyticsError,searchError,blogsError,keywordsError,seoActionsError]) if (requestError) throw requestError;
+  for (const requestError of [profileError, servicesError, locationsError, accessError, scopeError, leadsError,tasksError,reportsError,analyticsError,searchError,blogsError,keywordsError,seoActionsError,activityError]) if (requestError) throw requestError;
   const { data: period, error: periodError } = await supabase.from("delivery_periods").select("month,delivery_obligations(deliverable_type,label,promised_quantity,delivered_quantity,status)").eq("client_id", clientId).eq("month", monthStart).maybeSingle();
   if (periodError) throw periodError;
   const obligations = (period?.delivery_obligations ?? []) as Array<{deliverable_type:string;label:string;promised_quantity:number;delivered_quantity:number;status:string}>;
@@ -166,5 +169,6 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
     blogs:(blogs??[]).map(item=>({id:String(item.id),title:item.topic??"Untitled article",keyword:item.target_keyword??"No target keyword",status:titleCase(String(item.status)),updated:new Intl.DateTimeFormat("en-AE",{day:"numeric",month:"short",timeZone:"Asia/Dubai"}).format(new Date(item.updated_at))})),
     keywords:(keywords??[]).map(item=>({id:String(item.id),keyword:String(item.keyword),url:item.target_url??"No target page",current:item.current_position,previous:item.previous_position,priority:titleCase(String(item.priority??"medium"))})),
     seoActions:(seoActions??[]).map(item=>({id:String(item.id),title:item.title??"SEO action",page:item.target_url??"No target page",status:titleCase(String(item.status??"open")),impact:titleCase(String(item.impact??"medium"))})),
+    activity:(activity??[]).map(item=>{const meta=(item.metadata??{}) as Record<string,unknown>,profile=item.profiles as {full_name?:string}|{full_name?:string}[]|null,actor=(Array.isArray(profile)?profile[0]?.full_name:profile?.full_name)??"Growth1000";return{id:String(item.id),action:titleCase(String(item.action).replaceAll(".","_")),detail:String(meta.access_type??meta.service??meta.name??meta.month??meta.health??item.entity_type??"Client operation"),actor,createdAt:new Intl.DateTimeFormat("en-AE",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"Asia/Dubai"}).format(new Date(item.created_at))}}),
   };
 }
