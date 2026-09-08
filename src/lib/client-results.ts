@@ -17,9 +17,12 @@ export type ClientResultsData = {
   ai: { websiteConversations: number; websiteLeads: number; whatsappConversations: number; whatsappLeads: number };
   work: string[];
   summary: string;
-  report: null | { summary: string; work: string[]; nextFocus: string; users: number; clicks: number; posts: number };
+  report: ClientReport | null;
+  reports: ClientReport[];
   isDemo: boolean;
 };
+
+export type ClientReport = { month: string; monthLabel: string; summary: string; work: string[]; nextFocus: string; users: number; clicks: number; posts: number };
 
 const demoResults: ClientResultsData = {
   clientName: "ABC Interiors",
@@ -47,13 +50,21 @@ const demoResults: ClientResultsData = {
   work: ["12 social creatives created", "12 social posts published", "2 SEO articles published", "7 SEO improvements", "3 website updates", "18 keywords improved"],
   summary: "Your business generated 47 tracked enquiries this month, up 18% from August. WhatsApp was the largest source, while organic website traffic increased 24%.",
   report: {
+    month: "2026-09-01",
+    monthLabel: "September 2026",
     summary: "Strong lead growth, improving visibility for renovation searches, and a clear focus for next month.",
     work: ["12 social posts published", "2 SEO articles published", "7 SEO improvements", "3 website updates"],
     nextFocus: "Build visibility for villa renovation searches and strengthen project-led proof using verified original photography.",
     users: 2840, clicks: 684, posts: 12,
   },
+  reports: [],
   isDemo: true,
 };
+demoResults.reports = demoResults.report ? [
+  demoResults.report,
+  { month: "2026-08-01", monthLabel: "August 2026", summary: "Lead volume increased as renovation landing pages gained visibility and WhatsApp remained the strongest enquiry channel.", work: ["10 social posts published", "2 SEO articles published", "5 SEO improvements"], nextFocus: "Improve conversion paths on the strongest renovation pages and expand kitchen-renovation search coverage.", users: 2290, clicks: 571, posts: 10 },
+  { month: "2026-07-01", monthLabel: "July 2026", summary: "Organic discovery and consistent social delivery established a stronger baseline for measurable lead growth.", work: ["9 social posts published", "1 SEO article published", "4 SEO improvements"], nextFocus: "Strengthen service-page proof and make WhatsApp calls to action easier to reach on mobile.", users: 1980, clicks: 492, posts: 9 },
+] : [];
 
 const numberFrom = (metrics: unknown, ...keys: string[]) => {
   if (!metrics || typeof metrics !== "object") return 0;
@@ -82,12 +93,12 @@ export async function loadClientResults(): Promise<ClientResultsData> {
   const nextStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
   const historyStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 3, 1));
   const iso = (date: Date) => date.toISOString().slice(0, 10);
-  const [{ data: leads, error: leadsError }, { data: analytics, error: analyticsError }, { data: searchRows, error: searchError }, { data: keywords, error: keywordError }, { data: report, error: reportError }, { data: content, error: contentError }, { data: completedTasks, error: taskError }] = await Promise.all([
+  const [{ data: leads, error: leadsError }, { data: analytics, error: analyticsError }, { data: searchRows, error: searchError }, { data: keywords, error: keywordError }, { data: reports, error: reportError }, { data: content, error: contentError }, { data: completedTasks, error: taskError }] = await Promise.all([
     supabase.from("leads").select("source,created_at,lead_quality,status").eq("client_id", clientId).gte("created_at", historyStart.toISOString()).lt("created_at", nextStart.toISOString()),
     supabase.from("analytics_daily").select("day,metrics").eq("client_id", clientId).gte("day", iso(historyStart)).lt("day", iso(nextStart)),
     supabase.from("search_console_daily").select("day,metrics").eq("client_id", clientId).gte("day", iso(currentStart)).lt("day", iso(nextStart)),
     supabase.rpc("client_keyword_results"),
-    supabase.from("reports").select("summary,work_completed,analytics_summary,next_month_focus").eq("client_id", clientId).eq("month", iso(currentStart)).eq("status", "published").maybeSingle(),
+    supabase.from("reports").select("month,summary,work_completed,analytics_summary,next_month_focus").eq("client_id", clientId).eq("status", "published").order("month", { ascending: false }).limit(24),
     supabase.from("content_items").select("content_kind,status").eq("client_id", clientId).eq("month", iso(currentStart)).eq("status", "published"),
     supabase.from("tasks").select("category,status").eq("client_id", clientId).eq("deliverable_month", iso(currentStart)).in("status", ["published", "verified"]),
   ]);
@@ -99,6 +110,7 @@ export async function loadClientResults(): Promise<ClientResultsData> {
     { key: "whatsapp", label: "WhatsApp", tone: "green" },
     { key: "website_chatbot", label: "Website AI chatbot", tone: "purple" },
     { key: "website_form", label: "Website form", tone: "blue" },
+    { key: "other", label: "Other sources", tone: "sand" },
   ];
   const trend = Array.from({ length: 4 }, (_, index) => {
     const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 3 + index, 1));
@@ -126,29 +138,38 @@ export async function loadClientResults(): Promise<ClientResultsData> {
     { count: completedCount(["website", "website_update", "website_maintenance"]), label: "website updates completed" },
   ];
   const work = workCounts.filter(item => item.count > 0).map(item => `${item.count} ${item.label}`);
-  const reportWorkValue = report?.work_completed;
-  const reportWork = Array.isArray(reportWorkValue) ? reportWorkValue.map(String) : [];
-  const reportMetrics = report?.analytics_summary;
   const total = currentLeads.length;
-  const largest = sourceDefinitions.map(source => ({ ...source, value: sourceCount(source.key) })).sort((a, b) => b.value - a.value)[0];
+  const primarySources = new Set(["whatsapp", "website_chatbot", "website_form"]);
+  const sourceValue = (source: string) => source === "other" ? currentLeads.filter(item => !primarySources.has(item.source)).length : sourceCount(source);
+  const attributedSources = sourceDefinitions.map(source => ({ ...source, value: sourceValue(source.key) }));
+  const largest = attributedSources.slice().sort((a, b) => b.value - a.value)[0];
+  const clientReports: ClientReport[] = (reports ?? []).map(item => {
+    const metrics = item.analytics_summary;
+    const reportWorkValue = item.work_completed;
+    return {
+      month: String(item.month),
+      monthLabel: monthLabel(new Date(`${item.month}T00:00:00Z`)),
+      summary: item.summary ?? "Your published monthly growth results.",
+      work: Array.isArray(reportWorkValue) ? reportWorkValue.map(String) : [],
+      nextFocus: item.next_month_focus ?? "Continue the strongest-performing growth activities.",
+      users: numberFrom(metrics, "users", "activeUsers", "visitors"),
+      clicks: numberFrom(metrics, "clicks", "organicClicks"),
+      posts: numberFrom(metrics, "posts", "socialPosts", "social_posts"),
+    };
+  });
+  const report = clientReports.find(item => item.month.slice(0, 7) === monthKey(currentStart)) ?? null;
 
   return {
     clientName: joinedClient?.name ?? "Client workspace",
     periodLabel: monthLabel(currentStart),
-    leads: { total, growth: growth(total, previousLeads.length), sources: sourceDefinitions.map(source => ({ ...source, value: sourceCount(source.key) })), trend },
+    leads: { total, growth: growth(total, previousLeads.length), sources: attributedSources, trend },
     traffic: { visitors, newVisitors: sum(currentAnalytics, "newUsers", "new_visitors"), pageViews: sum(currentAnalytics, "screenPageViews", "pageViews", "page_views"), whatsappClicks: sum(currentAnalytics, "whatsappClicks", "whatsapp_clicks"), formSubmissions: sourceCount("website_form"), growth: growth(visitors, previousVisitors) },
     search: { clicks: searchClicks, impressions: searchImpressions, improved, topTen, keywords: keywordRows.slice(0, 3).map(item => ({ keyword: String(item.keyword), previous: Number(item.previous_position), current: Number(item.current_position) })) },
     ai: { websiteConversations: sum(currentAnalytics, "websiteAiConversations", "website_ai_conversations"), websiteLeads: currentLeads.filter(item => item.source === "website_chatbot" && (["qualified", "high_intent"].includes(item.lead_quality) || ["qualified", "won"].includes(item.status))).length, whatsappConversations: sum(currentAnalytics, "whatsappConversations", "whatsapp_conversations"), whatsappLeads: currentLeads.filter(item => item.source === "whatsapp" && (["qualified", "high_intent"].includes(item.lead_quality) || ["qualified", "won"].includes(item.status))).length },
     work,
     summary: report?.summary ?? (total ? `Your business generated ${total} tracked enquiries in ${monthLabel(currentStart)}. ${largest.value ? `${largest.label} was the largest measured source.` : "Source attribution is still being collected."}` : "No tracked enquiries have been recorded for this period yet."),
-    report: report ? {
-      summary: report.summary ?? "Your published monthly growth results.",
-      work: reportWork,
-      nextFocus: report.next_month_focus ?? "Continue the strongest-performing growth activities.",
-      users: numberFrom(reportMetrics, "users", "activeUsers", "visitors"),
-      clicks: numberFrom(reportMetrics, "clicks", "organicClicks"),
-      posts: numberFrom(reportMetrics, "posts", "socialPosts"),
-    } : null,
+    report,
+    reports: clientReports,
     isDemo: false,
   };
 }
