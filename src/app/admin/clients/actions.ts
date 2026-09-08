@@ -15,6 +15,7 @@ const leadStatuses = new Set(["new", "contacted", "qualified", "won", "lost", "s
 const leadQualities = new Set(["unqualified", "qualified", "high_intent", "disqualified"]);
 const lifecycleStatuses = new Set(["onboarding", "active", "paused"]);
 const healthStatuses = new Set(["healthy", "needs_attention", "at_risk"]);
+const accessStatuses = new Set(["connected", "pending", "not_connected", "demo", "coming_later"]);
 
 async function adminContext(slug?: string) {
   const supabase = await createClient();
@@ -73,11 +74,13 @@ export async function saveClientDetails(slug:string,values:{name:string;industry
   try{const name=values.name.trim(),lifecycle=values.lifecycle.toLowerCase().replaceAll(" ","_"),health=values.health.toLowerCase().replaceAll(" ","_");if(!name)return{ok:false,error:"Business name is required."};if(!lifecycleStatuses.has(lifecycle)||!healthStatuses.has(health))return{ok:false,error:"Invalid client status."};const{supabase,clientId}=await adminContext(slug);const{error}=await supabase.from("clients").update({name,industry:values.industry.trim()||null,city:values.city.trim()||null,country:values.country.trim()||"UAE",lifecycle_status:lifecycle,health_status:health,updated_at:new Date().toISOString()}).eq("id",clientId);if(error)return{ok:false,error:error.message};revalidatePath("/admin/clients");revalidatePath(`/admin/clients/${slug}`);return{ok:true}}catch(error){return{ok:false,error:error instanceof Error?error.message:"Unable to update client."}}
 }
 
-export async function saveClientAccess(slug: string, accessType: string, status: string): Promise<MutationResult> {
+export async function saveClientAccess(slug: string, values: { name: string; status: string; platform: string; accountReference: string; notes: string }): Promise<MutationResult> {
   try {
     const { supabase, user, clientId } = await adminContext(slug);
-    const normalized = accessType.toLowerCase().replaceAll(" ", "_");
-    const { error } = await supabase.from("client_access").upsert({ client_id: clientId, access_type: normalized, status: status.toLowerCase().replaceAll(" ", "_"), verified_at: new Date().toISOString(), verified_by: user.id }, { onConflict: "client_id,access_type" });
+    const normalized = values.name.toLowerCase().replaceAll(" ", "_"), status = values.status.toLowerCase().replaceAll(" ", "_");
+    if (!accessStatuses.has(status)) return { ok: false, error: "Invalid access status." };
+    const verified = status === "connected" || status === "demo";
+    const { error } = await supabase.from("client_access").upsert({ client_id: clientId, access_type: normalized, platform: values.platform.trim() || values.name, status, account_reference: values.accountReference.trim() || null, notes: values.notes.trim() || null, verified_at: verified ? new Date().toISOString() : null, verified_by: verified ? user.id : null }, { onConflict: "client_id,access_type" });
     if (error) return { ok: false, error: error.message };
     revalidatePath(`/admin/clients/${slug}/access`);
     return { ok: true };

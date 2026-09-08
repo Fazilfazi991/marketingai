@@ -34,7 +34,7 @@ export type AdminClientWorkspaceData = {
     website: string;
     claims: string;
   };
-  access: Array<{ name: string; status: string; verifiedAt?: string }>;
+  access: Array<{ name: string; status: string; platform: string; accountReference: string; notes: string; verifiedAt?: string }>;
   scope: Array<{ key: string; label: string; enabled: boolean; quantity: number }>;
   delivery: { month: string; label: string; obligations: Array<{ type: string; label: string; done: number; total: number; status: string }> };
   leads: AdminLeadItem[];
@@ -73,7 +73,7 @@ function demoAdminClient(slug: string): AdminClientWorkspaceData {
       website: "",
       claims: "Never invent prices, guarantees, certifications or testimonials.",
     },
-    access: accessTypes.map(name => ({ name, status: name === "WhatsApp" ? "Pending" : "Connected" })),
+    access: accessTypes.map(name => ({ name, status: name === "WhatsApp" ? "Pending" : "Connected", platform: name, accountReference: name === "Website" ? "abcinteriors.example" : "Demo account reference", notes: name === "WhatsApp" ? "Awaiting business account access." : "Demo access confirmed." })),
     scope: [
       { key: "seo", label: "SEO", enabled: true, quantity: 1 },
       { key: "social_media", label: "Social media posts", enabled: true, quantity: 12 },
@@ -135,7 +135,7 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
     supabase.from("business_profiles").select("description,target_customers,value_proposition,tone_of_voice,website,prohibited_claims").eq("client_id", clientId).maybeSingle(),
     supabase.from("business_services").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
     supabase.from("business_locations").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
-    supabase.from("client_access").select("access_type,status,verified_at").eq("client_id", clientId).order("access_type"),
+    supabase.from("client_access").select("access_type,platform,status,account_reference,notes,verified_at").eq("client_id", clientId).order("access_type"),
     supabase.from("client_service_scopes").select("service_key,label,enabled,monthly_quantity").eq("client_id", clientId).order("label"),
     supabase.from("leads").select("id,name,phone,email,source,service,lead_quality,status,created_at").eq("client_id", clientId).order("created_at", { ascending: false }).limit(100),
     supabase.from("tasks").select("id,title,status,category,due_at").eq("client_id",clientId).order("due_at",{ascending:true,nullsFirst:false}).limit(20),
@@ -155,7 +155,7 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
     profile: { description: profile?.description ?? "", industry: client.industry ?? "", services: (services ?? []).map(item => item.name).join(", "), locations: (locations ?? []).map(item => item.name).join(", "), customers: profile?.target_customers ?? "", value: profile?.value_proposition ?? "", tone: profile?.tone_of_voice ?? "", website: profile?.website ?? "", claims: profile?.prohibited_claims ?? "" },
     access: accessTypes.map(name => {
       const match = (access ?? []).find(item => titleCase(String(item.access_type)) === name);
-      return { name, status: match ? titleCase(String(match.status)) : "Not Connected", verifiedAt: match?.verified_at ? new Intl.DateTimeFormat("en-AE", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Dubai" }).format(new Date(match.verified_at)) : undefined };
+      return { name, status: match ? titleCase(String(match.status)) : "Not Connected", platform: match?.platform ?? name, accountReference: match?.account_reference ?? "", notes: match?.notes ?? "", verifiedAt: match?.verified_at ? new Intl.DateTimeFormat("en-AE", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Dubai" }).format(new Date(match.verified_at)) : undefined };
     }),
     scope: (scope ?? []).map(item => ({ key: String(item.service_key), label: String(item.label), enabled: Boolean(item.enabled), quantity: Number(item.monthly_quantity ?? 1) })),
     delivery: { month, label: new Intl.DateTimeFormat("en-AE", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${monthStart}T00:00:00Z`)), obligations: obligations.map(item => ({ type: String(item.deliverable_type), label: String(item.label), done: Number(item.delivered_quantity), total: Number(item.promised_quantity), status: titleCase(String(item.status)) })) },
