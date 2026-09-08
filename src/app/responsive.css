@@ -14,4 +14,11 @@
   .editor-drawer footer span{display:none}
   .posting-filters{align-items:stretch!important}
   .posting-filters select{display:none}
+  .client-kpis{grid-template-columns:1fr!important}
+  .portal-content-grid{grid-template-columns:1fr!important}
+  .portal-form{grid-template-columns:1fr!important}
+  .portal-field.wide{grid-column:auto!important}
+  .seo-head,.seo-row{grid-template-columns:minmax(0,1fr) 64px!important}
+  .seo-head span:nth-child(2),.seo-row>span:nth-child(2){display:none}
+  .request-row{align-items:flex-start!important}
 }

@@ -1,0 +1,15 @@
+"use client";
+import { useSyncExternalStore } from "react";
+export type ClientRequest={id:number;type:string;title:string;description:string;status:string;created:string};
+export type ClientFile={id:number;name:string;category:string;size:string;created:string};
+export type ClientProfile={description:string;industry:string;services:string;locations:string;customers:string;value:string;tone:string;hours:string;phone:string;whatsapp:string;email:string;website:string;offers:string};
+const initialProfile:ClientProfile={description:"ABC Interiors is a Dubai interior design and renovation studio focused on thoughtful, practical spaces.",industry:"Interior Design / Renovation",services:"Kitchen Renovation, Villa Renovation, Wardrobes, Interior Fit-out",locations:"Dubai, Sharjah",customers:"Villa and apartment owners",value:"Thoughtful spaces built around everyday life",tone:"Warm, expert and clear",hours:"Monday–Saturday, 9:00 AM–6:00 PM",phone:"+971 4 000 0000",whatsapp:"+971 50 000 0000",email:"hello@abcinteriors.demo",website:"abcinteriors.demo",offers:"Free initial design consultation"};
+let profile=initialProfile,requests:ClientRequest[]=[{id:1,type:"Website Change",title:"Add wardrobe service page",description:"Please add fitted wardrobes to our main navigation.",status:"In Progress",created:"3 Sep"},{id:2,type:"New Offer",title:"Autumn consultation offer",description:"Promote the free initial consultation during September.",status:"Received",created:"6 Sep"}],files:ClientFile[]=[{id:1,name:"ABC-logo-primary.svg",category:"Brand",size:"84 KB",created:"2 Sep"},{id:2,name:"villa-living-room.jpg",category:"Original photo",size:"2.4 MB",created:"4 Sep"},{id:3,name:"kitchen-before.jpg",category:"Original photo",size:"1.8 MB",created:"4 Sep"},{id:4,name:"brand-guidelines.pdf",category:"Document",size:"940 KB",created:"5 Sep"}];
+const profileInitial=profile,requestInitial=requests,fileInitial=files;const profileListeners=new Set<()=>void>(),requestListeners=new Set<()=>void>(),fileListeners=new Set<()=>void>();
+const subscribe=(set:Set<()=>void>)=>(listener:()=>void)=>{set.add(listener);return()=>set.delete(listener)};
+export function useClientProfile(){return useSyncExternalStore(subscribe(profileListeners),()=>profile,()=>profileInitial)}
+export function saveClientProfile(next:ClientProfile){profile=next;profileListeners.forEach(x=>x())}
+export function useClientRequests(){return useSyncExternalStore(subscribe(requestListeners),()=>requests,()=>requestInitial)}
+export function addClientRequest(next:Omit<ClientRequest,"id"|"status"|"created">){requests=[{...next,id:Date.now(),status:"Received",created:"Just now"},...requests];requestListeners.forEach(x=>x())}
+export function useClientFiles(){return useSyncExternalStore(subscribe(fileListeners),()=>files,()=>fileInitial)}
+export function addClientFiles(next:File[]){files=[...next.map((f,i)=>({id:Date.now()+i,name:f.name,category:f.type.startsWith("image/")?"Original photo":"Document",size:`${Math.max(1,Math.round(f.size/1024))} KB`,created:"Just now"})),...files];fileListeners.forEach(x=>x())}
