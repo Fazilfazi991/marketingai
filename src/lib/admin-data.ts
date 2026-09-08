@@ -33,7 +33,10 @@ export type AdminClientWorkspaceData = {
   };
   access: Array<{ name: string; status: string }>;
   scope: Array<{ key: string; label: string; enabled: boolean; quantity: number }>;
+  leads: AdminLeadItem[];
 };
+
+export type AdminLeadItem = { id: string; name: string; contact: string; source: string; service: string; quality: string; status: string; createdAt: string };
 
 const titleCase = (value: string) => value.replaceAll("_", " ").replace(/\b\w/g, letter => letter.toUpperCase());
 const accessTypes = ["Website", "Google Analytics", "Search Console", "Instagram", "Facebook", "WhatsApp"];
@@ -70,6 +73,11 @@ function demoAdminClient(slug: string): AdminClientWorkspaceData {
       { key: "whatsapp_ai", label: "WhatsApp AI", enabled: true, quantity: 1 },
       { key: "analytics_reporting", label: "Analytics and reporting", enabled: true, quantity: 1 },
     ],
+    leads: [
+      { id: "demo-lead-1", name: "Aisha Rahman", contact: "+971 50 555 0147", source: "WhatsApp", service: "Villa renovation", quality: "High Intent", status: "New", createdAt: "8 Sep · 10:24" },
+      { id: "demo-lead-2", name: "Omar Nasser", contact: "omar@example.com", source: "Website Chatbot", service: "Kitchen renovation", quality: "Qualified", status: "Contacted", createdAt: "7 Sep · 16:42" },
+      { id: "demo-lead-3", name: "Mariam Ali", contact: "+971 55 555 0182", source: "Website Form", service: "Wardrobes", quality: "Qualified", status: "Qualified", createdAt: "6 Sep · 09:15" },
+    ],
   };
 }
 
@@ -105,14 +113,15 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
   const { data: client, error } = await supabase.from("clients").select("id,name,slug,industry,city,country,health_status").eq("slug", slug).is("deleted_at", null).single();
   if (error) return null;
   const clientId = client.id as string;
-  const [{ data: profile, error: profileError }, { data: services, error: servicesError }, { data: locations, error: locationsError }, { data: access, error: accessError }, { data: scope, error: scopeError }] = await Promise.all([
+  const [{ data: profile, error: profileError }, { data: services, error: servicesError }, { data: locations, error: locationsError }, { data: access, error: accessError }, { data: scope, error: scopeError }, { data: leads, error: leadsError }] = await Promise.all([
     supabase.from("business_profiles").select("description,target_customers,value_proposition,tone_of_voice,website,prohibited_claims").eq("client_id", clientId).maybeSingle(),
     supabase.from("business_services").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
     supabase.from("business_locations").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
     supabase.from("client_access").select("access_type,status").eq("client_id", clientId).order("access_type"),
     supabase.from("client_service_scopes").select("service_key,label,enabled,monthly_quantity").eq("client_id", clientId).order("label"),
+    supabase.from("leads").select("id,name,phone,email,source,service,lead_quality,status,created_at").eq("client_id", clientId).order("created_at", { ascending: false }).limit(100),
   ]);
-  for (const requestError of [profileError, servicesError, locationsError, accessError, scopeError]) if (requestError) throw requestError;
+  for (const requestError of [profileError, servicesError, locationsError, accessError, scopeError, leadsError]) if (requestError) throw requestError;
   return {
     id: clientId, name: String(client.name), slug: String(client.slug), location: [client.city, client.country].filter(Boolean).join(", "), health: titleCase(String(client.health_status)),
     profile: { description: profile?.description ?? "", industry: client.industry ?? "", services: (services ?? []).map(item => item.name).join(", "), locations: (locations ?? []).map(item => item.name).join(", "), customers: profile?.target_customers ?? "", value: profile?.value_proposition ?? "", tone: profile?.tone_of_voice ?? "", website: profile?.website ?? "", claims: profile?.prohibited_claims ?? "" },
@@ -121,5 +130,6 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
       return { name, status: match ? titleCase(String(match.status)) : "Not Connected" };
     }),
     scope: (scope ?? []).map(item => ({ key: String(item.service_key), label: String(item.label), enabled: Boolean(item.enabled), quantity: Number(item.monthly_quantity ?? 1) })),
+    leads: (leads ?? []).map(item => ({ id: String(item.id), name: item.name || "Unnamed enquiry", contact: item.phone || item.email || "No contact supplied", source: titleCase(String(item.source)), service: item.service || "Not specified", quality: titleCase(String(item.lead_quality)), status: titleCase(String(item.status)), createdAt: new Intl.DateTimeFormat("en-AE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(item.created_at)) })),
   };
 }

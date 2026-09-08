@@ -10,6 +10,9 @@ const serviceDefinitions = [
   ["whatsapp_ai", "WhatsApp AI"], ["analytics_reporting", "Analytics and reporting"],
 ] as const;
 const slugify = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+const leadSources = new Set(["website_form", "website_chatbot", "whatsapp", "manual", "instagram", "facebook", "google_business", "phone", "other"]);
+const leadStatuses = new Set(["new", "contacted", "qualified", "won", "lost", "spam"]);
+const leadQualities = new Set(["unqualified", "qualified", "high_intent", "disqualified"]);
 
 async function adminContext(slug?: string) {
   const supabase = await createClient();
@@ -75,4 +78,29 @@ export async function saveServiceScope(slug: string, scope: Array<{ key: string;
     revalidatePath(`/admin/clients/${slug}/scope`);
     return { ok: true };
   } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Unable to save service scope." }; }
+}
+
+export async function createLead(slug: string, formData: FormData): Promise<MutationResult & { id?: string }> {
+  try {
+    const { supabase, clientId } = await adminContext(slug);
+    const source = String(formData.get("source") ?? "manual"), quality = String(formData.get("quality") ?? "unqualified"), status = "new";
+    if (!leadSources.has(source) || !leadQualities.has(quality)) return { ok: false, error: "Invalid lead classification." };
+    const name = String(formData.get("name") ?? "").trim(), phone = String(formData.get("phone") ?? "").trim(), email = String(formData.get("email") ?? "").trim();
+    if (!name && !phone && !email) return { ok: false, error: "Add a name, phone number or email address." };
+    const { data, error } = await supabase.from("leads").insert({ client_id: clientId, source, name: name || null, phone: phone || null, email: email || null, service: String(formData.get("service") ?? "").trim() || null, qualification_summary: String(formData.get("qualification") ?? "").trim() || null, lead_quality: quality, status }).select("id").single();
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`/admin/clients/${slug}/leads`);
+    return { ok: true, id: String(data.id) };
+  } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Unable to create lead." }; }
+}
+
+export async function updateLeadStatus(slug: string, leadId: string, status: string): Promise<MutationResult> {
+  try {
+    if (!leadStatuses.has(status)) return { ok: false, error: "Invalid lead status." };
+    const { supabase, clientId } = await adminContext(slug);
+    const { error } = await supabase.from("leads").update({ status, updated_at: new Date().toISOString() }).eq("id", leadId).eq("client_id", clientId);
+    if (error) return { ok: false, error: error.message };
+    revalidatePath(`/admin/clients/${slug}/leads`);
+    return { ok: true };
+  } catch (error) { return { ok: false, error: error instanceof Error ? error.message : "Unable to update lead." }; }
 }

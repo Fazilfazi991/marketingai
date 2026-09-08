@@ -8,6 +8,7 @@ import { access as seedAccess, monthlyObligations } from "@/lib/demo-data";
 import { Panel, Status } from "./ui";
 import { SocialOperations } from "./social-operations";
 import { BlogsWorkspace, SeoWorkspace } from "./blogs-seo-workspace";
+import { LeadManager } from "./lead-manager";
 
 const tabs = ["overview", "business", "access", "scope", "social", "blogs", "seo", "website", "analytics", "leads", "reports", "tasks", "notes"];
 const labels: Record<string, string> = { business: "Business Knowledge", scope: "Service Scope" };
@@ -48,7 +49,8 @@ export function ClientWorkspace({ section, initial, live = false }: { section: s
   if (section === "seo") content = <SeoWorkspace />;
   if (section === "blogs") content = <BlogsWorkspace />;
   if (section === "social") content = <SocialOperations />;
-  if (["website", "analytics", "leads", "reports", "notes"].includes(section)) content = <Panel title={labels[section] ?? section[0].toUpperCase() + section.slice(1)} meta="Client operations workspace"><div className="empty-state"><b>This workspace is ready for live client data.</b><p>Connect the relevant source to replace the clearly marked demo state.</p></div></Panel>;
+  if (section === "leads") content = <LeadManager slug={slug} initial={initial?.leads ?? []} live={live} />;
+  if (["website", "analytics", "reports", "notes"].includes(section)) content = <Panel title={labels[section] ?? section[0].toUpperCase() + section.slice(1)} meta="Client operations workspace"><div className="empty-state"><b>This workspace is ready for live client data.</b><p>Connect the relevant source to replace the clearly marked demo state.</p></div></Panel>;
 
   return <><div className="workspace-head"><span className="avatar">{(initial?.name ?? "ABC Interiors").split(" ").map(part => part[0]).join("").slice(0, 2)}</span><div><h2>{initial?.name ?? "ABC Interiors"}</h2><p>{scope.filter(item => item.enabled).length} active services · {initial?.location ?? "Dubai, UAE"}</p></div><span style={{ marginLeft: "auto" }}><Status tone={initial?.health === "Healthy" ? "" : "warn"}>{initial?.health ?? "Needs attention"}</Status></span></div><div className="workspace-tabs">{tabs.map(tab => <Link className={section === tab ? "active" : ""} key={tab} href={`/admin/clients/${slug}/${tab === "overview" ? "" : tab}`}>{labels[tab] ?? tab[0].toUpperCase() + tab.slice(1)}</Link>)}</div>{saved && <div className="toast" role="status">{notice}</div>}{content}</>;
 }
