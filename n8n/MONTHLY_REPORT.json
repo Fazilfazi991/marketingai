@@ -1,1 +1,19 @@
-{"name":"Growth1000 · MONTHLY_REPORT","nodes":[{"parameters":{"httpMethod":"POST","path":"monthly-report","responseMode":"responseNode","options":{}},"id":"report-webhook","name":"MONTHLY_REPORT(client_id, month)","type":"n8n-nodes-base.webhook","typeVersion":2,"position":[-420,0],"webhookId":"growth1000-monthly-report"},{"parameters":{"jsCode":"const input=$json.body ?? $json; if(!input.client_id || !/^\\d{4}-\\d{2}$/.test(input.month ?? '')) throw new Error('client_id and month (YYYY-MM) are required'); return [{json:{workflow:'MONTHLY_REPORT',client_id:input.client_id,month:input.month,status:'accepted',boundary:'draft'}}];"},"id":"validate","name":"Validate generic input","type":"n8n-nodes-base.code","typeVersion":2,"position":[-180,0]},{"parameters":{"respondWith":"json","responseBody":"={{ $json }}","options":{"responseCode":202}},"id":"response","name":"Return accepted run","type":"n8n-nodes-base.respondToWebhook","typeVersion":1.4,"position":[80,0]}],"connections":{"MONTHLY_REPORT(client_id, month)":{"main":[[{"node":"Validate generic input","type":"main","index":0}]]},"Validate generic input":{"main":[[{"node":"Return accepted run","type":"main","index":0}]]}},"settings":{"executionOrder":"v1"},"active":false,"versionId":"10000000-0000-4000-8000-000000000004","meta":{"templateCredsSetupCompleted":false},"tags":[]}
+{
+  "name": "Growth1000 · MONTHLY_REPORT",
+  "nodes": [
+    { "parameters": { "httpMethod": "POST", "path": "monthly-report", "responseMode": "responseNode", "options": {} }, "id": "report-webhook", "name": "MONTHLY_REPORT(client_id, month, run_id)", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [-520, 0], "webhookId": "growth1000-monthly-report" },
+    { "parameters": { "jsCode": "const secret=$vars.GROWTH1000_WEBHOOK_SECRET; const received=$json.headers?.['x-growth1000-key']; if(!secret || received!==secret) throw new Error('Unauthorized Growth1000 webhook'); const input=$json.body ?? {}; if(!/^[0-9a-f-]{36}$/i.test(input.client_id??'') || !/^[0-9a-f-]{36}$/i.test(input.run_id??'') || !/^\\d{4}-\\d{2}$/.test(input.month??'')) throw new Error('client_id, run_id and month (YYYY-MM) are required'); return [{json:input}];" }, "id": "validate", "name": "Authenticate and validate input", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [-280, 0] },
+    { "parameters": { "method": "POST", "url": "={{ $vars.GROWTH1000_APP_URL + '/api/automations/monthly-report' }}", "sendHeaders": true, "headerParameters": { "parameters": [{ "name": "X-Growth1000-Key", "value": "={{ $vars.GROWTH1000_WEBHOOK_SECRET }}" }] }, "sendBody": true, "contentType": "raw", "rawContentType": "application/json", "body": "={{ JSON.stringify($json) }}", "options": { "timeout": 240000 } }, "id": "prepare", "name": "Prepare monthly report in Growth1000", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-20, 0] },
+    { "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": { "responseCode": 200 } }, "id": "response", "name": "Return completed run", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.4, "position": [240, 0] }
+  ],
+  "connections": {
+    "MONTHLY_REPORT(client_id, month, run_id)": { "main": [[{ "node": "Authenticate and validate input", "type": "main", "index": 0 }]] },
+    "Authenticate and validate input": { "main": [[{ "node": "Prepare monthly report in Growth1000", "type": "main", "index": 0 }]] },
+    "Prepare monthly report in Growth1000": { "main": [[{ "node": "Return completed run", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "versionId": "10000000-0000-4000-8000-000000000004",
+  "meta": { "templateCredsSetupCompleted": false },
+  "tags": []
+}
