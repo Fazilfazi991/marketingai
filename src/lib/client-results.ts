@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 export type ClientResultsData = {
   clientName: string;
   periodLabel: string;
+  rangeKey: ResultRangeKey;
+  rangeStart: string;
+  rangeEnd: string;
   updatedAt: string;
   leads: {
     total: number;
@@ -58,6 +61,11 @@ export type ClientResultsData = {
   isDemo: boolean;
 };
 
+export type ResultRangeKey =
+  "today" | "7d" | "month" | "last-month" | "30d" | "90d" | "year" | "custom";
+
+export type ResultRangeInput = { range?: string; from?: string; to?: string };
+
 export type ClientReport = {
   month: string;
   monthLabel: string;
@@ -72,6 +80,9 @@ export type ClientReport = {
 const demoResults: ClientResultsData = {
   clientName: "ABC Interiors",
   periodLabel: "September 2026",
+  rangeKey: "month",
+  rangeStart: "2026-09-01",
+  rangeEnd: "2026-09-30",
   updatedAt: "18 min ago",
   leads: {
     total: 47,
@@ -265,8 +276,144 @@ const monthLabel = (date: Date, short = false) =>
     timeZone: "UTC",
   }).format(date);
 
-export async function loadClientResults(): Promise<ClientResultsData> {
-  if (isDemoMode()) return demoResults;
+const isoDay = (date: Date) => date.toISOString().slice(0, 10);
+const addDays = (date: Date, days: number) =>
+  new Date(date.getTime() + days * 86400000);
+const validDay = (value?: string) => /^\d{4}-\d{2}-\d{2}$/.test(value ?? "");
+
+const rangeBounds = (input: ResultRangeInput, reference = new Date()) => {
+  const allowed = new Set<ResultRangeKey>([
+    "today",
+    "7d",
+    "month",
+    "last-month",
+    "30d",
+    "90d",
+    "year",
+    "custom",
+  ]);
+  const key = allowed.has(input.range as ResultRangeKey)
+    ? (input.range as ResultRangeKey)
+    : "month";
+  const today = new Date(
+    Date.UTC(
+      reference.getUTCFullYear(),
+      reference.getUTCMonth(),
+      reference.getUTCDate(),
+    ),
+  );
+  let start = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1),
+  );
+  let end = addDays(today, 1);
+  if (key === "today") start = today;
+  if (key === "7d") start = addDays(today, -6);
+  if (key === "30d") start = addDays(today, -29);
+  if (key === "90d") start = addDays(today, -89);
+  if (key === "year") start = new Date(Date.UTC(today.getUTCFullYear(), 0, 1));
+  if (key === "last-month") {
+    end = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
+    start = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 1, 1),
+    );
+  }
+  if (key === "custom" && validDay(input.from) && validDay(input.to)) {
+    const requestedStart = new Date(`${input.from}T00:00:00Z`);
+    const requestedEnd = new Date(`${input.to}T00:00:00Z`);
+    if (requestedStart <= requestedEnd && requestedEnd <= today) {
+      start = requestedStart;
+      end = addDays(requestedEnd, 1);
+    }
+  }
+  const duration = Math.max(
+    1,
+    Math.round((end.getTime() - start.getTime()) / 86400000),
+  );
+  return {
+    key,
+    start,
+    end,
+    previousStart: addDays(start, -duration),
+    previousEnd: start,
+    duration,
+  };
+};
+
+const rangeLabel = (key: ResultRangeKey, start: Date, end: Date) => {
+  if (key === "today") return "Today";
+  if (key === "month" || key === "last-month") return monthLabel(start);
+  const format = new Intl.DateTimeFormat("en", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
+  return `${format.format(start)} – ${format.format(addDays(end, -1))}`;
+};
+
+const demoForRange = (input: ResultRangeInput): ClientResultsData => {
+  const bounds = rangeBounds(input, new Date("2026-09-30T12:00:00Z"));
+  if (bounds.key === "month") return demoResults;
+  const factor = bounds.key === "last-month" ? 0.85 : bounds.duration / 30;
+  const scale = (value: number) => Math.round(value * factor);
+  const scaleCopy = (value: string) =>
+    value.replace(/^\d+/, (number) => String(scale(Number(number))));
+  const total = scale(demoResults.leads.total);
+  return {
+    ...demoResults,
+    periodLabel: rangeLabel(bounds.key, bounds.start, bounds.end),
+    rangeKey: bounds.key,
+    rangeStart: isoDay(bounds.start),
+    rangeEnd: isoDay(addDays(bounds.end, -1)),
+    leads: {
+      ...demoResults.leads,
+      total,
+      qualified: scale(demoResults.leads.qualified),
+      sources: demoResults.leads.sources.map((source) => ({
+        ...source,
+        value: scale(source.value),
+      })),
+      trend: demoResults.leads.trend.map((item) => ({
+        ...item,
+        value: scale(item.value),
+      })),
+      latest:
+        bounds.key === "today"
+          ? demoResults.leads.latest.slice(0, 2)
+          : demoResults.leads.latest,
+    },
+    traffic: {
+      ...demoResults.traffic,
+      visitors: scale(demoResults.traffic.visitors),
+      newVisitors: scale(demoResults.traffic.newVisitors),
+      pageViews: scale(demoResults.traffic.pageViews),
+      whatsappClicks: scale(demoResults.traffic.whatsappClicks),
+      formSubmissions: scale(demoResults.traffic.formSubmissions),
+    },
+    search: {
+      ...demoResults.search,
+      clicks: scale(demoResults.search.clicks),
+      impressions: scale(demoResults.search.impressions),
+    },
+    ai: {
+      websiteConversations: scale(demoResults.ai.websiteConversations),
+      websiteLeads: scale(demoResults.ai.websiteLeads),
+      whatsappConversations: scale(demoResults.ai.whatsappConversations),
+      whatsappLeads: scale(demoResults.ai.whatsappLeads),
+    },
+    work: demoResults.work.map(scaleCopy),
+    topPages: demoResults.topPages.map((page) => ({
+      ...page,
+      visitors: scale(page.visitors),
+      leads: scale(page.leads),
+    })),
+    summary: `${total} tracked enquiries were recorded for this selected period. WhatsApp remained the largest measured source, while website and Google results are shown for the same dates.`,
+  };
+};
+
+export async function loadClientResults(
+  input: ResultRangeInput = {},
+): Promise<ClientResultsData> {
+  if (isDemoMode()) return demoForRange(input);
   const supabase = await createClient();
   const {
     data: { user },
@@ -285,15 +432,10 @@ export async function loadClientResults(): Promise<ClientResultsData> {
     name?: string;
   } | null;
   const now = new Date();
-  const currentStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
-  );
-  const nextStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1),
-  );
-  const historyStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 3, 1),
-  );
+  const bounds = rangeBounds(input, now);
+  const currentStart = bounds.start;
+  const nextStart = bounds.end;
+  const historyStart = bounds.previousStart;
   const iso = (date: Date) => date.toISOString().slice(0, 10);
   const [
     { data: leads, error: leadsError },
@@ -334,13 +476,15 @@ export async function loadClientResults(): Promise<ClientResultsData> {
       .from("content_items")
       .select("content_kind,status")
       .eq("client_id", clientId)
-      .eq("month", iso(currentStart))
+      .gte("month", iso(currentStart))
+      .lt("month", iso(nextStart))
       .eq("status", "published"),
     supabase
       .from("tasks")
       .select("category,status")
       .eq("client_id", clientId)
-      .eq("deliverable_month", iso(currentStart))
+      .gte("deliverable_month", iso(currentStart))
+      .lt("deliverable_month", iso(nextStart))
       .in("status", ["published", "verified"]),
   ]);
   for (const error of [
@@ -354,16 +498,13 @@ export async function loadClientResults(): Promise<ClientResultsData> {
   ])
     if (error) throw error;
 
-  const currentLeads = (leads ?? []).filter(
-    (item) => new Date(item.created_at) >= currentStart,
-  );
+  const currentLeads = (leads ?? []).filter((item) => {
+    const date = new Date(item.created_at);
+    return date >= currentStart && date < nextStart;
+  });
   const previousLeads = (leads ?? []).filter((item) => {
     const date = new Date(item.created_at);
-    return (
-      date >=
-        new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)) &&
-      date < currentStart
-    );
+    return date >= bounds.previousStart && date < bounds.previousEnd;
   });
   const sourceDefinitions = [
     { key: "whatsapp", label: "WhatsApp", tone: "green" },
@@ -372,26 +513,40 @@ export async function loadClientResults(): Promise<ClientResultsData> {
     { key: "other", label: "Other sources", tone: "sand" },
   ];
   const trend = Array.from({ length: 4 }, (_, index) => {
-    const date = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 3 + index, 1),
+    const bucketStart = addDays(
+      currentStart,
+      Math.floor((bounds.duration * index) / 4),
     );
+    const bucketEnd =
+      index === 3
+        ? nextStart
+        : addDays(
+            currentStart,
+            Math.floor((bounds.duration * (index + 1)) / 4),
+          );
+    const label =
+      bounds.duration <= 31
+        ? new Intl.DateTimeFormat("en", {
+            day: "numeric",
+            month: "short",
+            timeZone: "UTC",
+          }).format(bucketStart)
+        : monthLabel(bucketStart, true);
     return {
-      label: monthLabel(date, true),
-      value: (leads ?? []).filter(
-        (item) => monthKey(new Date(item.created_at)) === monthKey(date),
-      ).length,
+      label,
+      value: (leads ?? []).filter((item) => {
+        const date = new Date(item.created_at);
+        return date >= bucketStart && date < bucketEnd;
+      }).length,
     };
   });
-  const currentAnalytics = (analytics ?? []).filter(
-    (item) => new Date(`${item.day}T00:00:00Z`) >= currentStart,
-  );
+  const currentAnalytics = (analytics ?? []).filter((item) => {
+    const date = new Date(`${item.day}T00:00:00Z`);
+    return date >= currentStart && date < nextStart;
+  });
   const previousAnalytics = (analytics ?? []).filter((item) => {
     const date = new Date(`${item.day}T00:00:00Z`);
-    return (
-      date >=
-        new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)) &&
-      date < currentStart
-    );
+    return date >= bounds.previousStart && date < bounds.previousEnd;
   });
   const sum = (rows: Array<{ metrics: unknown }>, ...keys: string[]) =>
     rows.reduce((total, row) => total + numberFrom(row.metrics, ...keys), 0);
@@ -500,7 +655,10 @@ export async function loadClientResults(): Promise<ClientResultsData> {
 
   return {
     clientName: joinedClient?.name ?? "Client workspace",
-    periodLabel: monthLabel(currentStart),
+    periodLabel: rangeLabel(bounds.key, currentStart, nextStart),
+    rangeKey: bounds.key,
+    rangeStart: isoDay(currentStart),
+    rangeEnd: isoDay(addDays(nextStart, -1)),
     updatedAt: "from the latest connected data",
     leads: {
       total,
@@ -555,13 +713,11 @@ export async function loadClientResults(): Promise<ClientResultsData> {
       impressions: searchImpressions,
       improved,
       topTen,
-      keywords: keywordRows
-        .slice(0, 3)
-        .map((item) => ({
-          keyword: String(item.keyword),
-          previous: Number(item.previous_position),
-          current: Number(item.current_position),
-        })),
+      keywords: keywordRows.slice(0, 3).map((item) => ({
+        keyword: String(item.keyword),
+        previous: Number(item.previous_position),
+        current: Number(item.current_position),
+      })),
     },
     ai: {
       websiteConversations: sum(

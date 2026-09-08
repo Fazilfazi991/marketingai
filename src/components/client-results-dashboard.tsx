@@ -11,6 +11,8 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useTransition } from "react";
 import type { ClientResultsData } from "@/lib/client-results";
 import { Panel } from "./ui";
 
@@ -21,8 +23,24 @@ export function ClientResultsDashboard({
   data: ClientResultsData;
   view?: "overview" | "leads" | "traffic";
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [pending, startTransition] = useTransition();
   const { leads, traffic, search, ai } = data,
     maxTrend = Math.max(...leads.trend.map((item) => item.value), 1);
+  const periodNoun = data.rangeKey === "month" ? "this month" : "this period";
+  const navigate = (
+    range: string,
+    from = data.rangeStart,
+    to = data.rangeEnd,
+  ) => {
+    const query = new URLSearchParams({ range });
+    if (range === "custom") {
+      query.set("from", from);
+      query.set("to", to);
+    }
+    startTransition(() => router.push(`${pathname}?${query.toString()}`));
+  };
   const growthCopy = (value: number | null, comparison = "previous period") =>
     value === null
       ? "No previous-period baseline"
@@ -34,20 +52,26 @@ export function ClientResultsDashboard({
           <b>{data.periodLabel}</b>
           <span>
             <Clock3 size={12} />
-            Data updated {data.updatedAt}
+            {pending ? "Updating results…" : `Data updated ${data.updatedAt}`}
           </span>
         </div>
         <div>
           <label>
             Date range
-            <select aria-label="Date range" defaultValue="month">
+            <select
+              aria-label="Date range"
+              value={data.rangeKey}
+              disabled={pending}
+              onChange={(event) => navigate(event.target.value)}
+            >
+              <option value="today">Today</option>
+              <option value="7d">Last 7 days</option>
               <option value="month">This month</option>
-              <option value="last-month" disabled>
-                Last month — coming soon
-              </option>
-              <option value="90-days" disabled>
-                Last 90 days — coming soon
-              </option>
+              <option value="last-month">Last month</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+              <option value="year">This year</option>
+              <option value="custom">Custom range</option>
             </select>
           </label>
           <label>
@@ -58,6 +82,34 @@ export function ClientResultsDashboard({
           </label>
         </div>
       </div>
+      {data.rangeKey === "custom" && (
+        <div className="custom-range" aria-label="Custom date range">
+          <label>
+            From
+            <input
+              type="date"
+              value={data.rangeStart}
+              max={data.rangeEnd}
+              disabled={pending}
+              onChange={(event) =>
+                navigate("custom", event.target.value, data.rangeEnd)
+              }
+            />
+          </label>
+          <label>
+            To
+            <input
+              type="date"
+              value={data.rangeEnd}
+              min={data.rangeStart}
+              disabled={pending}
+              onChange={(event) =>
+                navigate("custom", data.rangeStart, event.target.value)
+              }
+            />
+          </label>
+        </div>
+      )}
       <section className="lead-hero">
         <div>
           <span>Tracked enquiries{data.isDemo ? " · Demo data" : ""}</span>
@@ -181,7 +233,10 @@ export function ClientResultsDashboard({
             </div>
           </div>
         </Panel>
-        <Panel title="AI-generated leads" meta="Qualification before conversation volume">
+        <Panel
+          title="AI-generated leads"
+          meta="Qualification before conversation volume"
+        >
           <div className="ai-lead-total">
             <span>Qualified AI leads</span>
             <b>{ai.websiteLeads + ai.whatsappLeads}</b>
@@ -284,7 +339,7 @@ export function ClientResultsDashboard({
       <section className="insights-strip">
         <Lightbulb size={19} />
         <div>
-          <b>What’s happening this month</b>
+            <b>What’s happening {periodNoun}</b>
           {insights.map((item) => (
             <p key={item}>{item}</p>
           ))}
@@ -362,7 +417,7 @@ export function ClientResultsDashboard({
           </div>
         </Panel>
       </div>
-      <Panel title="Work completed this month" meta="What Growth1000 delivered">
+      <Panel title={`Work completed ${periodNoun}`} meta="What Growth1000 delivered">
         <div className="work-completed">
           {data.work.length ? (
             data.work.map((item) => (
