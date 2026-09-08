@@ -35,6 +35,9 @@ export type AdminClientWorkspaceData = {
   scope: Array<{ key: string; label: string; enabled: boolean; quantity: number }>;
   delivery: { month: string; label: string; obligations: Array<{ type: string; label: string; done: number; total: number; status: string }> };
   leads: AdminLeadItem[];
+  tasks: Array<{ id: string; title: string; status: string; category: string; due: string }>;
+  reports: Array<{ id: string; month: string; status: string; summary: string }>;
+  analytics: { users: number; sessions: number; clicks: number; impressions: number };
 };
 
 export type AdminLeadItem = { id: string; name: string; contact: string; source: string; service: string; quality: string; status: string; createdAt: string };
@@ -80,6 +83,9 @@ function demoAdminClient(slug: string): AdminClientWorkspaceData {
       { id: "demo-lead-2", name: "Omar Nasser", contact: "omar@example.com", source: "Website Chatbot", service: "Kitchen renovation", quality: "Qualified", status: "Contacted", createdAt: "7 Sep · 16:42" },
       { id: "demo-lead-3", name: "Mariam Ali", contact: "+971 55 555 0182", source: "Website Form", service: "Wardrobes", quality: "Qualified", status: "Qualified", createdAt: "6 Sep · 09:15" },
     ],
+    tasks: [{id:"demo-task-1",title:"Review November social batch",status:"Awaiting Internal Review",category:"Social",due:"Today"},{id:"demo-task-2",title:"Complete monthly website check",status:"In Progress",category:"Website",due:"This week"},{id:"demo-task-3",title:"Prepare September report",status:"Not Started",category:"Reporting",due:"30 Sep"}],
+    reports: [{id:"demo-report-1",month:"September 2026",status:"Needs Review",summary:"Strong delivery and improving organic discovery created a clear base for next month’s growth work."}],
+    analytics: {users:1842,sessions:2369,clicks:624,impressions:18420},
   };
 }
 
@@ -115,16 +121,20 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
   const { data: client, error } = await supabase.from("clients").select("id,name,slug,industry,city,country,health_status").eq("slug", slug).is("deleted_at", null).single();
   if (error) return null;
   const clientId = client.id as string;
-  const [{ data: profile, error: profileError }, { data: services, error: servicesError }, { data: locations, error: locationsError }, { data: access, error: accessError }, { data: scope, error: scopeError }, { data: leads, error: leadsError }] = await Promise.all([
+  const month = new Date().toISOString().slice(0, 7), monthStart = `${month}-01`, endDate = new Date(`${monthStart}T00:00:00Z`); endDate.setUTCMonth(endDate.getUTCMonth() + 1); const monthEnd = endDate.toISOString().slice(0, 10);
+  const [{ data: profile, error: profileError }, { data: services, error: servicesError }, { data: locations, error: locationsError }, { data: access, error: accessError }, { data: scope, error: scopeError }, { data: leads, error: leadsError }, {data:tasks,error:tasksError},{data:reports,error:reportsError},{data:analytics,error:analyticsError},{data:search,error:searchError}] = await Promise.all([
     supabase.from("business_profiles").select("description,target_customers,value_proposition,tone_of_voice,website,prohibited_claims").eq("client_id", clientId).maybeSingle(),
     supabase.from("business_services").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
     supabase.from("business_locations").select("name").eq("client_id", clientId).eq("status", "active").order("name"),
     supabase.from("client_access").select("access_type,status,verified_at").eq("client_id", clientId).order("access_type"),
     supabase.from("client_service_scopes").select("service_key,label,enabled,monthly_quantity").eq("client_id", clientId).order("label"),
     supabase.from("leads").select("id,name,phone,email,source,service,lead_quality,status,created_at").eq("client_id", clientId).order("created_at", { ascending: false }).limit(100),
+    supabase.from("tasks").select("id,title,status,category,due_at").eq("client_id",clientId).order("due_at",{ascending:true,nullsFirst:false}).limit(20),
+    supabase.from("reports").select("id,month,status,summary").eq("client_id",clientId).order("month",{ascending:false}).limit(6),
+    supabase.from("analytics_daily").select("metrics").eq("client_id",clientId).gte("day",monthStart).lt("day",monthEnd),
+    supabase.from("search_console_daily").select("metrics").eq("client_id",clientId).gte("day",monthStart).lt("day",monthEnd),
   ]);
-  for (const requestError of [profileError, servicesError, locationsError, accessError, scopeError, leadsError]) if (requestError) throw requestError;
-  const month = new Date().toISOString().slice(0, 7), monthStart = `${month}-01`;
+  for (const requestError of [profileError, servicesError, locationsError, accessError, scopeError, leadsError,tasksError,reportsError,analyticsError,searchError]) if (requestError) throw requestError;
   const { data: period, error: periodError } = await supabase.from("delivery_periods").select("month,delivery_obligations(deliverable_type,label,promised_quantity,delivered_quantity,status)").eq("client_id", clientId).eq("month", monthStart).maybeSingle();
   if (periodError) throw periodError;
   const obligations = (period?.delivery_obligations ?? []) as Array<{deliverable_type:string;label:string;promised_quantity:number;delivered_quantity:number;status:string}>;
@@ -138,5 +148,8 @@ export async function loadAdminClient(slug: string): Promise<AdminClientWorkspac
     scope: (scope ?? []).map(item => ({ key: String(item.service_key), label: String(item.label), enabled: Boolean(item.enabled), quantity: Number(item.monthly_quantity ?? 1) })),
     delivery: { month, label: new Intl.DateTimeFormat("en-AE", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${monthStart}T00:00:00Z`)), obligations: obligations.map(item => ({ type: String(item.deliverable_type), label: String(item.label), done: Number(item.delivered_quantity), total: Number(item.promised_quantity), status: titleCase(String(item.status)) })) },
     leads: (leads ?? []).map(item => ({ id: String(item.id), name: item.name || "Unnamed enquiry", contact: item.phone || item.email || "No contact supplied", source: titleCase(String(item.source)), service: item.service || "Not specified", quality: titleCase(String(item.lead_quality)), status: titleCase(String(item.status)), createdAt: new Intl.DateTimeFormat("en-AE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(item.created_at)) })),
+    tasks:(tasks??[]).map(item=>({id:String(item.id),title:String(item.title),status:titleCase(String(item.status)),category:titleCase(String(item.category)),due:item.due_at?new Intl.DateTimeFormat("en-AE",{day:"numeric",month:"short",timeZone:"Asia/Dubai"}).format(new Date(item.due_at)):"No due date"})),
+    reports:(reports??[]).map(item=>({id:String(item.id),month:new Intl.DateTimeFormat("en-AE",{month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(`${item.month}T00:00:00Z`)),status:titleCase(String(item.status)),summary:item.summary??"No summary recorded."})),
+    analytics:{users:(analytics??[]).reduce((sum,row)=>sum+(Number((row.metrics as Record<string,unknown>)?.users)||Number((row.metrics as Record<string,unknown>)?.visitors)||0),0),sessions:(analytics??[]).reduce((sum,row)=>sum+(Number((row.metrics as Record<string,unknown>)?.sessions)||0),0),clicks:(search??[]).reduce((sum,row)=>sum+(Number((row.metrics as Record<string,unknown>)?.clicks)||0),0),impressions:(search??[]).reduce((sum,row)=>sum+(Number((row.metrics as Record<string,unknown>)?.impressions)||0),0)},
   };
 }
