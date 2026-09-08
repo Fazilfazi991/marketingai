@@ -17,6 +17,7 @@ export type ClientResultsData = {
   ai: { websiteConversations: number; websiteLeads: number; whatsappConversations: number; whatsappLeads: number };
   work: string[];
   summary: string;
+  report: null | { summary: string; work: string[]; nextFocus: string; users: number; clicks: number; posts: number };
   isDemo: boolean;
 };
 
@@ -45,6 +46,12 @@ const demoResults: ClientResultsData = {
   ai: { websiteConversations: 83, websiteLeads: 14, whatsappConversations: 126, whatsappLeads: 21 },
   work: ["12 social creatives created", "12 social posts published", "2 SEO articles published", "7 SEO improvements", "3 website updates", "18 keywords improved"],
   summary: "Your business generated 47 tracked enquiries this month, up 18% from August. WhatsApp was the largest source, while organic website traffic increased 24%.",
+  report: {
+    summary: "Strong lead growth, improving visibility for renovation searches, and a clear focus for next month.",
+    work: ["12 social posts published", "2 SEO articles published", "7 SEO improvements", "3 website updates"],
+    nextFocus: "Build visibility for villa renovation searches and strengthen project-led proof using verified original photography.",
+    users: 2840, clicks: 684, posts: 12,
+  },
   isDemo: true,
 };
 
@@ -79,8 +86,8 @@ export async function loadClientResults(): Promise<ClientResultsData> {
     supabase.from("leads").select("source,created_at,lead_quality").eq("client_id", clientId).gte("created_at", historyStart.toISOString()).lt("created_at", nextStart.toISOString()),
     supabase.from("analytics_daily").select("day,metrics").eq("client_id", clientId).gte("day", iso(historyStart)).lt("day", iso(nextStart)),
     supabase.from("search_console_daily").select("day,metrics").eq("client_id", clientId).gte("day", iso(currentStart)).lt("day", iso(nextStart)),
-    supabase.from("seo_keywords").select("keyword,current_position,previous_position").eq("client_id", clientId).not("current_position", "is", null).order("current_position").limit(10),
-    supabase.from("reports").select("summary,work_completed").eq("client_id", clientId).eq("month", iso(currentStart)).eq("status", "published").maybeSingle(),
+    supabase.rpc("client_keyword_results"),
+    supabase.from("reports").select("summary,work_completed,analytics_summary,next_month_focus").eq("client_id", clientId).eq("month", iso(currentStart)).eq("status", "published").maybeSingle(),
   ]);
   for (const error of [leadsError, analyticsError, searchError, keywordError, reportError]) if (error) throw error;
 
@@ -102,12 +109,14 @@ export async function loadClientResults(): Promise<ClientResultsData> {
   const previousVisitors = sum(previousAnalytics, "activeUsers", "users", "visitors");
   const searchClicks = sum(searchRows ?? [], "clicks");
   const searchImpressions = sum(searchRows ?? [], "impressions");
-  const improved = (keywords ?? []).filter(item => Number(item.current_position) < Number(item.previous_position)).length;
-  const topTen = (keywords ?? []).filter(item => Number(item.current_position) <= 10).length;
+  const keywordRows = (keywords ?? []) as Array<{ keyword: string; current_position: number | null; previous_position: number | null }>;
+  const improved = keywordRows.filter(item => Number(item.current_position) < Number(item.previous_position)).length;
+  const topTen = keywordRows.filter(item => Number(item.current_position) <= 10).length;
   const growth = (current: number, previous: number) => previous ? Math.round((current - previous) / previous * 100) : null;
   const sourceCount = (source: string) => currentLeads.filter(item => item.source === source).length;
   const reportWork = report?.work_completed;
   const work = Array.isArray(reportWork) ? reportWork.map(String) : [];
+  const reportMetrics = report?.analytics_summary;
   const total = currentLeads.length;
   const largest = sourceDefinitions.map(source => ({ ...source, value: sourceCount(source.key) })).sort((a, b) => b.value - a.value)[0];
 
@@ -116,10 +125,18 @@ export async function loadClientResults(): Promise<ClientResultsData> {
     periodLabel: monthLabel(currentStart),
     leads: { total, growth: growth(total, previousLeads.length), sources: sourceDefinitions.map(source => ({ ...source, value: sourceCount(source.key) })), trend },
     traffic: { visitors, newVisitors: sum(currentAnalytics, "newUsers", "new_visitors"), pageViews: sum(currentAnalytics, "screenPageViews", "pageViews", "page_views"), whatsappClicks: sum(currentAnalytics, "whatsappClicks", "whatsapp_clicks"), formSubmissions: sourceCount("website_form"), growth: growth(visitors, previousVisitors) },
-    search: { clicks: searchClicks, impressions: searchImpressions, improved, topTen, keywords: (keywords ?? []).slice(0, 3).map(item => ({ keyword: String(item.keyword), previous: Number(item.previous_position), current: Number(item.current_position) })) },
+    search: { clicks: searchClicks, impressions: searchImpressions, improved, topTen, keywords: keywordRows.slice(0, 3).map(item => ({ keyword: String(item.keyword), previous: Number(item.previous_position), current: Number(item.current_position) })) },
     ai: { websiteConversations: sum(currentAnalytics, "websiteAiConversations", "website_ai_conversations"), websiteLeads: sourceCount("website_chatbot"), whatsappConversations: sum(currentAnalytics, "whatsappConversations", "whatsapp_conversations"), whatsappLeads: sourceCount("whatsapp") },
     work,
     summary: report?.summary ?? (total ? `Your business generated ${total} tracked enquiries in ${monthLabel(currentStart)}. ${largest.value ? `${largest.label} was the largest measured source.` : "Source attribution is still being collected."}` : "No tracked enquiries have been recorded for this period yet."),
+    report: report ? {
+      summary: report.summary ?? "Your published monthly growth results.",
+      work,
+      nextFocus: report.next_month_focus ?? "Continue the strongest-performing growth activities.",
+      users: numberFrom(reportMetrics, "users", "activeUsers", "visitors"),
+      clicks: numberFrom(reportMetrics, "clicks", "organicClicks"),
+      posts: numberFrom(reportMetrics, "posts", "socialPosts"),
+    } : null,
     isDemo: false,
   };
 }
