@@ -1,2 +1,2 @@
-import {AppShell} from "@/components/app-shell";import {ReportDashboard} from "@/components/report-dashboard";
-export default function ReportsPage(){return <AppShell role="admin" title="Reports" subtitle="Review, publish and export client-ready monthly summaries."><ReportDashboard/></AppShell>}
+import {AppShell} from "@/components/app-shell";import {ReportDashboard} from "@/components/report-dashboard";import {loadAdminReports} from "@/lib/admin-report-data";
+export default async function ReportsPage(){const data=await loadAdminReports();return <AppShell role="admin" title="Reports" subtitle="Review, publish and export client-ready monthly summaries."><ReportDashboard initial={data.reports} clients={data.clients} isDemo={data.isDemo}/></AppShell>}
