@@ -12,3 +12,18 @@ insert into public.business_profiles(client_id,description,target_customers,valu
 insert into public.business_services(client_id,name) values ('30000000-0000-4000-8000-000000000001','Kitchen Renovation'),('30000000-0000-4000-8000-000000000001','Villa Renovation'),('30000000-0000-4000-8000-000000000001','Wardrobes'),('30000000-0000-4000-8000-000000000001','Interior Fit-out');
 insert into public.business_locations(client_id,name) values ('30000000-0000-4000-8000-000000000001','Dubai'),('30000000-0000-4000-8000-000000000001','Sharjah');
 insert into public.client_access(client_id,access_type,status) values ('30000000-0000-4000-8000-000000000001','Website','connected'),('30000000-0000-4000-8000-000000000001','Google Analytics','connected'),('30000000-0000-4000-8000-000000000001','Search Console','connected'),('30000000-0000-4000-8000-000000000001','Instagram','connected'),('30000000-0000-4000-8000-000000000001','Facebook','connected'),('30000000-0000-4000-8000-000000000001','WhatsApp','pending');
+insert into public.content_items(client_id,content_kind,month,platform,topic,concept,caption,hashtags,creative_brief,recommended_publish_at,status,internal_notes)
+select '30000000-0000-4000-8000-000000000001','social','2026-11-01',v.platform,v.topic,'A practical, design-led post for Dubai homeowners.',v.caption,'#DubaiInteriors #InteriorDesignUAE #HomeRenovation','Premium editorial interior composition; natural light; no text overlay.',v.publish_at,v.status,'Use verified services and locations only.'
+from (values
+('Instagram + Facebook','From dated to designed','A kitchen should work as beautifully as it looks.','2026-11-05 11:00+04'::timestamptz,'ready_to_post'),
+('Instagram','Villa renovation checklist','Planning a villa renovation? Start with how you live.','2026-11-08 18:30+04'::timestamptz,'ready_to_post'),
+('Instagram + Facebook','Storage that disappears','The best wardrobes create calm without calling attention to themselves.','2026-11-12 12:00+04'::timestamptz,'scheduled'),
+('Instagram','Material moodboard','Warm stone, brushed metal and natural timber.','2026-11-15 10:30+04'::timestamptz,'published'),
+('Facebook','Before the renovation','Good outcomes start long before demolition.','2026-11-18 18:00+04'::timestamptz,'needs_review'),
+('Instagram + Facebook','Wardrobe details','Quiet luxury lives in the details.','2026-11-20 11:30+04'::timestamptz,'ready_to_post'),
+('Instagram','Open-plan balance','An open-plan home still needs distinct moments.','2026-11-22 19:00+04'::timestamptz,'needs_review'),
+('Instagram + Facebook','Site progress','From drawings to site: careful coordination matters.','2026-11-24 13:00+04'::timestamptz,'published'),
+('Instagram','Kitchen workflow','A beautiful kitchen becomes effortless when zones follow how you move.','2026-11-26 18:30+04'::timestamptz,'scheduled'),
+('Facebook','Renovation questions','What should you ask a fit-out team before appointing them?','2026-11-27 12:00+04'::timestamptz,'needs_review'),
+('Instagram + Facebook','Dubai design','Designed for Dubai living.','2026-11-29 11:00+04'::timestamptz,'published'),
+('Instagram','November recap','A month of thoughtful details and spaces taking shape.','2026-11-30 19:30+04'::timestamptz,'published')) as v(platform,topic,caption,publish_at,status);

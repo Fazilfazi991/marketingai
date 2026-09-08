@@ -4,4 +4,14 @@
   .panel .task-item .button{padding:8px 10px}
   section.panel>header{padding:14px}
   section.panel .toolbar{flex-wrap:wrap}
+  .content-summary{grid-template-columns:1fr 1fr!important}
+  .content-toolbar{align-items:stretch!important}
+  .content-toolbar,.month-switch{flex-wrap:wrap}
+  .content-toolbar select{flex:1}
+  .social-grid{grid-template-columns:1fr!important}
+  .editor-drawer{width:100%!important}
+  .editor-drawer footer{flex-wrap:wrap}
+  .editor-drawer footer span{display:none}
+  .posting-filters{align-items:stretch!important}
+  .posting-filters select{display:none}
 }
