@@ -1,2 +1,2 @@
-import {AnalyticsDashboard} from "@/components/analytics-dashboard";import {AppShell} from "@/components/app-shell";
-export default function AnalyticsPage(){return <AppShell role="admin" title="Analytics" subtitle="Website and organic search performance with traceable data imports."><AnalyticsDashboard/></AppShell>}
+import {AnalyticsDashboard} from "@/components/analytics-dashboard";import {AppShell} from "@/components/app-shell";import {loadAdminAnalytics} from "@/lib/admin-analytics-data";
+export default async function AnalyticsPage({searchParams}:{searchParams:Promise<{client?:string;month?:string}>}){const params=await searchParams,data=await loadAdminAnalytics(params.client,params.month);return <AppShell role="admin" title="Analytics" subtitle="Website and organic search performance with traceable data imports."><AnalyticsDashboard initial={data}/></AppShell>}
