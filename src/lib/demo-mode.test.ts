@@ -10,6 +10,15 @@ describe("demo mode", () => {
     expect(isDemoMode({ NODE_ENV: "development", NEXT_PUBLIC_DEMO_MODE: "false", NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable" })).toBe(false);
   });
 
+  it("never enables demo mode in the Vercel production environment", () => {
+    expect(isDemoMode({ VERCEL_ENV: "production", NEXT_PUBLIC_DEMO_MODE: "true" })).toBe(false);
+    expect(isDemoMode({ VERCEL_ENV: "production" })).toBe(false);
+  });
+
+  it("still allows demo mode in Vercel preview deployments", () => {
+    expect(isDemoMode({ VERCEL_ENV: "preview", NEXT_PUBLIC_DEMO_MODE: "true" })).toBe(true);
+  });
+
   it("uses demo mode when production credentials are absent unless live mode is explicit", () => {
     expect(isDemoMode({ NODE_ENV: "production" })).toBe(true);
     expect(isDemoMode({ NODE_ENV: "production", NEXT_PUBLIC_DEMO_MODE: "false" })).toBe(false);
