@@ -49,7 +49,7 @@ alter table public.search_console_daily
   add column if not exists source text not null default 'search_console',
   add column if not exists synced_at timestamptz not null default now();
 
-create table public.analytics_page_daily (
+create table if not exists public.analytics_page_daily (
   id uuid primary key default gen_random_uuid(),
   client_id uuid not null references public.clients(id) on delete cascade,
   day date not null,
@@ -62,7 +62,7 @@ create table public.analytics_page_daily (
   unique(client_id,day,page_path)
 );
 
-create table public.client_sites (
+create table if not exists public.client_sites (
   id uuid primary key default gen_random_uuid(),
   client_id uuid not null references public.clients(id) on delete cascade,
   site_identifier text not null unique,
@@ -77,11 +77,14 @@ create table public.client_sites (
 alter table public.analytics_page_daily enable row level security;
 alter table public.client_sites enable row level security;
 
+drop policy if exists "authorized users read analytics pages" on public.analytics_page_daily;
 create policy "authorized users read analytics pages" on public.analytics_page_daily for select to authenticated
   using (private.can_access_client(client_id));
+drop policy if exists "admins manage analytics pages" on public.analytics_page_daily;
 create policy "admins manage analytics pages" on public.analytics_page_daily for all to authenticated
   using (exists(select 1 from public.clients c where c.id=client_id and private.is_org_admin(c.organization_id)))
   with check (exists(select 1 from public.clients c where c.id=client_id and private.is_org_admin(c.organization_id)));
+drop policy if exists "admins manage client sites" on public.client_sites;
 create policy "admins manage client sites" on public.client_sites for all to authenticated
   using (exists(select 1 from public.clients c where c.id=client_id and private.is_org_admin(c.organization_id)))
   with check (exists(select 1 from public.clients c where c.id=client_id and private.is_org_admin(c.organization_id)));
@@ -90,10 +93,10 @@ grant select on public.analytics_page_daily to authenticated;
 grant select,insert,update,delete on public.client_sites to authenticated;
 revoke all on public.client_sites from anon;
 
-create index analytics_daily_client_day_idx on public.analytics_daily(client_id,day);
-create index search_console_daily_client_day_idx on public.search_console_daily(client_id,day);
-create index analytics_page_daily_client_day_idx on public.analytics_page_daily(client_id,day);
-create index client_integrations_sync_idx on public.client_integrations(provider,status,last_synced_at);
+create index if not exists analytics_daily_client_day_idx on public.analytics_daily(client_id,day);
+create index if not exists search_console_daily_client_day_idx on public.search_console_daily(client_id,day);
+create index if not exists analytics_page_daily_client_day_idx on public.analytics_page_daily(client_id,day);
+create index if not exists client_integrations_sync_idx on public.client_integrations(provider,status,last_synced_at);
 
 -- Existing rows retain their metrics JSON for backwards compatibility while explicit columns
 -- become the normalized source used by new syncs and range charts.
@@ -111,9 +114,9 @@ update public.search_console_daily set
   average_position=coalesce((metrics->>'position')::numeric,0)
 where clicks=0 and impressions=0;
 
-create function public.client_result_health()
+create or replace function public.client_result_health()
 returns table(provider text,status text,last_synced_at timestamptz)
-language sql stable security definer set search_path='' as $$
+language sql stable security invoker set search_path='' as $$
   select i.provider,i.status,i.last_synced_at
   from public.client_integrations i
   where exists(select 1 from public.client_members m where m.client_id=i.client_id and m.user_id=(select auth.uid()))
