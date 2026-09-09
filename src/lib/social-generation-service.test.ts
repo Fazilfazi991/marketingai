@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeSuggestedTime } from "./social-generation-service";
+import { normalizeSuggestedTime } from "./ai/normalization";
 
 describe("normalizeSuggestedTime", () => {
   it.each([

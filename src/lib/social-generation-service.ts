@@ -3,23 +3,10 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAIProvider, type GenerationContext } from "@/lib/ai/provider";
 import { prepareMonthlySocial } from "@/lib/ai/monthly-social";
+import { normalizeSuggestedTime } from "@/lib/ai/normalization";
 
 const list = (value: string | null | undefined) =>
   value?.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean) ?? [];
-
-export const normalizeSuggestedTime = (value: string | null | undefined) => {
-  const text = value?.trim() || "11:00";
-  const twelveHour = text.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
-  if (twelveHour) {
-    let hour = Number(twelveHour[1]) % 12;
-    if (twelveHour[3].toUpperCase() === "PM") hour += 12;
-    return `${String(hour).padStart(2, "0")}:${twelveHour[2] ?? "00"}`;
-  }
-  const twentyFourHour = text.match(/^([01]?\d|2[0-3])(?::([0-5]\d))?/);
-  return twentyFourHour
-    ? `${String(Number(twentyFourHour[1])).padStart(2, "0")}:${twentyFourHour[2] ?? "00"}`
-    : "11:00";
-};
 
 export async function generateMonthlySocialContent(
   supabase: SupabaseClient,
