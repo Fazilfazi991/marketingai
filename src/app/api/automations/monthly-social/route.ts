@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
     return json({ run_id: runId, status: "succeeded", content_records: result.count, boundary: "needs_review" }, 200);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Monthly social preparation failed";
+    console.error("MONTHLY_SOCIAL_FAILED", message);
     await supabase.from("automation_runs").update({ status: "failed", finished_at: new Date().toISOString(), output_reference: {} }).eq("id", runId);
     await supabase.from("automation_errors").insert({ run_id: runId, error_code: "MONTHLY_SOCIAL_FAILED", message, details: { retryable: true } });
     return json({ error: "Monthly social preparation failed", run_id: runId }, 500);

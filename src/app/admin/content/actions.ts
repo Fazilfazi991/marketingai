@@ -311,6 +311,7 @@ export async function generateSocialMonth(
       await generateMonthlySocialContent(supabase, String(run.id), String(client.id), month);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Monthly social preparation failed";
+      console.error("MONTHLY_SOCIAL_FAILED", message);
       const { data: failed } = await supabase
         .from("automation_runs")
         .update({ status: "failed", finished_at: new Date().toISOString() })
