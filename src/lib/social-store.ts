@@ -6,6 +6,8 @@ export type SocialStatus =
   | "Generating"
   | "Needs review"
   | "Approved"
+  | "Ready for Design"
+  | "Poster Created"
   | "Ready to schedule"
   | "Scheduled"
   | "Published"
@@ -19,7 +21,11 @@ export type SocialPost = {
   time: string;
   platform: string;
   contentType: string;
+  postNumber: number;
   topic: string;
+  objective: string;
+  posterHeadline: string;
+  posterSupportingText: string;
   concept: string;
   caption: string;
   hashtags: string;
@@ -30,17 +36,23 @@ export type SocialPost = {
   color: string;
   history: string[];
   imagePrompt: string;
+  cta: string;
   imageModel: string;
   imageVersion: number;
   imageStatus: "Placeholder" | "Generated" | "Failed";
   storagePath: string | null;
   imageUrl?: string | null;
+  assignedStaff?: string | null;
 };
 let current: SocialPost[] = seed.map((p) => ({
   ...p,
   client: "ABC Interiors",
   month: "November 2026",
   contentType: p.platform.includes("Instagram") ? "Carousel" : "Single image",
+  postNumber: Number(p.id),
+  objective: "Build consideration with useful, verified guidance.",
+  posterHeadline: p.topic,
+  posterSupportingText: "",
   concept: `A practical, design-led post about ${p.topic.toLowerCase()} for Dubai homeowners.`,
   hashtags: "#DubaiInteriors #InteriorDesignUAE #HomeRenovation",
   creativeBrief: `Editorial interior composition in ${p.color} tones, premium natural light, no text overlay.`,
@@ -49,6 +61,7 @@ let current: SocialPost[] = seed.map((p) => ({
   status: p.status as SocialStatus,
   history: [`Seeded as ${p.status}`],
   imagePrompt: `Editorial interior composition for ${p.topic}.`,
+  cta: "Start a WhatsApp consultation",
   imageModel: "demo-placeholder",
   imageVersion: 1,
   imageStatus: "Placeholder",
@@ -104,11 +117,22 @@ export function resetSocialStore() {
 export function addGeneratedSocialPlan(
   month: string,
   concepts: Array<{
+    postNumber: number;
+    contentType: string;
     topic: string;
-    concept: string;
+    objective: string;
+    platform: string;
+    suggestedDate: string;
+    suggestedTime: string;
+    posterHeadline: string;
+    posterSupportingText: string;
+    concept?: string;
     caption: string;
+    cta: string;
     hashtags: string;
     creativeBrief: string;
+    imagePrompt: string;
+    internalNotes: string;
   }>,
   provider: string,
   model: string,
@@ -124,12 +148,11 @@ export function addGeneratedSocialPlan(
     id: Date.now() + index,
     client: "ABC Interiors",
     month: monthLabel,
-    date: `${String(3 + index * 2).padStart(2, "0")} ${monthLabel.split(" ")[0].slice(0, 3).toUpperCase()}`,
-    time: index % 2 ? "6:30 PM" : "11:00 AM",
-    platform: index % 3 === 0 ? "Instagram + Facebook" : "Instagram",
-    contentType: index % 3 === 0 ? "Carousel" : "Single image",
+    date: new Intl.DateTimeFormat("en",{day:"2-digit",month:"short",timeZone:"UTC"}).format(new Date(`${item.suggestedDate}T00:00:00Z`)),
+    time: item.suggestedTime,
     ...item,
-    notes: "Generated from verified business knowledge. Human review required.",
+    concept:item.concept??item.objective,
+    notes: item.internalNotes,
     issueNote: "",
     status: "Needs review",
     color: palette[index % palette.length],
@@ -138,8 +161,8 @@ export function addGeneratedSocialPlan(
       "Image placeholder created",
       "Set to Needs review",
     ],
-    imagePrompt: item.creativeBrief,
-    imageModel: "demo-placeholder",
+    imagePrompt: item.imagePrompt,
+    imageModel: "manual-production",
     imageVersion: 1,
     imageStatus: "Placeholder",
     storagePath: null,

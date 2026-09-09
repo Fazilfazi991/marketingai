@@ -1,0 +1,13 @@
+import {createClient} from "@/lib/supabase/server";
+export const runtime="nodejs";
+const uuid=/^[0-9a-f-]{36}$/i,allowedTypes=new Set(["image/jpeg","image/png","image/webp"]);
+export async function POST(request:Request){
+ const supabase=await createClient(),{data:{user}}=await supabase.auth.getUser();if(!user)return Response.json({error:"Unauthorized"},{status:401});
+ const form=await request.formData(),contentId=String(form.get("contentId")??""),file=form.get("poster");if(!uuid.test(contentId)||!(file instanceof File))return Response.json({error:"A content item and poster file are required."},{status:400});if(!allowedTypes.has(file.type)||file.size>4_000_000)return Response.json({error:"Use a JPG, PNG or WebP poster smaller than 4 MB."},{status:400});
+ const{data:item}=await supabase.from("content_items").select("id,client_id,status,clients!inner(organization_id)").eq("id",contentId).eq("content_kind","social_post").maybeSingle();if(!item)return Response.json({error:"Content item not found."},{status:404});
+ const relation=item.clients as unknown as {organization_id:string}|{organization_id:string}[],org=Array.isArray(relation)?relation[0]?.organization_id:relation?.organization_id;const{data:membership}=await supabase.from("organization_members").select("role").eq("organization_id",org).eq("user_id",user.id).eq("status","active").in("role",["admin","staff"]).maybeSingle();if(!membership)return Response.json({error:"Forbidden"},{status:403});
+ const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg",path=`${item.client_id}/social-posters/${contentId}/${crypto.randomUUID()}.${ext}`;const bytes=await file.arrayBuffer(),uploaded=await supabase.storage.from("client-assets").upload(path,bytes,{contentType:file.type,upsert:false});if(uploaded.error)return Response.json({error:uploaded.error.message},{status:500});
+ const{data:asset,error:assetError}=await supabase.from("assets").insert({client_id:item.client_id,filename:file.name.slice(0,180),mime_type:file.type,category:"Social Posters",storage_path:path,source:"staff_upload",created_by:user.id}).select("id").single();if(assetError){await supabase.storage.from("client-assets").remove([path]);return Response.json({error:assetError.message},{status:500})}
+ const{error:linkError}=await supabase.from("content_assets").insert({content_item_id:contentId,asset_id:asset.id,prompt:"Manually produced poster",model:"manual",version:1,generation_status:"uploaded"});if(linkError)return Response.json({error:linkError.message},{status:500});await supabase.from("content_items").update({status:"poster_created",poster_uploaded_at:new Date().toISOString(),poster_uploaded_by:user.id}).eq("id",contentId);
+ return Response.json({ok:true,path,status:"poster_created"});
+}

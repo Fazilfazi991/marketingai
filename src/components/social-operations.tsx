@@ -13,12 +13,11 @@ import {
 } from "lucide-react";
 import {
   generateSocialMonth,
-  regenerateSocialCreative,
+  regenerateSocialText,
   saveSocialContent,
 } from "@/app/admin/content/actions";
 import {
   addGeneratedSocialPlan,
-  regenerateSocialImage,
   SocialPost,
   SocialStatus,
   updateSocialPost,
@@ -32,6 +31,8 @@ const statuses: SocialStatus[] = [
   "Generating",
   "Needs review",
   "Approved",
+  "Ready for Design",
+  "Poster Created",
   "Ready to schedule",
   "Scheduled",
   "Published",
@@ -48,6 +49,8 @@ const dbStatus: Record<SocialStatus, string> = {
   Generating: "generating",
   "Needs review": "needs_review",
   Approved: "approved",
+  "Ready for Design": "ready_for_design",
+  "Poster Created": "poster_created",
   "Ready to schedule": "ready_to_post",
   Scheduled: "scheduled",
   Published: "published",
@@ -56,10 +59,11 @@ const dbStatus: Record<SocialStatus, string> = {
 type Props = {
   initial: SocialPost[];
   clients: Array<{ id: string; name: string }>;
+  strategies: Array<{clientId:string;month:string;monthlyObjective:string;priorityTopics:string[];primaryCta:string;contentThemes:string[];contentMix:Record<string,number>;performanceObservations:string[];avoidRepeating:string[]}>;
   isDemo: boolean;
 };
 
-export function SocialOperations({ initial, clients, isDemo }: Props) {
+export function SocialOperations({ initial, clients, strategies, isDemo }: Props) {
   const demoPosts = useSocialPosts(),
     [livePosts, setLivePosts] = useState(initial),
     posts = isDemo ? demoPosts : livePosts;
@@ -70,8 +74,10 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
       isDemo ? "2026-11" : new Date().toISOString().slice(0, 7),
     ),
     [clientId, setClientId] = useState(clients[0]?.id ?? ""),
+    [assignedStaff,setAssignedStaff]=useState("All staff"),
+    [demoStrategy,setDemoStrategy]=useState<Props["strategies"][number]|null>(null),
     [generating, setGenerating] = useState(false),
-    [imageGenerating, setImageGenerating] = useState(false),
+    [regenerating, setRegenerating] = useState<string | null>(null),
     [notice, setNotice] = useState("");
   const monthPosts = posts.filter(
       (post) =>
@@ -83,9 +89,9 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
         monthPosts.filter(
           (post) =>
             (filter === "All statuses" || post.status === filter) &&
-            (platform === "All platforms" || post.platform.includes(platform)),
+            (platform === "All platforms" || post.platform.includes(platform)) && (assignedStaff==="All staff"||assignedStaff===(post.assignedStaff??"Unassigned")),
         ),
-      [monthPosts, filter, platform],
+      [monthPosts, filter, platform,assignedStaff],
     );
   const counts = {
     review: monthPosts.filter((post) => post.status === "Needs review").length,
@@ -94,6 +100,7 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
     scheduled: monthPosts.filter((post) => post.status === "Scheduled").length,
     published: monthPosts.filter((post) => post.status === "Published").length,
   };
+  const strategy=demoStrategy??strategies.find(item=>item.clientId===clientId&&item.month===month);
   const moveMonth = (direction: number) => {
     const date = new Date(`${month}-01T00:00:00Z`);
     date.setUTCMonth(date.getUTCMonth() + direction);
@@ -115,6 +122,7 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
           result.provider,
           result.model,
         );
+        setDemoStrategy({clientId,month,monthlyObjective:result.strategy.monthlyObjective,priorityTopics:result.strategy.priorityTopics,primaryCta:result.strategy.primaryCta,contentThemes:result.strategy.contentThemes,contentMix:result.strategy.contentMix,performanceObservations:result.strategy.performanceObservations,avoidRepeating:result.strategy.avoidRepeating});
         setNotice(
           `12 posts prepared with ${result.model}. Demo image placeholders are ready for review.`,
         );
@@ -157,43 +165,10 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
     );
     setEditing(null);
   }
-  async function regenerate(post: SocialPost) {
-    if (isDemo) {
-      regenerateSocialImage(post.id);
-      return;
-    }
-    setImageGenerating(true);
-    const result = await regenerateSocialCreative(
-      String(post.id),
-      post.clientId ?? clientId,
-    );
-    if (!result.ok) setNotice(result.error);
-    else {
-      setLivePosts((rows) =>
-        rows.map((row) =>
-          row.id === post.id
-            ? {
-                ...row,
-                imageVersion: result.image.version,
-                imageStatus: result.image.status,
-                imageModel: result.image.model,
-                storagePath: result.image.storagePath,
-                imageUrl: result.image.url,
-                history: [
-                  `${result.image.status} creative prepared · v${result.image.version}`,
-                  ...row.history,
-                ],
-              }
-            : row,
-        ),
-      );
-      setNotice(
-        result.image.status === "Generated"
-          ? `Image version ${result.image.version} generated and stored securely.`
-          : `Image version ${result.image.version} is a placeholder because no image provider is configured.`,
-      );
-    }
-    setImageGenerating(false);
+  async function regenerate(post: SocialPost, mode:"brief"|"caption"|"poster_prompt") {
+    if(isDemo){setNotice("Demo regeneration is preview-only; edit the field directly to test revisions.");return}
+    setRegenerating(mode);const result=await regenerateSocialText(String(post.id),post.clientId??clientId,mode);
+    if(!result.ok)setNotice(result.error);else{setLivePosts(rows=>rows.map(row=>row.id===post.id?{...row,...result.patch,history:[`Regenerated ${mode.replace("_"," ")} · human review required`,...row.history]}:row));setNotice(`Regenerated ${mode.replace("_"," ")} only; approved items were preserved.`)}setRegenerating(null);
   }
   return (
     <>
@@ -221,6 +196,7 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
           <b>{counts.published}</b>
         </div>
       </div>
+      {strategy&&<section className="social-strategy-card"><span className="eyebrow">Monthly strategy</span><h2>{strategy.monthlyObjective}</h2><div className="strategy-grid"><div><b>Priority topics</b><p>{strategy.priorityTopics.join(" · ")}</p></div><div><b>Primary CTA</b><p>{strategy.primaryCta}</p></div><div><b>Content mix</b><p>{Object.entries(strategy.contentMix).map(([key,value])=>`${value} ${key}`).join(" · ")}</p></div><div><b>Performance observations</b><p>{strategy.performanceObservations.join(" ")}</p></div><div><b>Avoid repeating</b><p>{strategy.avoidRepeating.join(" · ")||"No recent repetition risks."}</p></div></div></section>}
       <div className="content-toolbar">
         <div className="month-switch">
           <button onClick={() => moveMonth(-1)} aria-label="Previous month">
@@ -256,6 +232,7 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
           <option>Instagram</option>
           <option>Facebook</option>
         </select>
+        <select aria-label="Assigned staff filter" value={assignedStaff} onChange={event=>setAssignedStaff(event.target.value)}><option>All staff</option><option>Unassigned</option>{[...new Set(posts.map(post=>post.assignedStaff).filter(Boolean))].map(value=><option key={value!}>{value}</option>)}</select>
         <select
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
@@ -272,11 +249,7 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
           onClick={generate}
         >
           <Sparkles size={13} />
-          {generating
-            ? "Preparing…"
-            : monthPosts.length
-              ? "Month prepared"
-              : "Generate month"}
+          {generating ? "Preparing…" : monthPosts.length ? "Month prepared" : "Generate Monthly Social Plan"}
         </button>
       </div>
       {visible.length ? (
@@ -355,7 +328,7 @@ export function SocialOperations({ initial, clients, isDemo }: Props) {
           close={() => setEditing(null)}
           save={save}
           regenerate={regenerate}
-          imageGenerating={imageGenerating}
+          regenerating={regenerating}
         />
       )}
     </>
@@ -367,13 +340,13 @@ function Editor({
   close,
   save,
   regenerate,
-  imageGenerating,
+  regenerating,
 }: {
   post: SocialPost;
   close: () => void;
   save: (post: SocialPost, status: SocialStatus) => Promise<void>;
-  regenerate: (post: SocialPost) => Promise<void>;
-  imageGenerating: boolean;
+  regenerate: (post: SocialPost,mode:"brief"|"caption"|"poster_prompt") => Promise<void>;
+  regenerating: string|null;
 }) {
   const [draft, setDraft] = useState(post),
     [tab, setTab] = useState("Content");
@@ -443,6 +416,9 @@ function Editor({
         </div>
         {tab === "Content" ? (
           <div className="editor-form">
+            <label>Objective<input value={draft.objective} onChange={event=>setDraft({...draft,objective:event.target.value})}/></label>
+            <label>Poster headline<input value={draft.posterHeadline} onChange={event=>setDraft({...draft,posterHeadline:event.target.value})}/></label>
+            <label>Supporting poster text<input value={draft.posterSupportingText} onChange={event=>setDraft({...draft,posterSupportingText:event.target.value})}/></label>
             <label>
               Post concept
               <textarea
@@ -480,6 +456,8 @@ function Editor({
                 }
               />
             </label>
+            <label>Copy-ready image prompt<textarea className="caption-area" value={draft.imagePrompt} onChange={event=>setDraft({...draft,imagePrompt:event.target.value})}/></label>
+            <label>CTA<input value={draft.cta} onChange={event=>setDraft({...draft,cta:event.target.value})}/></label>
             <label>
               Internal notes
               <textarea
@@ -504,14 +482,9 @@ function Editor({
           </div>
         )}
         <footer>
-          <button
-            className="button secondary"
-            disabled={imageGenerating}
-            onClick={() => regenerate(post)}
-          >
-            <RotateCcw size={13} />
-            {imageGenerating ? "Preparing…" : "Regenerate image"}
-          </button>
+          <button className="button secondary" disabled={Boolean(regenerating)} onClick={() => regenerate(post,"brief")}><RotateCcw size={13}/>{regenerating==="brief"?"Rewriting…":"Rewrite brief"}</button>
+          <button className="button secondary" disabled={Boolean(regenerating)} onClick={() => regenerate(post,"caption")}><RotateCcw size={13}/>Caption only</button>
+          <button className="button secondary" disabled={Boolean(regenerating)} onClick={() => regenerate(post,"poster_prompt")}><RotateCcw size={13}/>Poster prompt only</button>
           <span />
           <button
             className="button secondary"
@@ -522,10 +495,10 @@ function Editor({
           {post.status === "Needs review" && (
             <button
               className="button"
-              onClick={() => save(draft, "Ready to schedule")}
+              onClick={() => save(draft, "Ready for Design")}
             >
               <Check size={13} />
-              Approve to staff
+              Approve for design
             </button>
           )}
         </footer>

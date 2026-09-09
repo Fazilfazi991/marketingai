@@ -2,7 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 type Result = { ok: true } | { ok: false; error: string };
-const allowed = new Set(["ready_to_post", "scheduled", "published", "issue"]);
+const allowed = new Set(["ready_for_design","poster_created","ready_to_schedule","ready_to_post", "scheduled", "published", "issue"]);
 async function authorizedClient() {
   const supabase = await createClient();
   const {
@@ -68,9 +68,9 @@ export async function updatePostingStatuses(
     if (readError) return { ok: false, error: readError.message };
     if ((available ?? []).length !== unique.length)
       return { ok: false, error: "One or more posts are unavailable." };
-    const { data: updated, error } = await supabase
+    const timestampPatch=status==="scheduled"?{scheduled_at:new Date().toISOString()}:status==="published"?{published_at:new Date().toISOString()}:{}, { data: updated, error } = await supabase
       .from("content_items")
-      .update({ status, staff_note: note.trim() || null })
+      .update({ status, staff_note: note.trim() || null,...timestampPatch })
       .in("id", unique)
       .select("id");
     if (error) return { ok: false, error: error.message };

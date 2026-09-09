@@ -6,6 +6,7 @@ import type { SocialPost, SocialStatus } from "@/lib/social-store";
 export type AdminSocialData = {
   posts: SocialPost[];
   clients: Array<{ id: string; name: string }>;
+  strategies: Array<{clientId:string;month:string;monthlyObjective:string;priorityTopics:string[];primaryCta:string;contentThemes:string[];contentMix:Record<string,number>;performanceObservations:string[];avoidRepeating:string[]}>;
   isDemo: boolean;
 };
 const labels: Record<string, SocialStatus> = {
@@ -13,6 +14,9 @@ const labels: Record<string, SocialStatus> = {
   generating: "Generating",
   needs_review: "Needs review",
   approved: "Approved",
+  ready_for_design: "Ready for Design",
+  poster_created: "Poster Created",
+  ready_to_schedule: "Ready to schedule",
   ready_to_post: "Ready to schedule",
   scheduled: "Scheduled",
   published: "Published",
@@ -33,6 +37,7 @@ export async function loadAdminSocial(): Promise<AdminSocialData> {
       clients: [
         { id: "30000000-0000-4000-8000-000000000001", name: "ABC Interiors" },
       ],
+      strategies: [],
       isDemo: true,
     };
   const supabase = await createClient();
@@ -43,6 +48,7 @@ export async function loadAdminSocial(): Promise<AdminSocialData> {
   const [
     { data: clients, error: clientError },
     { data: rows, error: contentError },
+    { data: strategies, error: strategyError },
   ] = await Promise.all([
     supabase
       .from("clients")
@@ -52,14 +58,16 @@ export async function loadAdminSocial(): Promise<AdminSocialData> {
     supabase
       .from("content_items")
       .select(
-        "id,client_id,month,platform,content_kind,topic,concept,caption,hashtags,creative_brief,recommended_publish_at,internal_notes,staff_note,status,clients(name)",
+        "id,client_id,month,platform,content_kind,post_number,topic,objective,poster_headline,poster_supporting_text,concept,caption,cta,hashtags,creative_brief,image_prompt,recommended_publish_at,internal_notes,staff_note,status,assigned_staff_id,clients(name)",
       )
       .eq("content_kind", "social_post")
       .order("recommended_publish_at", { ascending: false })
       .limit(300),
+    supabase.from("social_monthly_strategies").select("client_id,month,monthly_objective,priority_topics,primary_cta,content_themes,content_mix,performance_observations,avoid_repeating").order("month",{ascending:false}),
   ]);
   if (clientError) throw clientError;
   if (contentError) throw contentError;
+  if (strategyError) throw strategyError;
   const contentIds = (rows ?? []).map((row) => String(row.id));
   const { data: generations, error: generationError } = contentIds.length
     ? await supabase
@@ -125,7 +133,11 @@ export async function loadAdminSocial(): Promise<AdminSocialData> {
         : "Time pending",
       platform: row.platform || "Instagram",
       contentType: "Social post",
+      postNumber: Number(row.post_number ?? index + 1),
       topic: row.topic || "Untitled social post",
+      objective: row.objective || "",
+      posterHeadline: row.poster_headline || row.topic || "",
+      posterSupportingText: row.poster_supporting_text || "",
       concept: row.concept || "",
       caption: row.caption || "",
       hashtags: row.hashtags || "",
@@ -135,7 +147,8 @@ export async function loadAdminSocial(): Promise<AdminSocialData> {
       status: labels[row.status] ?? "Idea",
       color: colors[index % colors.length],
       history: ["Loaded from Growth1000 content records"],
-      imagePrompt: row.creative_brief || "",
+      imagePrompt: row.image_prompt || row.creative_brief || "",
+      cta: row.cta || "",
       imageModel:
         latestGeneration.get(String(row.id))?.model ?? "Not generated",
       imageVersion: latestGeneration.get(String(row.id))?.version ?? 1,
@@ -145,10 +158,12 @@ export async function loadAdminSocial(): Promise<AdminSocialData> {
         signedUrls.get(
           latestGeneration.get(String(row.id))?.storage_path ?? "",
         ) ?? null,
+      assignedStaff: row.assigned_staff_id ? String(row.assigned_staff_id) : null,
     };
   });
   return {
     posts,
+    strategies:(strategies??[]).map(row=>({clientId:String(row.client_id),month:String(row.month).slice(0,7),monthlyObjective:String(row.monthly_objective),priorityTopics:(row.priority_topics??[]) as string[],primaryCta:String(row.primary_cta),contentThemes:(row.content_themes??[]) as string[],contentMix:(row.content_mix??{}) as Record<string,number>,performanceObservations:(row.performance_observations??[]) as string[],avoidRepeating:(row.avoid_repeating??[]) as string[]})),
     clients: (clients ?? []).map((client) => ({
       id: String(client.id),
       name: String(client.name),

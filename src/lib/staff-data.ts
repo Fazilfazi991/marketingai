@@ -5,7 +5,7 @@ import { isDemoMode } from "@/lib/demo-mode";
 import { createClient } from "@/lib/supabase/server";
 
 export type StaffQueueStatus =
-  "Ready to schedule" | "Scheduled" | "Published" | "Issue";
+  "Ready for Design" | "Poster Created" | "Ready to schedule" | "Scheduled" | "Published" | "Issue";
 export type StaffQueueItem = {
   id: string;
   client: string;
@@ -14,7 +14,11 @@ export type StaffQueueItem = {
   time: string;
   platform: string;
   topic: string;
+  posterHeadline:string;
+  creativeBrief:string;
+  imagePrompt:string;
   caption: string;
+  cta:string;
   hashtags: string;
   issueNote: string;
   status: StaffQueueStatus;
@@ -29,6 +33,9 @@ export type StaffQueueData = {
   isDemo: boolean;
 };
 const statusLabel: Record<string, StaffQueueStatus> = {
+  ready_for_design: "Ready for Design",
+  poster_created: "Poster Created",
+  ready_to_schedule: "Ready to schedule",
   ready_to_post: "Ready to schedule",
   scheduled: "Scheduled",
   published: "Published",
@@ -72,6 +79,7 @@ const demoItems: StaffQueueItem[] = posts
     time: post.time,
     platform: post.platform,
     topic: post.topic,
+    posterHeadline:post.topic,creativeBrief:`Create a premium design for ${post.topic}.`,imagePrompt:`Create a premium 4:5 Instagram poster for ABC Interiors about ${post.topic}.`,cta:"Start a WhatsApp consultation",
     caption: post.caption,
     hashtags: "#DubaiInteriors #InteriorDesignUAE #HomeRenovation",
     issueNote: "",
@@ -97,10 +105,10 @@ export async function loadStaffQueue(): Promise<StaffQueueData> {
   const { data, error } = await supabase
     .from("content_items")
     .select(
-      "id,platform,topic,caption,hashtags,recommended_publish_at,scheduled_at,published_at,staff_note,status,clients(name)",
+      "id,platform,topic,poster_headline,creative_brief,image_prompt,caption,cta,hashtags,recommended_publish_at,scheduled_at,published_at,staff_note,status,clients(name)",
     )
     .eq("content_kind", "social_post")
-    .in("status", ["ready_to_post", "scheduled", "published", "issue"])
+    .in("status", ["ready_for_design","poster_created","ready_to_schedule","ready_to_post", "scheduled", "published", "issue"])
     .order("recommended_publish_at", { ascending: true });
   if (error) throw error;
   const ids = (data ?? []).map((row) => String(row.id));
@@ -146,7 +154,11 @@ export async function loadStaffQueue(): Promise<StaffQueueData> {
       ),
       platform: row.platform || "Platform pending",
       topic: row.topic || "Social post",
+      posterHeadline:row.poster_headline||row.topic||"Social post",
+      creativeBrief:row.creative_brief||"",
+      imagePrompt:row.image_prompt||row.creative_brief||"",
       caption: row.caption || "Caption pending",
+      cta:row.cta||"",
       hashtags: row.hashtags || "",
       issueNote: row.staff_note || "",
       status: statusLabel[row.status] ?? "Ready to schedule",

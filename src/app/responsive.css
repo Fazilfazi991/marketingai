@@ -51,3 +51,4 @@
 .scope-row>label:last-child{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--muted);font-size:10px}
 .scope-row input[type="number"]{width:66px;border:1px solid var(--line);border-radius:7px;padding:7px;background:white;color:var(--ink)}
 @media(max-width:560px){html,body,.app-main{overflow-x:hidden}.app-main{min-width:0}.service-scope-options{grid-template-columns:1fr}.scope-row{grid-template-columns:1fr}.scope-row>label:last-child{justify-content:flex-start}}
+@media(max-width:560px){.strategy-grid{grid-template-columns:1fr}.social-strategy-card{padding:16px}.posting-tabs{overflow-x:auto;flex-wrap:nowrap}.post-actions{align-items:stretch}}

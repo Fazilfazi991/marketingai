@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { triggerN8nWorkflow } from "@/lib/automations/n8n";
+import { createAIProvider } from "@/lib/ai/provider";
 import { generateImage, imageProviderConfig } from "@/lib/ai/image-provider";
 import type { SocialPost } from "@/lib/social-store";
 type Result = { ok: true } | { ok: false; error: string };
@@ -52,6 +53,9 @@ export async function saveSocialContent(
       "generating",
       "needs_review",
       "approved",
+      "ready_for_design",
+      "poster_created",
+      "ready_to_schedule",
       "ready_to_post",
       "scheduled",
       "published",
@@ -63,10 +67,15 @@ export async function saveSocialContent(
       .from("content_items")
       .update({
         topic: post.topic,
+        objective: post.objective,
+        poster_headline: post.posterHeadline,
+        poster_supporting_text: post.posterSupportingText,
         concept: post.concept,
         caption: post.caption,
         hashtags: post.hashtags,
         creative_brief: post.creativeBrief,
+        image_prompt: post.imagePrompt,
+        cta: post.cta,
         internal_notes: post.notes,
         status,
       })
@@ -85,6 +94,13 @@ export async function saveSocialContent(
           : "Unable to save social content.",
     };
   }
+}
+export async function regenerateSocialText(contentId:string,clientId:string,mode:"brief"|"caption"|"poster_prompt"):Promise<{ok:true;patch:Partial<SocialPost>}|{ok:false;error:string}>{
+ if(!/^[0-9a-f-]{36}$/i.test(contentId)||!new Set(["brief","caption","poster_prompt"]).has(mode))return{ok:false,error:"Invalid regeneration request."};
+ try{const{supabase,client}=await contextFor(clientId);const{data:item,error}=await supabase.from("content_items").select("concept,caption,creative_brief,image_prompt").eq("id",contentId).eq("client_id",client.id).eq("content_kind","social_post").maybeSingle();if(error)throw error;if(!item)return{ok:false,error:"Social content not found."};
+ const{data:profile}=await supabase.from("business_profiles").select("description,tone_of_voice,offers,prohibited_claims").eq("client_id",client.id).maybeSingle();const{data:services}=await supabase.from("business_services").select("name").eq("client_id",client.id).eq("status","active");const context={clientId,businessKnowledge:JSON.stringify({client,profile}),services:(services??[]).map(row=>String(row.name)),offers:String(profile?.offers??"").split(/\r?\n|,/).filter(Boolean),prohibitedClaims:String(profile?.prohibited_claims??"").split(/\r?\n|,/).filter(Boolean)};
+ const provider=createAIProvider();let patch:Partial<SocialPost>;if(mode==="caption"){const generated=await provider.generateCaption(context,item.concept??"");patch={caption:generated.data};await supabase.from("content_items").update({caption:generated.data,caption_prompt_version:"caption_v1",generation_provider:generated.provider,generation_model:generated.model}).eq("id",contentId)}else{const generated=await provider.generateCreativeBrief(context,item.concept??"");patch=mode==="poster_prompt"?{imagePrompt:generated.data}:{creativeBrief:generated.data};await supabase.from("content_items").update(mode==="poster_prompt"?{image_prompt:generated.data,poster_prompt_version:"poster_prompt_v1",generation_provider:generated.provider,generation_model:generated.model}:{creative_brief:generated.data,prompt_version:"post_brief_v1",generation_provider:generated.provider,generation_model:generated.model}).eq("id",contentId)}revalidatePath("/admin/content");return{ok:true,patch};
+ }catch(error){return{ok:false,error:error instanceof Error?error.message:"Unable to regenerate content."}}
 }
 export async function regenerateSocialCreative(
   contentId: string,

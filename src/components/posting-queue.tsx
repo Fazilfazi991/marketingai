@@ -17,13 +17,17 @@ type Props = {
   initialTab?: StaffQueueStatus;
 };
 const tabs: StaffQueueStatus[] = [
+  "Ready for Design",
+  "Poster Created",
   "Ready to schedule",
   "Scheduled",
   "Published",
   "Issue",
 ];
 const dbStatus: Record<StaffQueueStatus, string> = {
-  "Ready to schedule": "ready_to_post",
+  "Ready for Design":"ready_for_design",
+  "Poster Created":"poster_created",
+  "Ready to schedule": "ready_to_schedule",
   Scheduled: "scheduled",
   Published: "published",
   Issue: "issue",
@@ -33,7 +37,7 @@ export function PostingQueue({
   initial,
   clients,
   isDemo,
-  initialTab = "Ready to schedule",
+  initialTab = "Ready for Design",
 }: Props) {
   const [items, setItems] = useState(initial),
     [tab, setTab] = useState<StaffQueueStatus>(initialTab);
@@ -61,12 +65,14 @@ export function PostingQueue({
     (item) => item.status === tab && matchesFilters(item),
   );
 
-  async function copy(item: StaffQueueItem) {
+  async function copyCaption(item: StaffQueueItem) {
     await navigator.clipboard?.writeText(
       `${item.caption}${item.hashtags ? `\n\n${item.hashtags}` : ""}`,
     );
     setCopied(item.id);
   }
+  async function copyPrompt(item:StaffQueueItem){await navigator.clipboard?.writeText(item.imagePrompt);setCopied(`prompt-${item.id}`)}
+  async function uploadPoster(item:StaffQueueItem,file:File){setNotice("");const body=new FormData();body.set("contentId",item.id);body.set("poster",file);const response=await fetch("/api/staff/posters",{method:"POST",body});const result=await response.json() as {ok?:boolean;error?:string};if(!response.ok){setNotice(result.error??"Poster upload failed.");return}setItems(rows=>rows.map(row=>row.id===item.id?{...row,status:"Poster Created"}:row));setNotice("Poster uploaded securely and marked Poster Created.");setTab("Poster Created")}
 
   function download(item: StaffQueueItem) {
     if (!isDemo) {
@@ -228,9 +234,10 @@ export function PostingQueue({
                 <div className="post-meta">
                   {item.client} · {item.platform}
                 </div>
-                <h3>
+                <h3>{item.posterHeadline}</h3><small>
                   {item.date} · {item.time}
-                </h3>
+                </small>
+                <p><b>Creative direction:</b> {item.creativeBrief}</p>
                 <p>{item.caption}</p>
                 {item.hashtags && <p className="hashtags">{item.hashtags}</p>}
                 <div style={{ marginTop: 8 }}>
@@ -254,9 +261,11 @@ export function PostingQueue({
                 )}
               </div>
               <div className="post-actions">
-                <button onClick={() => copy(item)}>
+                <button onClick={() => copyPrompt(item)}>{copied===`prompt-${item.id}`?"Prompt copied ✓":"Copy Image Prompt"}</button>
+                <button onClick={() => copyCaption(item)}>
                   {copied === item.id ? "Copied ✓" : "Copy caption"}
                 </button>
+                {item.status==="Ready for Design"&&<label className="button secondary upload-poster">Upload Poster<input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={event=>{const file=event.target.files?.[0];if(file)void uploadPoster(item,file)}}/></label>}
                 <button
                   onClick={() => download(item)}
                   title={
@@ -276,6 +285,7 @@ export function PostingQueue({
                     Mark scheduled
                   </button>
                 )}
+                {item.status==="Poster Created"&&<button className="primary" disabled={pending} onClick={()=>changeStatus(item,"Ready to schedule")}>Mark Ready to Schedule</button>}
                 {item.status === "Scheduled" && (
                   <button
                     className="primary"
