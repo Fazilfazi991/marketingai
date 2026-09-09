@@ -11,6 +11,13 @@ export const abcContext: GenerationContext = {
 
 export type PreparedSocialPlan = { month: string; strategy: SocialStrategy; concepts: SocialConcept[]; provider: string; model: string; usage: { inputTokens: number; outputTokens: number; estimatedCost: number }; imageMode: "manual"; promptVersions: { strategy: string; brief: string; caption: string; posterPrompt: string } };
 
+const stringList = (value: unknown): string[] => {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value === "string") return value.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean);
+  if (value && typeof value === "object") return Object.values(value).flatMap(stringList);
+  return [];
+};
+
 export async function prepareMonthlySocial(provider: AIProvider, month: string, count = 12, context: GenerationContext = abcContext): Promise<PreparedSocialPlan> {
   if (!/^\d{4}-\d{2}$/.test(month)) throw new Error("month must use YYYY-MM");
   if (count < 1 || count > 31) throw new Error("count must be between 1 and 31");
@@ -23,7 +30,16 @@ export async function prepareMonthlySocial(provider: AIProvider, month: string, 
     if (!item.caption || !item.creativeBrief || !item.imagePrompt || !item.cta || !item.posterHeadline || !item.objective || !item.platform || !item.suggestedDate) throw new Error(`provider returned incomplete content for post ${index + 1}`);
     if (!item.suggestedDate.startsWith(month)) throw new Error(`post ${index + 1} is outside the selected month`);
   }
-  const strategy = strategyResult.data;
+  const rawStrategy = strategyResult.data;
+  const strategy: SocialStrategy = {
+    monthlyObjective: String(rawStrategy.monthlyObjective ?? ""),
+    primaryCta: String(rawStrategy.primaryCta ?? ""),
+    priorityTopics: stringList(rawStrategy.priorityTopics),
+    contentThemes: stringList(rawStrategy.contentThemes),
+    performanceObservations: stringList(rawStrategy.performanceObservations),
+    avoidRepeating: stringList(rawStrategy.avoidRepeating),
+    contentMix: rawStrategy.contentMix && typeof rawStrategy.contentMix === "object" && !Array.isArray(rawStrategy.contentMix) ? rawStrategy.contentMix : {},
+  };
   if (!strategy.monthlyObjective || !strategy.primaryCta || !strategy.priorityTopics?.length || !strategy.contentThemes?.length) throw new Error("provider returned an incomplete monthly strategy");
   return { month, strategy, concepts: generated.data.map((item, index) => ({ ...item, postNumber: index + 1 })), provider: generated.provider, model: generated.model,
     usage: { inputTokens: (strategyResult.usage?.inputTokens ?? 0) + (generated.usage?.inputTokens ?? 0), outputTokens: (strategyResult.usage?.outputTokens ?? 0) + (generated.usage?.outputTokens ?? 0), estimatedCost: (strategyResult.usage?.estimatedCost ?? 0) + (generated.usage?.estimatedCost ?? 0) },

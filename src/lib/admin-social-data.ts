@@ -9,6 +9,13 @@ export type AdminSocialData = {
   strategies: Array<{clientId:string;month:string;monthlyObjective:string;priorityTopics:string[];primaryCta:string;contentThemes:string[];contentMix:Record<string,number>;performanceObservations:string[];avoidRepeating:string[]}>;
   isDemo: boolean;
 };
+
+const stringList = (value: unknown): string[] => {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value === "string") return value.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean);
+  if (value && typeof value === "object") return Object.values(value).flatMap(stringList);
+  return [];
+};
 const labels: Record<string, SocialStatus> = {
   idea: "Idea",
   generating: "Generating",
@@ -163,7 +170,7 @@ export async function loadAdminSocial(): Promise<AdminSocialData> {
   });
   return {
     posts,
-    strategies:(strategies??[]).map(row=>({clientId:String(row.client_id),month:String(row.month).slice(0,7),monthlyObjective:String(row.monthly_objective),priorityTopics:(row.priority_topics??[]) as string[],primaryCta:String(row.primary_cta),contentThemes:(row.content_themes??[]) as string[],contentMix:(row.content_mix??{}) as Record<string,number>,performanceObservations:(row.performance_observations??[]) as string[],avoidRepeating:(row.avoid_repeating??[]) as string[]})),
+    strategies:(strategies??[]).map(row=>({clientId:String(row.client_id),month:String(row.month).slice(0,7),monthlyObjective:String(row.monthly_objective),priorityTopics:stringList(row.priority_topics),primaryCta:String(row.primary_cta),contentThemes:stringList(row.content_themes),contentMix:(row.content_mix&&typeof row.content_mix==="object"&&!Array.isArray(row.content_mix)?row.content_mix:{}) as Record<string,number>,performanceObservations:stringList(row.performance_observations),avoidRepeating:stringList(row.avoid_repeating)})),
     clients: (clients ?? []).map((client) => ({
       id: String(client.id),
       name: String(client.name),
