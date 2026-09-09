@@ -43,6 +43,16 @@ describe("OpenAI-compatible provider", () => {
     const provider = new OpenAICompatibleProvider({ baseUrl: "https://example.test/v1", apiKey: "test-key", model: "test-model" });
     await expect(provider.analyzeSEO({ clientId: "client", businessKnowledge: "Verified", services: [], offers: [], prohibitedClaims: [] }, "input")).rejects.toThrow("data field");
   });
+
+  it("retries transient provider failures", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response("unavailable", { status: 503 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ data: [] }) } }] }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const provider = new OpenAICompatibleProvider({ baseUrl: "https://example.test/v1", apiKey: "test-key", model: "test-model" });
+    await provider.generateSocialPlan({ clientId: "client", businessKnowledge: "Verified", services: [], offers: [], prohibitedClaims: [] }, "2026-09", 0);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("demo blog generation", () => {
