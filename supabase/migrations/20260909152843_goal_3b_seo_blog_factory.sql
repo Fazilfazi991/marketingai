@@ -73,7 +73,7 @@ create index seo_reviews_client_period_idx on public.seo_reviews(client_id,perio
 
 alter table public.seo_tasks drop constraint seo_task_status_valid;
 alter table public.seo_tasks
-  add constraint seo_task_status_valid check(status is null or status in ('suggested','reviewed','approved','ready_for_codex','implemented','verified','rejected','issue')),
+  add constraint seo_task_status_valid check(status is null or status in ('open','in_progress','awaiting_review','complete','suggested','reviewed','approved','ready_for_codex','implemented','verified','rejected','issue')),
   add column review_id uuid references public.seo_reviews(id) on delete cascade,
   add column opportunity_type text check(opportunity_type is null or opportunity_type in ('striking_distance','low_ctr','declining','growing','content_gap','internal_link','metadata','conversion','service_support')),
   add column affected_query text,
