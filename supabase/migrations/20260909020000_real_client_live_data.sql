@@ -116,7 +116,7 @@ where clicks=0 and impressions=0;
 
 create or replace function public.client_result_health()
 returns table(provider text,status text,last_synced_at timestamptz)
-language sql stable security invoker set search_path='' as $$
+language sql stable security definer set search_path='' as $$
   select i.provider,i.status,i.last_synced_at
   from public.client_integrations i
   where exists(select 1 from public.client_members m where m.client_id=i.client_id and m.user_id=(select auth.uid()))
