@@ -135,7 +135,10 @@ export function SocialOperations({ initial, clients, strategies, isDemo }: Props
         window.location.reload();
       }
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Generation failed");
+      const message = error instanceof Error ? error.message : "Generation failed";
+      setNotice(message.includes("n8n is not configured")
+        ? "Monthly automation is not currently activated. The content workflow is ready; enable automation when n8n is available."
+        : message);
     } finally {
       setGenerating(false);
     }
