@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { triggerN8nWorkflow } from "@/lib/automations/n8n";
+import { generateMonthlySocialContent } from "@/lib/social-generation-service";
 import { createAIProvider } from "@/lib/ai/provider";
 import { generateImage, imageProviderConfig } from "@/lib/ai/image-provider";
 import type { SocialPost } from "@/lib/social-store";
@@ -308,14 +308,9 @@ export async function generateSocialMonth(
         .eq("id", run.id)
         .eq("status", "queued");
       if (startError) throw startError;
-      await triggerN8nWorkflow("MONTHLY_SOCIAL", {
-        client_id: client.id,
-        month,
-        run_id: String(run.id),
-      });
+      await generateMonthlySocialContent(supabase, String(run.id), String(client.id), month);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "n8n trigger failed";
+      const message = error instanceof Error ? error.message : "Monthly social preparation failed";
       const { data: failed } = await supabase
         .from("automation_runs")
         .update({ status: "failed", finished_at: new Date().toISOString() })
@@ -327,11 +322,15 @@ export async function generateSocialMonth(
           .from("automation_errors")
           .insert({
             run_id: run.id,
-            error_code: "TRIGGER_FAILED",
+            error_code: "MONTHLY_SOCIAL_FAILED",
             message,
             details: { retryable: true },
           });
-      return { ok: false, error: message };
+      return {
+        ok: false,
+        error:
+          "Monthly social preparation could not be completed. Review Integration Health and retry.",
+      };
     }
     revalidatePath("/admin/content");
     revalidatePath("/admin/automations");

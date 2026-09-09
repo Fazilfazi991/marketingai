@@ -136,9 +136,7 @@ export function SocialOperations({ initial, clients, strategies, isDemo }: Props
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Generation failed";
-      setNotice(message.includes("n8n is not configured")
-        ? "Monthly automation is not currently activated. The content workflow is ready; enable automation when n8n is available."
-        : message);
+      setNotice(message);
     } finally {
       setGenerating(false);
     }
