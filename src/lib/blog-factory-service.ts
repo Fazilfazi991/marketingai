@@ -91,7 +91,6 @@ export async function runBlogFactory(
     opportunitiesResult,
     pagesResult,
     existingResult,
-    jobResult,
   ] = await Promise.all([
     supabase
       .from("clients")
@@ -140,11 +139,6 @@ export async function runBlogFactory(
       .select("topic,target_keyword")
       .eq("client_id", clientId)
       .eq("content_kind", "blog"),
-    supabase
-      .from("automation_jobs")
-      .select("id")
-      .eq("workflow_key", "BLOG_FACTORY")
-      .maybeSingle(),
   ]);
   for (const result of [
     clientResult,
@@ -204,6 +198,13 @@ export async function runBlogFactory(
       recentContent: existingTopics,
       toneOfVoice: String(profile?.tone_of_voice ?? ""),
     };
+  const jobResult = await supabase
+    .from("automation_jobs")
+    .select("id")
+    .eq("organization_id", clientResult.data.organization_id)
+    .eq("workflow_key", "BLOG_FACTORY")
+    .maybeSingle();
+  if (jobResult.error) throw jobResult.error;
   let runId: string | null = null;
   if (jobResult.data?.id) {
     const { data: run, error } = await supabase
