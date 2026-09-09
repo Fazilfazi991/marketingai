@@ -1,10 +1,35 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { OpenAICompatibleProvider } from "./provider";
+import { createAIProvider, OpenAICompatibleProvider } from "./provider";
 import { DemoAIProvider } from "./demo-provider";
 
 afterEach(() => vi.restoreAllMocks());
 
 describe("OpenAI-compatible provider", () => {
+  it("uses Vercel OIDC and AI Gateway when a direct provider key is unavailable", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ data: [] }) } }] }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const provider = createAIProvider({ VERCEL_OIDC_TOKEN: "preview-oidc-token", AI_GATEWAY_MODEL: "google/gemini-2.5-flash" });
+    await provider.generateSocialPlan({ clientId: "client", businessKnowledge: "Verified", services: [], offers: [], prohibitedClaims: [] }, "2026-09", 0);
+
+    expect(fetchMock).toHaveBeenCalledWith("https://ai-gateway.vercel.sh/v1/chat/completions", expect.objectContaining({
+      headers: expect.objectContaining({ Authorization: "Bearer preview-oidc-token" }),
+    }));
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({ model: "google/gemini-2.5-flash" });
+  });
+
+  it("keeps explicitly configured direct providers ahead of OIDC", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ data: [] }) } }] }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const provider = createAIProvider({ AI_API_KEY: "direct-key", AI_BASE_URL: "https://direct.example/v1", AI_MODEL: "direct-model", VERCEL_OIDC_TOKEN: "oidc-token" });
+    await provider.generateSocialPlan({ clientId: "client", businessKnowledge: "Verified", services: [], offers: [], prohibitedClaims: [] }, "2026-09", 0);
+
+    expect(fetchMock).toHaveBeenCalledWith("https://direct.example/v1/chat/completions", expect.objectContaining({
+      headers: expect.objectContaining({ Authorization: "Bearer direct-key" }),
+    }));
+  });
+
   it("unwraps JSON-object mode results", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ data: [{ topic: "One", concept: "Concept", caption: "Caption", hashtags: "#one", creativeBrief: "Brief" }] }) } }] }), { status: 200 })));
     const provider = new OpenAICompatibleProvider({ baseUrl: "https://example.test/v1", apiKey: "test-key", model: "test-model" });

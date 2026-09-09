@@ -25,4 +25,14 @@ export class OpenAICompatibleProvider implements AIProvider{
  analyzeSEO=(context:GenerationContext,input:string)=>this.generate<string[]>("analyzeSEO",{context,input});
  generateMonthlyReport=(context:GenerationContext,input:string)=>this.generate<string>("generateMonthlyReport",{context,input});
 }
-export function createAIProvider(env:Record<string,string|undefined>=process.env):AIProvider{const key=env.AI_API_KEY,baseUrl=env.AI_BASE_URL??"https://api.openai.com/v1",model=env.AI_MODEL??"gpt-5-mini";if(!key)throw new Error("AI_API_KEY is not configured");return new OpenAICompatibleProvider({baseUrl,apiKey:key,model})}
+export function createAIProvider(env:Record<string,string|undefined>=process.env):AIProvider{
+ const directKey=env.AI_API_KEY?.trim();
+ const oidcToken=env.VERCEL_OIDC_TOKEN?.trim();
+ if(directKey){
+  return new OpenAICompatibleProvider({baseUrl:env.AI_BASE_URL??"https://api.openai.com/v1",apiKey:directKey,model:env.AI_MODEL??"gpt-5-mini"});
+ }
+ if(oidcToken){
+  return new OpenAICompatibleProvider({baseUrl:"https://ai-gateway.vercel.sh/v1",apiKey:oidcToken,model:env.AI_GATEWAY_MODEL??"google/gemini-2.5-flash"});
+ }
+ throw new Error("AI provider credentials are not configured");
+}
