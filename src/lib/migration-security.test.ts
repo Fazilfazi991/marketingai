@@ -42,4 +42,14 @@ describe("Supabase migration security",()=>{
     expect(sql).toContain("grant execute on function public.client_keyword_results() to authenticated");
   });
   it("protects real-client integration tables and scoped result health",()=>{expect(sql).toContain("alter table public.analytics_page_daily enable row level security");expect(sql).toContain("alter table public.client_sites enable row level security");expect(sql).toContain("revoke all on public.client_sites from anon");expect(sql).toContain("security definer set search_path=''");expect(sql).toContain("where m.client_id=i.client_id and m.user_id=(select auth.uid())");expect(sql).toContain("revoke all on function public.client_result_health() from public,anon")});
+  it("keeps staff poster storage tenant-scoped and production transitions forward-only",()=>{
+    const storageRepair=readFileSync(join(migrationsDir,"20260909141500_repair_staff_poster_storage_policies.sql"),"utf8").toLowerCase();
+    const transitionRepair=readFileSync(join(migrationsDir,"20260909144500_allow_staff_social_production_transitions.sql"),"utf8").toLowerCase();
+    expect(storageRepair).toContain("storage.foldername(storage.objects.name)");
+    expect(storageRepair).toContain("private.is_org_staff(c.organization_id)");
+    expect(transitionRepair).toContain("old.status = 'ready_for_design' and new.status in ('poster_created', 'issue')");
+    expect(transitionRepair).toContain("old.status = 'poster_created' and new.status in ('ready_to_schedule', 'issue')");
+    expect(transitionRepair).toContain("old.status = 'scheduled' and new.status in ('published', 'issue')");
+    expect(transitionRepair).toContain("revoke all on function private.enforce_social_transition() from public, anon, authenticated");
+  });
 });
