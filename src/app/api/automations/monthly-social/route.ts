@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   const { error: startError } = await supabase.from("automation_runs").update({ status: "running" }).eq("id", runId).in("status", ["queued", "running"]);
   if (startError) return json({ error: "Unable to start automation run" }, 500);
   try {
-    const result = await generateMonthlySocialContent(supabase, runId, clientId, month);
+    const result = await generateMonthlySocialContent(supabase, runId, clientId, month, request.headers.get("x-vercel-oidc-token"));
     return json({ run_id: runId, status: "succeeded", content_records: result.count, boundary: "needs_review" }, 200);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Monthly social preparation failed";

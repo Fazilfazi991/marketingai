@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { generateMonthlySocialContent } from "@/lib/social-generation-service";
 import { createAIProvider } from "@/lib/ai/provider";
@@ -308,7 +309,8 @@ export async function generateSocialMonth(
         .eq("id", run.id)
         .eq("status", "queued");
       if (startError) throw startError;
-      await generateMonthlySocialContent(supabase, String(run.id), String(client.id), month);
+      const requestHeaders = await headers();
+      await generateMonthlySocialContent(supabase, String(run.id), String(client.id), month, requestHeaders.get("x-vercel-oidc-token"));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Monthly social preparation failed";
       console.error("MONTHLY_SOCIAL_FAILED", message);

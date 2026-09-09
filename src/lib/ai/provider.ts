@@ -25,9 +25,9 @@ export class OpenAICompatibleProvider implements AIProvider{
  analyzeSEO=(context:GenerationContext,input:string)=>this.generate<string[]>("analyzeSEO",{context,input});
  generateMonthlyReport=(context:GenerationContext,input:string)=>this.generate<string>("generateMonthlyReport",{context,input});
 }
-export function createAIProvider(env:Record<string,string|undefined>=process.env):AIProvider{
+export function createAIProvider(env:Record<string,string|undefined>=process.env,runtimeOidcToken?:string|null):AIProvider{
  const directKey=env.AI_API_KEY?.trim();
- const oidcToken=env.VERCEL_OIDC_TOKEN?.trim();
+ const oidcToken=runtimeOidcToken?.trim()||env.VERCEL_OIDC_TOKEN?.trim();
  if(directKey){
   return new OpenAICompatibleProvider({baseUrl:env.AI_BASE_URL??"https://api.openai.com/v1",apiKey:directKey,model:env.AI_MODEL??"gpt-5-mini"});
  }

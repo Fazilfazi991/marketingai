@@ -9,7 +9,7 @@ describe("OpenAI-compatible provider", () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ data: [] }) } }] }), { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const provider = createAIProvider({ VERCEL_OIDC_TOKEN: "preview-oidc-token", AI_GATEWAY_MODEL: "google/gemini-2.5-flash" });
+    const provider = createAIProvider({ AI_GATEWAY_MODEL: "google/gemini-2.5-flash" }, "preview-oidc-token");
     await provider.generateSocialPlan({ clientId: "client", businessKnowledge: "Verified", services: [], offers: [], prohibitedClaims: [] }, "2026-09", 0);
 
     expect(fetchMock).toHaveBeenCalledWith("https://ai-gateway.vercel.sh/v1/chat/completions", expect.objectContaining({

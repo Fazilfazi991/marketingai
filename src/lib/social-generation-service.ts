@@ -12,6 +12,7 @@ export async function generateMonthlySocialContent(
   runId: string,
   clientId: string,
   month: string,
+  runtimeOidcToken?: string | null,
 ) {
   const [clientResult, profileResult, servicesResult, locationsResult, faqsResult, recentResult, scopeResult, analyticsResult, searchResult, leadsResult] = await Promise.all([
     supabase.from("clients").select("name,industry,city,country").eq("id", clientId).is("deleted_at", null).single(),
@@ -41,7 +42,7 @@ export async function generateMonthlySocialContent(
     recentContent: (recentResult.data ?? []).map((item) => item.topic).filter(Boolean) as string[],
     performanceContext: JSON.stringify({ analytics: analyticsResult.data, searchConsole: searchResult.data, leads: leadsResult.data }),
   };
-  const plan = await prepareMonthlySocial(createAIProvider(), month, Number(scopeResult.data?.monthly_quantity ?? 12), context);
+  const plan = await prepareMonthlySocial(createAIProvider(process.env, runtimeOidcToken), month, Number(scopeResult.data?.monthly_quantity ?? 12), context);
   const { error: strategyError } = await supabase.from("social_monthly_strategies").upsert({
     client_id: clientId, month: `${month}-01`, monthly_objective: plan.strategy.monthlyObjective,
     priority_topics: plan.strategy.priorityTopics, primary_cta: plan.strategy.primaryCta,
