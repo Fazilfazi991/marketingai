@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { matchesWebhookSecret } from "@/lib/webhook-auth";
 import { syncGoogleClient } from "@/lib/google/sync";
 
@@ -8,14 +9,36 @@ const json = (body: Record<string, unknown>, status = 200) =>
   Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 const isoDay = (date: Date) => date.toISOString().slice(0, 10);
 
-export async function POST(request: NextRequest) {
+async function isAuthorized(request: NextRequest) {
   if (
-    !matchesWebhookSecret(
+    matchesWebhookSecret(
       request.headers.get("x-growth1000-key"),
       process.env.N8N_WEBHOOK_SECRET,
     )
   )
-    return json({ error: "Unauthorized" }, 401);
+    return true;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return false;
+    const { data: membership } = await supabase
+      .from("organization_members")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+    return Boolean(membership);
+  } catch {
+    return false;
+  }
+}
+
+export async function POST(request: NextRequest) {
+  if (!(await isAuthorized(request))) return json({ error: "Unauthorized" }, 401);
   let body: unknown = {};
   try {
     body = await request.json();
