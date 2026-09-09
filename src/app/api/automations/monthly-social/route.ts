@@ -28,7 +28,11 @@ export async function POST(request: NextRequest) {
     const result = await generateMonthlySocialContent(supabase, runId, clientId, month, request.headers.get("x-vercel-oidc-token"));
     return json({ run_id: runId, status: "succeeded", content_records: result.count, boundary: "needs_review" }, 200);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Monthly social preparation failed";
+    const message = error instanceof Error
+      ? error.message
+      : error && typeof error === "object" && "message" in error && typeof error.message === "string"
+        ? error.message
+        : "Monthly social preparation failed";
     console.error("MONTHLY_SOCIAL_FAILED", message);
     await supabase.from("automation_runs").update({ status: "failed", finished_at: new Date().toISOString(), output_reference: {} }).eq("id", runId);
     await supabase.from("automation_errors").insert({ run_id: runId, error_code: "MONTHLY_SOCIAL_FAILED", message, details: { retryable: true } });

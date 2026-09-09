@@ -312,7 +312,11 @@ export async function generateSocialMonth(
       const requestHeaders = await headers();
       await generateMonthlySocialContent(supabase, String(run.id), String(client.id), month, requestHeaders.get("x-vercel-oidc-token"));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Monthly social preparation failed";
+      const message = error instanceof Error
+        ? error.message
+        : error && typeof error === "object" && "message" in error && typeof error.message === "string"
+          ? error.message
+          : "Monthly social preparation failed";
       console.error("MONTHLY_SOCIAL_FAILED", message);
       const { data: failed } = await supabase
         .from("automation_runs")
