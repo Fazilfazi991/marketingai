@@ -1,40 +1,33 @@
-import { AppShell } from "@/components/app-shell";
 import { ClientPortalSection } from "@/components/client-portal-section";
 import { ClientResultsDashboard } from "@/components/client-results-dashboard";
-import { loadClientResults } from "@/lib/client-results";
-
-const labels: Record<string, string> = {
-  leads: "Leads",
-  traffic: "Traffic & SEO",
-  reports: "Reports",
-};
-
+import { loadClientResults, type ResultRangeInput } from "@/lib/client-results";
+import { NotificationFeed } from "@/components/client-notifications";
+import { LazyAssistant } from "@/components/lazy-assistant";
+import { ResultsRetry } from "@/components/results-feedback";
+import { notFound } from "next/navigation";
 export default async function Section({
   params,
   searchParams,
 }: {
   params: Promise<{ section: string }>;
-  searchParams: Promise<{ range?: string; from?: string; to?: string }>;
+  searchParams: Promise<ResultRangeInput>;
 }) {
   const [{ section }, query] = await Promise.all([params, searchParams]);
-  const data = await loadClientResults(query);
-  if (section === "leads" || section === "traffic")
-    return (
-      <AppShell
-        role="client"
-        title={labels[section]}
-        subtitle={`${data.clientName} · verified growth results.`}
-      >
-        <ClientResultsDashboard data={data} view={section} />
-      </AppShell>
-    );
+  if (section !== "leads" && section !== "traffic" && section !== "reports")
+    notFound();
+  const data = await loadClientResults(query, section);
   return (
-    <AppShell
-      role="client"
-      title="Reports"
-      subtitle={`${data.clientName} · published growth reports.`}
-    >
-      <ClientPortalSection data={data} />
-    </AppShell>
+    <>
+      <h2 className="client-name">{data.clientName}</h2>
+      <NotificationFeed data={data} />
+      {data.unavailableSources?.length ? (
+        <ResultsRetry />
+      ) : section === "reports" ? (
+        <ClientPortalSection data={data} />
+      ) : (
+        <ClientResultsDashboard data={data} view={section} />
+      )}
+      <LazyAssistant data={data} />
+    </>
   );
 }

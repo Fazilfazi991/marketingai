@@ -1,9 +1,14 @@
 import "server-only";
+import { cache } from "react";
 
 import { isDemoMode } from "@/lib/demo-mode";
 import { createClient } from "@/lib/supabase/server";
+import { applyLocalResultsScenario } from "./client-results-qa";
 
 export type ClientResultsData = {
+  scope?: string;
+  unavailableSources?: string[];
+  loadedSources?: string[];
   clientName: string;
   periodLabel: string;
   rangeKey: ResultRangeKey;
@@ -66,14 +71,7 @@ export type ClientResultsData = {
 };
 
 export type ResultRangeKey =
-  | "today"
-  | "7d"
-  | "month"
-  | "last-month"
-  | "30d"
-  | "90d"
-  | "year"
-  | "custom";
+  "today" | "7d" | "month" | "last-month" | "30d" | "90d" | "year" | "custom";
 
 export type ResultRangeInput = { range?: string; from?: string; to?: string };
 
@@ -170,8 +168,8 @@ const demoResults: ClientResultsData = {
   search: {
     clicks: 684,
     impressions: 18420,
-    improved: 18,
-    topTen: 7,
+    improved: 3,
+    topTen: 2,
     keywords: [
       { keyword: "kitchen renovation dubai", previous: 14.2, current: 8.4 },
       { keyword: "villa renovation dubai", previous: 22.1, current: 13.7 },
@@ -197,7 +195,7 @@ const demoResults: ClientResultsData = {
     "2 SEO articles published",
     "7 SEO improvements",
     "3 website updates",
-    "18 keywords improved",
+    "3 keywords improved",
   ],
   topPages: [
     { page: "Kitchen Renovation", visitors: 684, leads: 9 },
@@ -414,6 +412,7 @@ const demoForRange = (input: ResultRangeInput): ClientResultsData => {
     },
     traffic: {
       ...demoResults.traffic,
+      trend: [],
       visitors: scale(demoResults.traffic.visitors),
       newVisitors: scale(demoResults.traffic.newVisitors),
       pageViews: scale(demoResults.traffic.pageViews),
@@ -422,6 +421,7 @@ const demoForRange = (input: ResultRangeInput): ClientResultsData => {
     },
     search: {
       ...demoResults.search,
+      trend: [],
       clicks: scale(demoResults.search.clicks),
       impressions: scale(demoResults.search.impressions),
     },
@@ -441,10 +441,7 @@ const demoForRange = (input: ResultRangeInput): ClientResultsData => {
   };
 };
 
-export async function loadClientResults(
-  input: ResultRangeInput = {},
-): Promise<ClientResultsData> {
-  if (isDemoMode()) return demoForRange(input);
+export const getClientWorkspace = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -462,87 +459,190 @@ export async function loadClientResults(
   const joinedClient = membership.clients as unknown as {
     name?: string;
   } | null;
+
+  return {
+    supabase,
+    clientId,
+    clientName: joinedClient?.name ?? "Client workspace",
+    scope: `${user.id}:${clientId}`,
+  };
+});
+
+// React.cache is request-scoped: identity and RLS results never cross sessions.
+const getClientSources = cache(
+  async (range?: string, from?: string, to?: string) => {
+    const workspace = await getClientWorkspace();
+    const { supabase, clientId } = workspace;
+    const bounds = rangeBounds({ range, from, to }, new Date());
+    const currentStart = bounds.start,
+      nextStart = bounds.end,
+      historyStart = bounds.previousStart;
+    const iso = (date: Date) => date.toISOString().slice(0, 10);
+    return {
+      workspace,
+      queries: {
+        leads: cache(async () =>
+          supabase
+            .from("leads")
+            .select(
+              "id,name,service,source,source_url,created_at,lead_quality,status",
+            )
+            .eq("client_id", clientId)
+            .gte("created_at", historyStart.toISOString())
+            .lt("created_at", nextStart.toISOString()),
+        ),
+        analytics: cache(async () =>
+          supabase
+            .from("analytics_daily")
+            .select("day,metrics")
+            .eq("client_id", clientId)
+            .gte("day", iso(historyStart))
+            .lt("day", iso(nextStart))
+            .order("day"),
+        ),
+        search: cache(async () =>
+          supabase
+            .from("search_console_daily")
+            .select("day,metrics")
+            .eq("client_id", clientId)
+            .gte("day", iso(currentStart))
+            .lt("day", iso(nextStart))
+            .order("day"),
+        ),
+        keywords: cache(async () => supabase.rpc("client_keyword_results")),
+        reports: cache(async () =>
+          supabase
+            .from("reports")
+            .select(
+              "month,summary,work_completed,analytics_summary,next_month_focus",
+            )
+            .eq("client_id", clientId)
+            .eq("status", "published")
+            .order("month", { ascending: false })
+            .limit(24),
+        ),
+        content: cache(async () =>
+          supabase
+            .from("content_items")
+            .select("content_kind,status")
+            .eq("client_id", clientId)
+            .gte("month", iso(currentStart))
+            .lt("month", iso(nextStart))
+            .eq("status", "published"),
+        ),
+        tasks: cache(async () =>
+          supabase
+            .from("tasks")
+            .select("category,status")
+            .eq("client_id", clientId)
+            .gte("deliverable_month", iso(currentStart))
+            .lt("deliverable_month", iso(nextStart))
+            .in("status", ["published", "verified"]),
+        ),
+        pages: cache(async () =>
+          supabase
+            .from("analytics_page_daily")
+            .select("page_path,users")
+            .eq("client_id", clientId)
+            .gte("day", iso(currentStart))
+            .lt("day", iso(nextStart)),
+        ),
+        health: cache(async () => supabase.rpc("client_result_health")),
+      },
+    };
+  },
+);
+export type ClientResultPart =
+  "all" | "primary" | "metrics" | "insights" | "leads" | "traffic" | "reports";
+const partSources: Record<ClientResultPart, string[]> = {
+  all: [
+    "leads",
+    "analytics",
+    "search",
+    "keywords",
+    "reports",
+    "content",
+    "tasks",
+    "pages",
+    "health",
+  ],
+  primary: ["leads", "keywords", "reports"],
+  metrics: ["leads", "analytics", "search", "health"],
+  insights: [
+    "leads",
+    "search",
+    "keywords",
+    "reports",
+    "content",
+    "tasks",
+    "pages",
+  ],
+  leads: ["leads"],
+  traffic: [
+    "leads",
+    "analytics",
+    "search",
+    "keywords",
+    "pages",
+    "reports",
+    "health",
+  ],
+  reports: ["reports"],
+};
+
+export async function loadClientResults(
+  input: ResultRangeInput = {},
+  part: ClientResultPart = "all",
+): Promise<ClientResultsData> {
+  if (isDemoMode()) return applyLocalResultsScenario(demoForRange(input), part);
+  const {
+    workspace: { clientName, scope },
+    queries: sources,
+  } = await getClientSources(input.range, input.from, input.to);
   const now = new Date();
   const bounds = rangeBounds(input, now);
   const currentStart = bounds.start;
   const nextStart = bounds.end;
-  const historyStart = bounds.previousStart;
-  const iso = (date: Date) => date.toISOString().slice(0, 10);
+  const unavailableSources: string[] = [];
+  const read = async <K extends keyof typeof sources>(
+    name: K,
+  ): Promise<Awaited<ReturnType<(typeof sources)[K]>>> => {
+    type Result = Awaited<ReturnType<(typeof sources)[K]>>;
+    const empty = { data: null, error: null } as Result;
+    if (!partSources[part].includes(name)) return empty;
+    try {
+      const result = await sources[name]();
+      if (result.error) {
+        unavailableSources.push(name);
+        return empty;
+      }
+      return result as Result;
+    } catch {
+      unavailableSources.push(name);
+      return empty;
+    }
+  };
   const [
-    { data: leads, error: leadsError },
-    { data: analytics, error: analyticsError },
-    { data: searchRows, error: searchError },
-    { data: keywords, error: keywordError },
-    { data: reports, error: reportError },
-    { data: content, error: contentError },
-    { data: completedTasks, error: taskError },
-    { data: pageRows, error: pageError },
-    { data: integrationHealth, error: healthError },
+    { data: leads },
+    { data: analytics },
+    { data: searchRows },
+    { data: keywords },
+    { data: reports },
+    { data: content },
+    { data: completedTasks },
+    { data: pageRows },
+    { data: integrationHealth },
   ] = await Promise.all([
-    supabase
-      .from("leads")
-      .select(
-        "id,name,service,source,source_url,created_at,lead_quality,status",
-      )
-      .eq("client_id", clientId)
-      .gte("created_at", historyStart.toISOString())
-      .lt("created_at", nextStart.toISOString()),
-    supabase
-      .from("analytics_daily")
-      .select("day,metrics")
-      .eq("client_id", clientId)
-      .gte("day", iso(historyStart))
-      .lt("day", iso(nextStart))
-      .order("day"),
-    supabase
-      .from("search_console_daily")
-      .select("day,metrics")
-      .eq("client_id", clientId)
-      .gte("day", iso(currentStart))
-      .lt("day", iso(nextStart))
-      .order("day"),
-    supabase.rpc("client_keyword_results"),
-    supabase
-      .from("reports")
-      .select("month,summary,work_completed,analytics_summary,next_month_focus")
-      .eq("client_id", clientId)
-      .eq("status", "published")
-      .order("month", { ascending: false })
-      .limit(24),
-    supabase
-      .from("content_items")
-      .select("content_kind,status")
-      .eq("client_id", clientId)
-      .gte("month", iso(currentStart))
-      .lt("month", iso(nextStart))
-      .eq("status", "published"),
-    supabase
-      .from("tasks")
-      .select("category,status")
-      .eq("client_id", clientId)
-      .gte("deliverable_month", iso(currentStart))
-      .lt("deliverable_month", iso(nextStart))
-      .in("status", ["published", "verified"]),
-    supabase
-      .from("analytics_page_daily")
-      .select("page_path,users")
-      .eq("client_id", clientId)
-      .gte("day", iso(currentStart))
-      .lt("day", iso(nextStart)),
-    supabase.rpc("client_result_health"),
+    read("leads"),
+    read("analytics"),
+    read("search"),
+    read("keywords"),
+    read("reports"),
+    read("content"),
+    read("tasks"),
+    read("pages"),
+    read("health"),
   ]);
-  for (const error of [
-    leadsError,
-    analyticsError,
-    searchError,
-    keywordError,
-    reportError,
-    contentError,
-    taskError,
-    pageError,
-    healthError,
-  ])
-    if (error) throw error;
 
   const currentLeads = (leads ?? []).filter((item) => {
     const date = new Date(item.created_at);
@@ -738,7 +838,10 @@ export async function loadClientResults(
     ) ?? null;
 
   return {
-    clientName: joinedClient?.name ?? "Client workspace",
+    clientName,
+    scope,
+    unavailableSources,
+    loadedSources: partSources[part],
     periodLabel: rangeLabel(bounds.key, currentStart, nextStart),
     rangeKey: bounds.key,
     rangeStart: isoDay(currentStart),

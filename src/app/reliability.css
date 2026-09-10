@@ -1,0 +1,369 @@
+.client-name {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+.navigation-pending {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: inherit;
+}
+.results-retry {
+  padding: 18px;
+  border: 1px solid #e1d9c9;
+  border-radius: 12px;
+  background: #fffaf0;
+  margin-bottom: 12px;
+}
+.results-retry p {
+  font-size: 13px;
+}
+.results-retry button,
+.results-retry a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-right: 12px;
+  padding: 0 14px;
+  border: 1px solid #d5d1e8;
+  border-radius: 8px;
+  background: white;
+  color: #352d7a;
+  font-size: 12px;
+}
+.results-skeleton {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+  margin-bottom: 12px;
+  min-height: 135px;
+}
+.results-skeleton span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.results-skeleton i {
+  display: block;
+  height: 15px;
+  width: 85%;
+  margin-top: 14px;
+  border-radius: 5px;
+  background: #eeedf2;
+  animation: results-pulse 1.2s ease-in-out infinite alternate;
+}
+.results-skeleton i:last-child {
+  width: 55%;
+}
+@keyframes results-pulse {
+  to {
+    opacity: 0.45;
+  }
+}
+.single-period {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  min-height: 100px;
+  border-radius: 9px;
+  background: #f7f6fa;
+}
+.single-period b {
+  font-size: 23px;
+}
+.single-period small,
+.single-period span {
+  font-size: 11px;
+  color: #69716b;
+}
+.single-period.light {
+  background: #ffffff0b;
+  color: white;
+}
+.single-period.light small,
+.single-period.light span {
+  color: #d8f0e7;
+}
+.chart-loading,
+.chart-empty {
+  min-height: 90px;
+  padding: 24px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.executive-insights {
+  display: block;
+}
+.executive-source {
+  margin-bottom: 12px;
+}
+.executive-source .source-visual {
+  max-width: 620px;
+}
+.executive-tabs button,
+.hero-chart-head button {
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.executive-tabs button {
+  font-size: 11px;
+}
+.executive-focus small,
+.executive-focus p,
+.executive-summary-grid small,
+.executive-summary-grid p,
+.executive-bottom small,
+.executive-bottom p {
+  font-size: 11px;
+}
+.executive-summary-grid > a:focus-visible,
+.executive-bottom > a:focus-visible {
+  outline: 3px solid #6554d9;
+  outline-offset: 2px;
+}
+.executive-tabs button:active,
+.hero-chart-head button:active {
+  transform: scale(0.96);
+}
+button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+/* Reserve an actual viewport rail; a floating button can no longer cover scrolling content. */
+.app-frame:has(.assistant-dock) .app-main {
+  height: calc(100dvh - 72px - env(safe-area-inset-bottom));
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.assistant-dock {
+  position: fixed;
+  left: 235px;
+  right: 0;
+  bottom: 0;
+  height: calc(72px + env(safe-area-inset-bottom));
+  padding: 10px 18px calc(10px + env(safe-area-inset-bottom));
+  background: #f5f7f5;
+  border-top: 1px solid #e1e5e1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 20;
+}
+.assistant-dock .growth-ai-launcher {
+  position: static;
+  min-height: 48px;
+  min-width: 48px;
+  width: auto;
+  height: 48px;
+  padding: 0 16px;
+  box-shadow: 0 4px 12px #211b5b24;
+}
+.growth-ai-panel {
+  bottom: 12px;
+}
+.growth-ai-panel input {
+  font-size: 16px;
+}
+.growth-ai-panel > form {
+  padding-bottom: calc(13px + env(safe-area-inset-bottom));
+}
+.growth-ai-log {
+  overflow-wrap: anywhere;
+}
+.client-notifications {
+  position: relative;
+  margin-left: auto;
+}
+.client-notifications > .icon-button {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+}
+.notification-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #6554d9;
+  color: white;
+  min-width: 18px;
+  height: 18px;
+  padding: 2px;
+  border-radius: 9px;
+  font-size: 10px;
+}
+.notification-panel {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: min(360px, calc(100vw - 28px));
+  max-height: min(570px, 75dvh);
+  overflow: auto;
+  z-index: 45;
+  border: 1px solid #d9d6e5;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 15px 45px #211b5b26;
+  color: #26352c;
+}
+.notification-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.notification-panel h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.notification-panel button {
+  min-height: 44px;
+  min-width: 44px;
+  border: 0;
+  background: transparent;
+  color: #514695;
+  cursor: pointer;
+}
+.notification-panel .mark-all {
+  margin: 0 12px;
+  font-size: 12px;
+}
+.notification-panel p {
+  padding: 16px;
+  font-size: 13px;
+}
+.notification-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.notification-panel li {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #eee;
+}
+.notification-panel li.unread {
+  background: #f5f3ff;
+}
+.notification-panel li a {
+  padding: 14px 16px;
+  flex: 1;
+  color: #343548;
+  font-size: 12px;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.notification-panel footer {
+  padding: 12px 16px;
+  font-size: 10px;
+  color: #737a75;
+}
+.notification-panel button:focus-visible,
+.notification-panel a:focus-visible {
+  outline: 2px solid #6554d9;
+  outline-offset: -3px;
+}
+.detail-tabs a {
+  min-height: 44px;
+}
+@media (max-width: 760px) {
+  .assistant-dock {
+    left: 0;
+    padding-inline: 14px;
+  }
+  .assistant-dock .growth-ai-launcher span {
+    display: block;
+    font-size: 11px;
+  }
+  .executive-lead-hero {
+    gap: 12px;
+    padding: 16px;
+  }
+  .executive-lead-chart {
+    padding: 4px 9px;
+  }
+  .executive-focus {
+    padding: 17px;
+  }
+  .executive-performance-body {
+    gap: 8px;
+  }
+  .growth-ai-panel {
+    bottom: 0;
+    max-height: 100dvh;
+  }
+  .executive-source .source-visual {
+    max-width: none;
+  }
+  .notification-panel {
+    position: fixed;
+    top: 62px;
+    right: 14px;
+  }
+  .results-toolbar > div > label select {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .results-skeleton i {
+    animation: none;
+  }
+}
+.assistant-dock {
+  left: 238px;
+}
+.single-period.summary-only {
+  min-height: 0;
+  padding: 10px 12px;
+  gap: 4px;
+}
+.route-transition-notice {
+  position: fixed;
+  top: 70px;
+  right: 16px;
+  padding: 8px 12px;
+  border: 1px solid #d9d4ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #44388b;
+  box-shadow: 0 3px 12px #211b5b18;
+  font-size: 12px;
+  z-index: 50;
+  pointer-events: none;
+}
+@media (max-width: 900px) {
+  .assistant-dock {
+    left: 0;
+  }
+}
+@media (max-width: 760px) {
+  .growth-ai-panel {
+    top: var(--chat-viewport-top, 0px);
+    bottom: auto;
+    height: var(--chat-viewport-height, 100dvh);
+    max-height: var(--chat-viewport-height, 100dvh);
+  }
+}
+.executive-performance-body .results-chart-tooltip strong {
+  font-size: 12px;
+}
+.custom-range input,
+.report-toolbar select {
+  min-height: 44px;
+}
+@media print {
+  .assistant-dock,
+  .growth-ai-panel,
+  .client-notifications {
+    display: none !important;
+  }
+  .app-frame:has(.assistant-dock) .app-main {
+    height: auto;
+    overflow: visible;
+  }
+}

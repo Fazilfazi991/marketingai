@@ -32,14 +32,21 @@ function normalizeMessages(value: unknown): DashboardConversationMessage[] {
           (item as { role?: unknown }).role === "user") &&
         typeof (item as { content?: unknown }).content === "string",
     )
-    .map((item) => ({ role: item.role, content: item.content.trim().slice(0, 500) }))
+    .map((item) => ({
+      role: item.role,
+      content: item.content.trim().slice(0, 500),
+    }))
     .filter((item) => item.content.length > 0);
 }
 
 async function authorizeActor() {
-  if (isDemoMode()) return { key: "demo:abc-interiors", role: "client" as const };
+  if (isDemoMode())
+    return { key: "demo:abc-interiors", role: "client" as const };
   const supabase = await createClient();
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
   if (userError || !user) return null;
   const { data: membership, error: membershipError } = await supabase
     .from("client_members")
@@ -62,23 +69,43 @@ export async function POST(request: Request) {
     const rate = takeDashboardAssistantRequest(actor.key);
     if (!rate.allowed)
       return NextResponse.json(
-        { error: "You’ve asked several questions quickly. Please wait a moment and try again." },
-        { status: 429, headers: { "Retry-After": String(rate.retryAfterSeconds) } },
+        {
+          error:
+            "You’ve asked several questions quickly. Please wait a moment and try again.",
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rate.retryAfterSeconds) },
+        },
       );
 
     const body = (await request.json()) as RequestBody;
     const question =
-      typeof body.question === "string" ? body.question.trim().slice(0, 500) : "";
+      typeof body.question === "string"
+        ? body.question.trim().slice(0, 500)
+        : "";
     if (!question)
       return NextResponse.json(
         { error: "Ask a question about your dashboard." },
         { status: 400 },
       );
     const results = await loadClientResults({
-      range: inferDashboardRange(question, typeof body.range === "string" ? body.range : undefined),
+      range: inferDashboardRange(
+        question,
+        typeof body.range === "string" ? body.range : undefined,
+      ),
       from: typeof body.from === "string" ? body.from : undefined,
       to: typeof body.to === "string" ? body.to : undefined,
     });
+    if (results.unavailableSources?.length) {
+      return NextResponse.json(
+        {
+          error:
+            "Some dashboard data is temporarily unavailable. Please retry in a moment.",
+        },
+        { status: 503 },
+      );
+    }
     const context = buildDashboardAssistantContext(results);
     const answer = await answerDashboardQuestion({
       context,
@@ -102,7 +129,10 @@ export async function POST(request: Request) {
       name: error instanceof Error ? error.name : "UnknownError",
     });
     return NextResponse.json(
-      { error: "The dashboard assistant is temporarily unavailable. Please try again." },
+      {
+        error:
+          "The dashboard assistant is temporarily unavailable. Please try again.",
+      },
       { status: 500 },
     );
   }
