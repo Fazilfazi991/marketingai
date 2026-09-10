@@ -1,13 +1,17 @@
 "use client";
-import { ArrowRight, Clock3 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import type { ClientResultsData } from "@/lib/client-results";
 import { resultHref } from "@/lib/result-consistency";
+import { leadComparison, leadSourceLabel } from "@/lib/client-presentation";
 import { ClientExecutiveOverview } from "./client-executive-overview";
 import { ClientTrafficDetail } from "./client-traffic-detail";
-import { InteractiveTrendChart } from "./interactive-results-charts";
+import { ClientPageHeader } from "./client-page-header";
+import { ClientMetricGrid } from "./client-metric-grid";
+import {
+  InteractiveSourceChart,
+  InteractiveTrendChart,
+} from "./interactive-results-charts";
 import { Panel } from "./ui";
 
 export function ClientResultsDashboard({
@@ -17,150 +21,96 @@ export function ClientResultsDashboard({
   data: ClientResultsData;
   view?: "overview" | "leads" | "traffic";
 }) {
-  const router = useRouter(),
-    pathname = usePathname();
   const params = useSearchParams();
-  const [pending, startTransition] = useTransition();
   const { leads } = data;
-  const navigate = (
-    range: string,
-    from = data.rangeStart,
-    to = data.rangeEnd,
-  ) => {
-    const query = new URLSearchParams({ range });
-    if (params.get("source")) query.set("source", params.get("source")!);
-    if (range === "custom") {
-      query.set("from", from);
-      query.set("to", to);
-    }
-    startTransition(() => router.push(`${pathname}?${query}`));
-  };
-  const growth = (value: number | null) =>
-    value === null
-      ? "No previous-period baseline"
-      : `${value >= 0 ? "↑" : "↓"} ${Math.abs(value)}% vs previous period`;
   if (view === "overview") return <ClientExecutiveOverview data={data} />;
   if (view === "traffic") return <ClientTrafficDetail data={data} />;
+  const filtered = params.get("source");
+  const sources =
+    !filtered && !leads.sources.some((source) => source.key === "other")
+      ? [
+          ...leads.sources,
+          {
+            key: "other",
+            label: "Other",
+            value: Math.max(
+              0,
+              leads.total -
+                leads.sources.reduce((sum, source) => sum + source.value, 0),
+            ),
+            tone: "sand",
+            growth: null,
+          },
+        ]
+      : leads.sources;
   return (
     <>
-      {params.get("source") && (
-        <p className="detail-data-note">
-          Filtered source:{" "}
-          {leads.sources.find((source) => source.key === params.get("source"))
-            ?.label ?? params.get("source")}{" "}
+      <ClientPageHeader data={data} title="Leads" />
+      {filtered && (
+        <p className="client-filter-note">
+          Showing{" "}
+          {leads.sources.find((source) => source.key === filtered)?.label ??
+            filtered}{" "}
           · <Link href={resultHref("/client/leads", data)}>All sources</Link>
         </p>
       )}
-      <div className="results-toolbar">
+      <section className="client-lead-total" aria-label="Lead totals">
         <div>
-          <b>{data.periodLabel}</b>
-          <span>
-            <Clock3 size={12} />
-            {pending ? "Updating results…" : `Data updated ${data.updatedAt}`}
-          </span>
+          <strong>{leads.total.toLocaleString()}</strong>
+          <span>Total enquiries</span>
         </div>
         <div>
-          <label>
-            Date range
-            <select
-              aria-label="Date range"
-              value={data.rangeKey}
-              disabled={pending}
-              onChange={(e) => navigate(e.target.value)}
-            >
-              <option value="today">Today</option>
-              <option value="7d">Last 7 days</option>
-              <option value="month">This month</option>
-              <option value="last-month">Last month</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-              <option value="year">This year</option>
-              <option value="custom">Custom range</option>
-            </select>
-          </label>
-        </div>
-      </div>
-      {data.rangeKey === "custom" && (
-        <div className="custom-range">
-          <label>
-            From
-            <input
-              type="date"
-              value={data.rangeStart}
-              max={data.rangeEnd}
-              onChange={(e) =>
-                navigate("custom", e.target.value, data.rangeEnd)
-              }
-            />
-          </label>
-          <label>
-            To
-            <input
-              type="date"
-              value={data.rangeEnd}
-              min={data.rangeStart}
-              onChange={(e) =>
-                navigate("custom", data.rangeStart, e.target.value)
-              }
-            />
-          </label>
-        </div>
-      )}
-      <section className="lead-hero">
-        <div className="lead-hero-copy">
-          <span>Tracked enquiries{data.isDemo ? " · Demo data" : ""}</span>
-          <h2>
-            <b>{leads.total}</b>Total leads
-          </h2>
-          <p>{growth(leads.growth)}</p>
-          <small>
+          <b>
             {leads.qualified} qualified ·{" "}
-            {Math.max(0, leads.total - leads.qualified)} general enquiries
-          </small>
-        </div>
-        <div className="lead-hero-visual">
-          <div className="hero-chart-head">
-            <span>Lead trend</span>
-            <div>
-              {["7d", "30d", "90d"].map((range) => (
-                <button
-                  type="button"
-                  key={range}
-                  className={data.rangeKey === range ? "active" : ""}
-                  onClick={() => navigate(range)}
-                >
-                  {range.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-          <InteractiveTrendChart
-            key={data.rangeKey}
-            tone="light"
-            unit="Leads"
-            height={112}
-            data={leads.trend}
-          />
-        </div>
-        <div className="lead-hero-sources">
-          {leads.sources.slice(0, 3).map((source) => (
-            <span key={source.key}>
-              <small>{source.label}</small>
-              <b>{source.value}</b>
-            </span>
-          ))}
+            {Math.max(0, leads.total - leads.qualified)} general
+          </b>
+          <p>{leadComparison(leads)}</p>
         </div>
       </section>
-      <div className="results-kpis">
-        {leads.sources.map((source) => (
-          <article key={source.key}>
-            <span>{source.label}</span>
-            <b>{source.value}</b>
-            <small>{growth(source.growth)}</small>
-          </article>
-        ))}
-      </div>
-      <Panel title="Latest leads" meta="Most recent enquiries">
+      <section className="client-sources-section">
+        <h2 className="client-section-title">Lead sources</h2>
+        <ClientMetricGrid
+          label="Lead source totals"
+          items={sources.map((source) => ({
+            label: leadSourceLabel(source.key, source.label),
+            value: source.value,
+            note: `${leads.total ? Math.round((source.value / leads.total) * 100) : 0}% of enquiries`,
+            href: source.value
+              ? resultHref("/client/leads", data, { source: source.key })
+              : undefined,
+          }))}
+        />
+        <div className="client-source-detail">
+          <InteractiveSourceChart
+            data={sources
+              .filter((source) => source.value > 0)
+              .map((source) => ({
+                key: source.key,
+                label: leadSourceLabel(source.key, source.label),
+                value: source.value,
+                share: leads.total
+                  ? Math.round((source.value / leads.total) * 100)
+                  : 0,
+              }))}
+          />
+        </div>
+      </section>
+      {leads.trend.length > 0 && (
+        <section className="client-leads-trend">
+          <h2 className="client-section-title">Enquiry trend</h2>
+          <InteractiveTrendChart
+            key={`${data.rangeStart}:${data.rangeEnd}`}
+            unit="Leads"
+            height={100}
+            data={leads.trend}
+          />
+        </section>
+      )}
+      <Panel
+        title="Latest leads"
+        meta="Most recent enquiries in this period"
+        action={<></>}
+      >
         <div className="latest-leads">
           {leads.latest.length ? (
             leads.latest.map((item) => (
@@ -176,9 +126,6 @@ export function ClientResultsDashboard({
           ) : (
             <p>No enquiries have been tracked in this period.</p>
           )}
-          <Link href="/client/leads">
-            View all leads <ArrowRight size={13} />
-          </Link>
         </div>
       </Panel>
     </>

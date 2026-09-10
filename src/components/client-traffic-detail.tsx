@@ -1,5 +1,5 @@
 "use client";
-import { ArrowLeft, ArrowRight, Target } from "lucide-react";
+import { ArrowRight, Info, Target } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { ClientResultsData } from "@/lib/client-results";
@@ -7,8 +7,9 @@ import {
   keywordCounts,
   keywordMovement,
   pageLabel,
-  resultHref,
 } from "@/lib/result-consistency";
+import { ClientPageHeader } from "./client-page-header";
+import { ClientMetricGrid } from "./client-metric-grid";
 import { InteractiveTrendChart } from "./interactive-results-charts";
 type DetailView = "overview" | "keywords" | "pages" | "opportunities";
 
@@ -30,9 +31,7 @@ export function ClientTrafficDetail({ data }: { data: ClientResultsData }) {
   const { improved, declined, stable } = keywordCounts(data.search.keywords);
   return (
     <>
-      <Link className="detail-back" href={resultHref("/client", data)}>
-        <ArrowLeft size={14} /> Back to overview
-      </Link>
+      <ClientPageHeader data={data} title="Traffic & SEO" />
       <nav className="detail-tabs" aria-label="Traffic and SEO sections">
         {(
           ["overview", "keywords", "pages", "opportunities"] as DetailView[]
@@ -47,40 +46,60 @@ export function ClientTrafficDetail({ data }: { data: ClientResultsData }) {
         ))}
       </nav>
       {(!data.traffic.connected || !data.search.connected) && (
-        <div className="empty-state">
-          <b>Some analytics sources are not connected</b>
-          <p>Only verified, successfully synced results are shown.</p>
-        </div>
+        <details className="client-status-banner">
+          <summary>
+            <Info size={16} />
+            <span>Some analytics sources aren’t connected yet</span>
+            <b>View status</b>
+          </summary>
+          <div>
+            <p>
+              Website analytics:{" "}
+              {data.traffic.connected ? "Connected" : "Not connected"}
+            </p>
+            <p>
+              Google Search:{" "}
+              {data.search.connected ? "Connected" : "Not connected"}
+            </p>
+            <p>
+              Only successfully synced results are shown. Contact your
+              Growth1000 partner to connect a source.
+            </p>
+          </div>
+        </details>
       )}
       {view === "overview" && (
         <>
-          <div className="results-kpis five">
-            <article>
-              <span>Website visitors</span>
-              <b>{data.traffic.visitors.toLocaleString()}</b>
-              <small>verified users</small>
-            </article>
-            <article>
-              <span>New visitors</span>
-              <b>{data.traffic.newVisitors.toLocaleString()}</b>
-              <small>first-time visitors</small>
-            </article>
-            <article>
-              <span>Page views</span>
-              <b>{data.traffic.pageViews.toLocaleString()}</b>
-              <small>sitewide</small>
-            </article>
-            <article>
-              <span>Organic clicks</span>
-              <b>{data.search.clicks.toLocaleString()}</b>
-              <small>Google Search</small>
-            </article>
-            <article>
-              <span>Impressions</span>
-              <b>{data.search.impressions.toLocaleString()}</b>
-              <small>Google Search</small>
-            </article>
-          </div>
+          <ClientMetricGrid
+            label="Traffic and search metrics"
+            items={[
+              {
+                label: "Website visitors",
+                value: data.traffic.visitors,
+                note: "Verified users",
+              },
+              {
+                label: "New visitors",
+                value: data.traffic.newVisitors,
+                note: "First-time visitors",
+              },
+              {
+                label: "Page views",
+                value: data.traffic.pageViews,
+                note: "Sitewide",
+              },
+              {
+                label: "Organic clicks",
+                value: data.search.clicks,
+                note: "Google Search",
+              },
+              {
+                label: "Impressions",
+                value: data.search.impressions,
+                note: "Google Search",
+              },
+            ]}
+          />
           <div className="detail-chart-grid">
             <section>
               <header>

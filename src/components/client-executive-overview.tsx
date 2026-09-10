@@ -1,9 +1,9 @@
 "use client";
-import { ArrowRight, CheckCircle2, Clock3, Target } from "lucide-react";
+import { ArrowRight, CheckCircle2, Target } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import type { ClientResultsData } from "@/lib/client-results";
+import { leadComparison } from "@/lib/client-presentation";
 import {
   keywordCounts,
   keywordMovement,
@@ -11,6 +11,8 @@ import {
   resultHref,
 } from "@/lib/result-consistency";
 import { GrowthAiAssistant } from "./growth-ai-assistant";
+import { ClientPageHeader } from "./client-page-header";
+import { ClientLeadHero } from "./client-lead-hero";
 import {
   InteractiveSourceChart,
   InteractiveTrendChart,
@@ -18,23 +20,8 @@ import {
 type PerformanceTab = "traffic" | "google" | "leads" | "ai";
 
 export function ClientExecutiveOverview({ data }: { data: ClientResultsData }) {
-  const router = useRouter(),
-    pathname = usePathname();
-  const [pending, startTransition] = useTransition();
   const [tab, setTab] = useState<PerformanceTab>("traffic");
   const { leads, traffic, search, ai } = data;
-  const navigate = (
-    range: string,
-    from = data.rangeStart,
-    to = data.rangeEnd,
-  ) => {
-    const query = new URLSearchParams({ range });
-    if (range === "custom") {
-      query.set("from", from);
-      query.set("to", to);
-    }
-    startTransition(() => router.push(`${pathname}?${query}`));
-  };
   const growth = (value: number | null) =>
     value === null
       ? "No prior baseline"
@@ -64,7 +51,7 @@ export function ClientExecutiveOverview({ data }: { data: ClientResultsData }) {
     leads: {
       label: "Total leads",
       value: leads.total,
-      detail: growth(leads.growth),
+      detail: leadComparison(leads),
       unit: "Leads",
       trend: leads.trend,
     },
@@ -78,115 +65,9 @@ export function ClientExecutiveOverview({ data }: { data: ClientResultsData }) {
   }[tab];
   return (
     <>
-      <div className="results-toolbar">
-        <div>
-          <b>{data.periodLabel}</b>
-          <span>
-            <Clock3 size={12} />
-            {pending ? "Updating results…" : `Data updated ${data.updatedAt}`}
-          </span>
-        </div>
-        <div>
-          <label>
-            Date range
-            <select
-              aria-label="Date range"
-              value={data.rangeKey}
-              disabled={pending}
-              onChange={(e) => navigate(e.target.value)}
-            >
-              <option value="today">Today</option>
-              <option value="7d">Last 7 days</option>
-              <option value="month">This month</option>
-              <option value="last-month">Last month</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-              <option value="year">This year</option>
-              <option value="custom">Custom range</option>
-            </select>
-          </label>
-        </div>
-      </div>
-      {data.rangeKey === "custom" && (
-        <div className="custom-range">
-          <label>
-            From
-            <input
-              type="date"
-              value={data.rangeStart}
-              max={data.rangeEnd}
-              onChange={(e) =>
-                navigate("custom", e.target.value, data.rangeEnd)
-              }
-            />
-          </label>
-          <label>
-            To
-            <input
-              type="date"
-              value={data.rangeEnd}
-              min={data.rangeStart}
-              onChange={(e) =>
-                navigate("custom", data.rangeStart, e.target.value)
-              }
-            />
-          </label>
-        </div>
-      )}
+      <ClientPageHeader data={data} title={data.clientName} overview />
       <div className="executive-first">
-        <section className="executive-lead-hero">
-          <div className="executive-lead-copy">
-            <span>Tracked enquiries{data.isDemo ? " · Demo data" : ""}</span>
-            <Link href={resultHref("/client/leads", data)}>
-              <strong>{leads.total}</strong>
-              <b>Total leads</b>
-            </Link>
-            <p>{growth(leads.growth)}</p>
-            <small>
-              {leads.qualified} qualified ·{" "}
-              {Math.max(0, leads.total - leads.qualified)} general
-            </small>
-          </div>
-          <div className="executive-lead-chart">
-            <div className="hero-chart-head">
-              <span>Lead trend</span>
-              <div>
-                {["7d", "30d", "90d"].map((range) => (
-                  <button
-                    type="button"
-                    key={range}
-                    disabled={pending}
-                    className={data.rangeKey === range ? "active" : ""}
-                    onClick={() => navigate(range)}
-                  >
-                    {range.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <InteractiveTrendChart
-              key={`hero-${data.rangeStart}-${data.rangeEnd}`}
-              tone="light"
-              unit="Leads"
-              height={80}
-              data={leads.trend}
-            />
-          </div>
-          <nav className="hero-source-actions" aria-label="Lead source filters">
-            {leads.sources
-              .filter((source) => source.key !== "other" || source.value > 0)
-              .map((source) => (
-                <Link
-                  key={source.key}
-                  href={resultHref("/client/leads", data, {
-                    source: source.key,
-                  })}
-                >
-                  {source.label.replace(" chatbot", "")} <b>{source.value}</b>
-                </Link>
-              ))}
-          </nav>
-        </section>
+        <ClientLeadHero data={data} />
         <aside className="executive-focus">
           <span>Next focus</span>
           <Target size={22} />

@@ -15,6 +15,7 @@ export type ClientResultsData = {
     total: number;
     qualified: number;
     growth: number | null;
+    previousTotal?: number | null;
     sources: Array<{
       key: string;
       label: string;
@@ -773,6 +774,7 @@ export async function loadClientResults(
           ["qualified", "won"].includes(item.status),
       ).length,
       growth: growth(total, previousLeads.length),
+      previousTotal: previousLeads.length,
       sources: attributedSources,
       trend,
       latest: currentLeads
