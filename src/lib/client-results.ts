@@ -817,7 +817,7 @@ export async function loadClientResults(
       impressions: searchImpressions,
       improved,
       topTen,
-      keywords: keywordRows.slice(0, 3).map((item) => ({
+      keywords: keywordRows.map((item) => ({
         keyword: String(item.keyword),
         previous: Number(item.previous_position),
         current: Number(item.current_position),
