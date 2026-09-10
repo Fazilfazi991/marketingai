@@ -10,9 +10,10 @@ import {
 } from "react";
 import { Bot, X } from "lucide-react";
 import type { ClientResultsData } from "@/lib/client-results";
+import { withTimeout } from "@/lib/with-timeout";
 
 const Assistant = lazy(() =>
-  import("./growth-ai-assistant").then((module) => ({
+  withTimeout(import("./growth-ai-assistant"), 15000).then((module) => ({
     default: module.GrowthAiAssistant,
   })),
 );

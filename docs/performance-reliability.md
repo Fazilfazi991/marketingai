@@ -29,13 +29,17 @@ The original nine dashboard data queries were already parallel after authenticat
 
 ## Verification so far
 
-- TypeScript, ESLint and 91 tests passed after implementation. The final production build after the presentation fixes also passed.
+- TypeScript, ESLint and 94 tests passed after implementation and the loading-deadline/privacy review. The final production build also passed.
 - Local 390×844: no document horizontal overflow; one 48px launcher when closed; no launcher and one 44px close control when open. Repeated open/close restores launcher keyboard focus.
 - Assistant test question returned a grounded answer. Generating feedback appeared immediately. At a 390×480 keyboard-sized viewport, the input and send control remained within the viewport. This is not proof of a physical Android/iOS keyboard test.
 - Local delayed-analytics fixture: primary and insights observed at 624 ms; Performance at 5,198 ms with an intentional 5,000 ms delay. Local development timings are not comparable to production bundle performance.
 - Local failed-analytics fixture: section-level Retry, no fake zero KPI, other sections and assistant retained. Retry terminates back in the error state while the simulated fault remains.
 - Local view-only navigation instrumentation: 29–30 ms to updated DOM, next-paint samples 36–37 ms; no additional traffic route request in the dev server log for Keywords/Pages/Back.
 - Network-shaped production build (300 ms initial latency, 64 KiB/s per response): TTFB 688 ms, document 1,209 ms, FCP 2,592 ms, hydration observer 4,826 ms. The page rendered progressively and notifications/assistant responded once hydrated. There were zero initial API requests. The proxy disables compression, so its 512,165 script-byte total is not comparable to the compressed Preview baseline. The 1–2 second primary-interactivity target is not met under this deliberately slow cold load.
+- Network-shaped interactions: notification next-paint 18/26 ms; assistant open 23 ms; send 28 ms; Leads route DOM ready 346 ms; Reports route DOM ready 334 ms. Date selection immediately displayed Updating results and disabled repeat submission, then re-enabled on completion. Report-month switching completed locally. No horizontal overflow at 390×844.
+- Implementation commit `a6e5f16ee0df35e71a4c5935f7eec717c94b17c9` reached READY on Preview `https://marketingai-5crbxgurd-faziils-projects.vercel.app`, with deployment metadata and the diagnostic endpoint both confirming `hnd1`. Tokyo health samples: 637, 269, 251, 104 ms. Two interleaved Virginia samples: 960, 875 ms. This supports the compute change provisionally; the sample is too small for a latency SLA and does not measure SQL execution.
+- On that authenticated-mode Preview, an unauthenticated assistant POST returns 403 and `/client` redirects 307 to sign-in. Demo mode is disabled. Real-account timing and query-count verification are still pending the user signing into Preview.
+- Optional assistant code-loading now has a 15-second deadline, and all non-allowlisted upstream paths use a generic log label so private storage filenames cannot enter timing logs.
 
 ## Reproducible local QA
 
@@ -47,4 +51,4 @@ For network shaping, run the built demo app on port 3000, then `node scripts/qa-
 
 ## Remaining completion gates
 
-Authenticated Preview login → dashboard timing; actual Tokyo deployment and upstream comparison; runtime query counts; desktop and 390×844 Preview interactions; network-shaped production-build verification; final clean commit/Preview URL and full A–U report. No completion claim until those checks are recorded.
+Authenticated Preview login → dashboard timing; runtime query counts; desktop and 390×844 authenticated Preview interactions; final clean commit/Preview URL and full A–U report. No completion claim until those checks are recorded. A real phone keyboard has not been available; resized desktop-browser testing is explicitly not a substitute for claiming physical-device verification.

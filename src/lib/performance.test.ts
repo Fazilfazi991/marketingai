@@ -5,6 +5,17 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 describe("private upstream request measurements", () => {
+  it("never logs a private storage filename", async () => {
+    const log = vi.spyOn(console, "info").mockImplementation(() => {});
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("{}")));
+    await measuredFetch(
+      "https://example.test/storage/v1/object/private/customer-private-file.pdf",
+    );
+    expect(JSON.stringify(log.mock.calls)).not.toContain(
+      "customer-private-file",
+    );
+    expect(JSON.stringify(log.mock.calls)).toContain("supabase.request");
+  });
   it("does not log query values or credentials and prevents shared fetch caching", async () => {
     const log = vi.spyOn(console, "info").mockImplementation(() => {});
     const request = vi.fn().mockResolvedValue(new Response("{}"));

@@ -26,12 +26,22 @@ export const measuredFetch: typeof fetch = async (input, init) => {
         ? input.href
         : input.url,
   );
-  const operation = url.pathname.startsWith("/rest/v1/")
-    ? `db.${url.pathname.split("/").slice(3).join(".")}`
-    : `auth.${url.pathname.split("/").at(-1)}`;
+  const databaseOperation = url.pathname.match(
+    /^\/rest\/v1\/(?:rpc\/)?([a-zA-Z0-9_]+)$/,
+  )?.[1];
+  const authOperation = url.pathname.match(
+    /^\/auth\/v1\/(user|token|logout|health|signup|recover|verify|\.well-known\/jwks\.json)$/,
+  )?.[1];
+  const operation = databaseOperation
+    ? `db.${databaseOperation}`
+    : authOperation
+      ? `auth.${authOperation}`
+      : "supabase.request";
   const timeout = AbortSignal.timeout(8000);
-  const signal = init?.signal
-    ? AbortSignal.any([init.signal, timeout])
+  const callerSignal =
+    init?.signal ?? (input instanceof Request ? input.signal : undefined);
+  const signal = callerSignal
+    ? AbortSignal.any([callerSignal, timeout])
     : timeout;
   return timed(operation, () =>
     fetch(input, { ...init, signal, cache: "no-store" }),
