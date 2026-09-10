@@ -2,6 +2,7 @@ import "server-only";
 
 import { isDemoMode } from "@/lib/demo-mode";
 import { createClient } from "@/lib/supabase/server";
+import { dailySeries, keywordCounts, pageIdentity } from "./result-consistency";
 
 export type ClientResultsData = {
   clientName: string;
@@ -45,7 +46,12 @@ export type ClientResultsData = {
     impressions: number;
     improved: number;
     topTen: number;
-    keywords: Array<{ keyword: string; previous: number; current: number }>;
+    keywords: Array<{
+      keyword: string;
+      previous: number;
+      current: number;
+      comparable?: boolean;
+    }>;
     connected?: boolean;
     trend?: Array<{ label: string; value: number }>;
   };
@@ -66,16 +72,14 @@ export type ClientResultsData = {
 };
 
 export type ResultRangeKey =
-  | "today"
-  | "7d"
-  | "month"
-  | "last-month"
-  | "30d"
-  | "90d"
-  | "year"
-  | "custom";
+  "today" | "7d" | "month" | "last-month" | "30d" | "90d" | "year" | "custom";
 
-export type ResultRangeInput = { range?: string; from?: string; to?: string };
+export type ResultRangeInput = {
+  range?: string;
+  from?: string;
+  to?: string;
+  source?: string;
+};
 
 export type ClientReport = {
   month: string;
@@ -170,8 +174,8 @@ const demoResults: ClientResultsData = {
   search: {
     clicks: 684,
     impressions: 18420,
-    improved: 18,
-    topTen: 7,
+    improved: 3,
+    topTen: 2,
     keywords: [
       { keyword: "kitchen renovation dubai", previous: 14.2, current: 8.4 },
       { keyword: "villa renovation dubai", previous: 22.1, current: 13.7 },
@@ -197,7 +201,7 @@ const demoResults: ClientResultsData = {
     "2 SEO articles published",
     "7 SEO improvements",
     "3 website updates",
-    "18 keywords improved",
+    "3 keywords improved",
   ],
   topPages: [
     { page: "Kitchen Renovation", visitors: 684, leads: 9 },
@@ -377,43 +381,50 @@ const rangeLabel = (key: ResultRangeKey, start: Date, end: Date) => {
 
 const demoForRange = (input: ResultRangeInput): ClientResultsData => {
   const bounds = rangeBounds(input, new Date("2026-09-30T12:00:00Z"));
-  if (bounds.key === "month") return demoResults;
-  const factor = bounds.key === "last-month" ? 0.85 : bounds.duration / 30;
+  const factor = isoDay(bounds.start) === "2026-08-01" && isoDay(bounds.end) === "2026-09-01" ? 0.85 : bounds.duration / 30;
   const scale = (value: number) => Math.round(value * factor);
   const scaleCopy = (value: string) =>
     value.replace(/^\d+/, (number) => String(scale(Number(number))));
-  const total = scale(demoResults.leads.total);
-  const demoTrend =
-    bounds.key === "90d"
-      ? demoResults.leads.trend.slice(-3)
-      : [
-          {
-            label: rangeLabel(bounds.key, bounds.start, bounds.end),
-            value: total,
-          },
-        ];
+  const demoSources = demoResults.leads.sources.map((source) => ({
+    ...source,
+    value: scale(source.value),
+    growth: null,
+  }));
+  const selectedSource = demoSources.find(
+    (source) => source.key === input.source,
+  );
+  const selectedReport =
+    demoResults.reports.find(
+      (report) => report.month.slice(0, 7) === monthKey(bounds.start),
+    ) ?? null;
+  const total = selectedSource
+    ? selectedSource.value
+    : demoSources.reduce((sum, source) => sum + source.value, 0);
+  // These fixtures contain aggregate demo totals, not dated observations.
+  // Never present their monthly display series as daily selected-period history.
+  const demoTrend: Array<{ label: string; value: number }> = [];
   return {
     ...demoResults,
     periodLabel: rangeLabel(bounds.key, bounds.start, bounds.end),
     rangeKey: bounds.key,
     rangeStart: isoDay(bounds.start),
     rangeEnd: isoDay(addDays(bounds.end, -1)),
+    report: selectedReport,
     leads: {
       ...demoResults.leads,
+      growth: null,
       total,
-      qualified: scale(demoResults.leads.qualified),
-      sources: demoResults.leads.sources.map((source) => ({
-        ...source,
-        value: scale(source.value),
-      })),
+      qualified: Math.min(total, scale(demoResults.leads.qualified)),
+      sources: selectedSource ? [selectedSource] : demoSources,
       trend: demoTrend,
-      latest:
-        bounds.key === "today"
-          ? demoResults.leads.latest.slice(0, 2)
-          : demoResults.leads.latest,
+      latest: demoResults.leads.latest.filter(
+        (item) => !selectedSource || item.source === selectedSource.label,
+      ),
     },
     traffic: {
       ...demoResults.traffic,
+      growth: null,
+      trend: [],
       visitors: scale(demoResults.traffic.visitors),
       newVisitors: scale(demoResults.traffic.newVisitors),
       pageViews: scale(demoResults.traffic.pageViews),
@@ -422,6 +433,7 @@ const demoForRange = (input: ResultRangeInput): ClientResultsData => {
     },
     search: {
       ...demoResults.search,
+      trend: [],
       clicks: scale(demoResults.search.clicks),
       impressions: scale(demoResults.search.impressions),
     },
@@ -544,13 +556,24 @@ export async function loadClientResults(
   ])
     if (error) throw error;
 
+  const matchesSource = (source: string) =>
+    !input.source ||
+    (input.source === "other"
+      ? !["whatsapp", "website_chatbot", "website_form"].includes(source)
+      : source === input.source);
   const currentLeads = (leads ?? []).filter((item) => {
     const date = new Date(item.created_at);
-    return date >= currentStart && date < nextStart;
+    return (
+      date >= currentStart && date < nextStart && matchesSource(item.source)
+    );
   });
   const previousLeads = (leads ?? []).filter((item) => {
     const date = new Date(item.created_at);
-    return date >= bounds.previousStart && date < bounds.previousEnd;
+    return (
+      date >= bounds.previousStart &&
+      date < bounds.previousEnd &&
+      matchesSource(item.source)
+    );
   });
   const sourceDefinitions = [
     { key: "whatsapp", label: "WhatsApp", tone: "green" },
@@ -558,40 +581,14 @@ export async function loadClientResults(
     { key: "website_form", label: "Website form", tone: "blue" },
     { key: "other", label: "Other sources", tone: "sand" },
   ];
-  const trendBucketCount =
-    bounds.duration <= 7
-      ? bounds.duration
-      : bounds.duration <= 31
-        ? Math.min(6, bounds.duration)
-        : 4;
-  const trend = Array.from({ length: trendBucketCount }, (_, index) => {
-    const bucketStart = addDays(
-      currentStart,
-      Math.floor((bounds.duration * index) / trendBucketCount),
-    );
-    const bucketEnd =
-      index === trendBucketCount - 1
-        ? nextStart
-        : addDays(
-            currentStart,
-            Math.floor((bounds.duration * (index + 1)) / trendBucketCount),
-          );
-    const label =
-      bounds.duration <= 31
-        ? new Intl.DateTimeFormat("en", {
-            day: "numeric",
-            month: "short",
-            timeZone: "UTC",
-          }).format(bucketStart)
-        : monthLabel(bucketStart, true);
-    return {
-      label,
-      value: (leads ?? []).filter((item) => {
-        const date = new Date(item.created_at);
-        return date >= bucketStart && date < bucketEnd;
-      }).length,
-    };
-  });
+  const trend = dailySeries(
+    currentLeads.map((item) => ({
+      day: String(item.created_at).slice(0, 10),
+      value: 1,
+    })),
+    isoDay(currentStart),
+    isoDay(addDays(nextStart, -1)),
+  );
   const currentAnalytics = (analytics ?? []).filter((item) => {
     const date = new Date(`${item.day}T00:00:00Z`);
     return date >= currentStart && date < nextStart;
@@ -616,11 +613,19 @@ export async function loadClientResults(
     current_position: number | null;
     previous_position: number | null;
   }>;
-  const improved = keywordRows.filter(
-    (item) => Number(item.current_position) < Number(item.previous_position),
-  ).length;
+  const normalizedKeywords = keywordRows.map((item) => ({
+    keyword: String(item.keyword),
+    current: Number(item.current_position),
+    previous: Number(item.previous_position),
+    comparable:
+      item.current_position !== null && item.previous_position !== null,
+  }));
+  const improved = keywordCounts(normalizedKeywords).improved;
   const topTen = keywordRows.filter(
-    (item) => Number(item.current_position) <= 10,
+    (item) =>
+      item.current_position !== null &&
+      Number(item.current_position) > 0 &&
+      Number(item.current_position) <= 10,
   ).length;
   const growth = (current: number, previous: number) =>
     previous ? Math.round(((current - previous) / previous) * 100) : null;
@@ -632,16 +637,14 @@ export async function loadClientResults(
   const scHealth = (integrationHealth ?? []).find(
     (item: { provider: string }) => item.provider === "search_console",
   ) as { status?: string; last_synced_at?: string } | undefined;
-  const dayLabel = (day: string) =>
-    new Intl.DateTimeFormat("en", {
-      day: "numeric",
-      month: "short",
-      timeZone: "UTC",
-    }).format(new Date(`${day}T00:00:00Z`));
-  const trafficTrend = currentAnalytics.map((item) => ({
-    label: dayLabel(String(item.day)),
-    value: numberFrom(item.metrics, "activeUsers", "users", "visitors"),
-  }));
+  const trafficTrend = dailySeries(
+    currentAnalytics.map((item) => ({
+      day: String(item.day),
+      value: numberFrom(item.metrics, "activeUsers", "users", "visitors"),
+    })),
+    isoDay(currentStart),
+    isoDay(addDays(nextStart, -1)),
+  );
   const searchByDay = new Map<string, number>();
   for (const item of searchRows ?? [])
     searchByDay.set(
@@ -651,7 +654,7 @@ export async function loadClientResults(
     );
   const searchTrend = [...searchByDay]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([day, value]) => ({ label: dayLabel(day), value }));
+    .map(([day, value]) => ({ label: day, value }));
   const pages = new Map<string, number>();
   for (const item of pageRows ?? [])
     pages.set(
@@ -817,11 +820,7 @@ export async function loadClientResults(
       impressions: searchImpressions,
       improved,
       topTen,
-      keywords: keywordRows.map((item) => ({
-        keyword: String(item.keyword),
-        previous: Number(item.previous_position),
-        current: Number(item.current_position),
-      })),
+      keywords: normalizedKeywords,
       connected: scHealth?.status === "connected",
       trend: searchTrend,
     },
@@ -856,10 +855,12 @@ export async function loadClientResults(
       .map(([page, visitors]) => ({
         page,
         visitors,
-        leads: currentLeads.filter((item) =>
-          String((item as { source_url?: string }).source_url ?? "").includes(
-            page,
-          ),
+        leads: currentLeads.filter(
+          (item) =>
+            Boolean(pageIdentity(page)) &&
+            pageIdentity(
+              String((item as { source_url?: string }).source_url ?? ""),
+            ) === pageIdentity(page),
         ).length,
       })),
     opportunities: keywordRows
@@ -878,11 +879,9 @@ export async function loadClientResults(
             : "Visibility opportunity",
       })),
     nextFocus: report?.nextFocus ? [report.nextFocus] : [],
-    summary:
-      report?.summary ??
-      (total
-        ? `Your business generated ${total} tracked enquiries in ${monthLabel(currentStart)}. ${largest.value ? `${largest.label} was the largest measured source.` : "Source attribution is still being collected."}`
-        : "No tracked enquiries have been recorded for this period yet."),
+    summary: total
+      ? `Your business generated ${total} tracked enquiries in ${rangeLabel(bounds.key, currentStart, nextStart)}. ${largest.value ? `${largest.label} was the largest measured source.` : "Source attribution is still being collected."}`
+      : "No tracked enquiries have been recorded for this period yet.",
     report,
     reports: clientReports,
     isDemo: false,

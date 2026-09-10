@@ -1,0 +1,183 @@
+/* Narrow corrections to the approved executive dashboard. */
+.hero-source-actions {
+  grid-column: 1/-1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+.hero-source-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: #e0f5eb;
+  text-decoration: none;
+  font-size: 12px;
+}
+.hero-source-actions a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.executive-lead-hero {
+  gap: 10px 20px;
+}
+.hero-chart-head button,
+.executive-tabs button {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 11px;
+}
+.results-toolbar select,
+.custom-range input,
+.detail-tabs a {
+  min-height: 44px;
+}
+.executive-focus p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #e2def6;
+  margin-bottom: 8px;
+}
+.executive-focus small {
+  font-size: 11px;
+  line-height: 1.45;
+  padding: 4px 0;
+}
+.executive-focus a {
+  min-height: 44px;
+  font-size: 12px;
+  padding-top: 4px;
+}
+.executive-lead-copy small {
+  font-size: 12px;
+}
+.trend-period-state {
+  display: grid;
+  gap: 4px;
+  padding: 12px 0;
+  min-width: 0;
+  color: #59615d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.trend-period-state.light {
+  color: #d8f0e7;
+}
+.trend-period-state small {
+  font-size: 11px;
+}
+.executive-performance-body .trend-period-state span {
+  font-size: 12px;
+}
+.executive-summary-grid p,
+.executive-summary-grid small {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.detail-data-note {
+  padding: 0 16px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #59615d;
+}
+.keyword-movement {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 5px;
+  color: #59615d;
+}
+.keyword-movement.improved {
+  color: #21634d;
+}
+.keyword-movement.declined {
+  color: #993b35;
+}
+.client-keyword-table > div {
+  grid-template-columns: minmax(0, 1fr) 65px 65px;
+}
+.client-keyword-table b,
+.top-pages b {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+/* Reserve a rail outside the scrolling content; the launcher cannot cover cards. */
+.app-frame:has(.growth-ai-launcher, .growth-ai-panel) .app-main {
+  height: calc(100dvh - 72px - env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+.growth-ai-launcher {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  justify-content: center;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 20;
+}
+.growth-ai-launcher span {
+  display: none;
+}
+.growth-ai-panel > form {
+  padding-bottom: calc(13px + env(safe-area-inset-bottom));
+}
+.growth-ai-panel input {
+  font-size: 16px;
+}
+@media (max-width: 700px) {
+  .executive-lead-hero {
+    padding: 14px;
+    gap: 8px;
+  }
+  .executive-lead-copy > a {
+    margin: 5px 0;
+  }
+  .executive-lead-copy {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 112px;
+    column-gap: 8px;
+    align-items: center;
+  }
+  .executive-lead-copy > span,
+  .executive-lead-copy > p {
+    grid-column: 1/-1;
+  }
+  .executive-lead-copy > small {
+    grid-column: 2;
+    grid-row: 2;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .executive-lead-chart {
+    padding: 4px 8px;
+  }
+  .hero-source-actions {
+    gap: 2px 10px;
+  }
+  .hero-source-actions a {
+    font-size: 11px;
+  }
+  .executive-focus {
+    padding: 16px;
+  }
+  .executive-focus h2 {
+    margin-top: 12px;
+  }
+  .executive-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .executive-summary-grid > a:last-child {
+    grid-column: auto;
+  }
+}
+@media print {
+  .app-frame:has(.growth-ai-launcher, .growth-ai-panel) .app-main {
+    height: auto;
+    overflow: visible;
+  }
+  .growth-ai-launcher,
+  .growth-ai-panel {
+    display: none;
+  }
+}

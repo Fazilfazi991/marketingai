@@ -14,7 +14,7 @@ export default async function Section({
   searchParams,
 }: {
   params: Promise<{ section: string }>;
-  searchParams: Promise<{ range?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ range?: string; from?: string; to?: string; source?: string }>;
 }) {
   const [{ section }, query] = await Promise.all([params, searchParams]);
   const data = await loadClientResults(query);
