@@ -1,7 +1,32 @@
-export type AppRole="admin"|"staff"|"client";
-export function homeForRole(role:AppRole){return role==="admin"?"/admin":role==="staff"?"/staff":"/client"}
-export function canOpenPath(role:AppRole,path:string){if(path.startsWith("/admin"))return role==="admin";if(path.startsWith("/staff"))return role==="admin"||role==="staff";if(path.startsWith("/client"))return role==="client"&&["/client","/client/leads","/client/traffic","/client/reports"].includes(path);return true}
-export function resolveAppRole(organizationRole:unknown,hasClientMembership:boolean):AppRole|undefined{
-  if(organizationRole==="admin"||organizationRole==="staff")return organizationRole;
-  return hasClientMembership?"client":undefined;
+export type AppRole = "admin" | "staff" | "client";
+export function homeForRole(role: AppRole) {
+  return role === "admin" ? "/admin" : role === "staff" ? "/staff" : "/client";
+}
+export function canOpenPath(role: AppRole, path: string) {
+  if (path.startsWith("/admin")) return role === "admin";
+  if (path.startsWith("/staff")) return role === "admin" || role === "staff";
+  if (path.startsWith("/client"))
+    return (
+      role === "client" &&
+      [
+        "/client",
+        "/client/leads",
+        "/client/traffic",
+        "/client/reports",
+        "/client/results",
+        "/client/agent",
+        "/client/website",
+        "/client/seo",
+        "/client/conversations",
+      ].includes(path)
+    );
+  return true;
+}
+export function resolveAppRole(
+  organizationRole: unknown,
+  hasClientMembership: boolean,
+): AppRole | undefined {
+  if (organizationRole === "admin" || organizationRole === "staff")
+    return organizationRole;
+  return hasClientMembership ? "client" : undefined;
 }

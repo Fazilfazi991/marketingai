@@ -4,6 +4,8 @@ import "./globals.css";
 import "./consistency-hotfix.css";
 import "./client-ui.css";
 import "./interaction-p0.css";
+import "./agent-workspace.css";
+import "./today-dashboard.css";
 import { PerformanceObserverClient } from "@/components/performance-observer";
 
 const geistSans = Geist({

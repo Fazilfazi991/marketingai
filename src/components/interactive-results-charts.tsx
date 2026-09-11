@@ -93,11 +93,13 @@ export function InteractiveTrendChart({
   unit,
   tone = "dark",
   height = 110,
+  granularity = "day",
 }: {
   data: TrendDatum[];
   unit: string;
   tone?: "light" | "dark";
   height?: number;
+  granularity?: "day" | "month";
 }) {
   const [selected, setSelected] = useState(Math.max(0, data.length - 1));
   const gradientId = useId().replaceAll(":", "");
@@ -111,7 +113,9 @@ export function InteractiveTrendChart({
             <span>
               {data[0].value.toLocaleString()} {unit.toLowerCase()}
             </span>
-            <small>One recorded day · not enough history for a trend.</small>
+            <small>
+              One recorded {granularity} · not enough history for a trend.
+            </small>
           </>
         ) : (
           <span>
@@ -136,7 +140,17 @@ export function InteractiveTrendChart({
             </defs>
             <XAxis
               dataKey="label"
-              tickFormatter={displayDate}
+              tickFormatter={(label) =>
+                granularity === "month"
+                  ? String(label).replace(
+                      /^([A-Za-z]{3})[A-Za-z]* (\d{4})$/,
+                      "$1 $2",
+                    )
+                  : displayDate(label)
+              }
+              padding={
+                granularity === "month" ? { left: 24, right: 24 } : undefined
+              }
               height={18}
               minTickGap={24}
               axisLine={false}

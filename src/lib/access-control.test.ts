@@ -5,6 +5,8 @@ describe("role route isolation", () => {
   it("isolates the results-only client portal", () => {
     expect(canOpenPath("client", "/client/reports")).toBe(true);
     expect(canOpenPath("client", "/client/leads")).toBe(true);
+    for (const route of ["agent", "website", "seo", "conversations", "results"])
+      expect(canOpenPath("client", `/client/${route}`)).toBe(true);
     expect(canOpenPath("client", "/client/content")).toBe(false);
     expect(canOpenPath("client", "/admin/clients/other")).toBe(false);
     expect(canOpenPath("client", "/staff")).toBe(false);

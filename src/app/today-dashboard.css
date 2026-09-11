@@ -1,0 +1,651 @@
+/* Today: compact performance, interpretation and next actions within Client Dossier. */
+.today-dashboard {
+  --today-purple: #62549a;
+  --today-purple-surface: #f0edf8;
+  font-variant-numeric: tabular-nums;
+}
+.today-dashboard h1,
+.today-dashboard h2,
+.today-dashboard h3 {
+  text-wrap: balance;
+}
+.today-dashboard h2 {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.today-dashboard h3 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+}
+.today-dashboard p {
+  color: var(--dossier-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.today-dashboard svg {
+  flex-shrink: 0;
+}
+.today-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.today-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.today-title h1 {
+  font-size: 30px;
+  letter-spacing: -0.025em;
+  margin: 0;
+  line-height: 1.2;
+}
+.today-header p {
+  margin: 6px 0 0;
+}
+.today-demo {
+  font-size: 11px;
+  color: #62549a;
+  background: #ebe7f4;
+  padding: 3px 7px;
+  border-radius: 5px;
+}
+.today-date {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+.today-date label {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: white;
+  border: 1px solid #dce3ec;
+  border-radius: 9px;
+  gap: 8px;
+}
+.today-date select {
+  border: 0;
+  min-height: 44px;
+  background: transparent;
+  color: var(--dossier-ink);
+  font: inherit;
+  font-size: 13px;
+  max-width: 180px;
+}
+.today-date [role="status"] {
+  font-size: 12px;
+  color: var(--dossier-muted);
+  min-height: 18px;
+}
+.today-custom-dates {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+.today-custom-dates label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+.today-custom-dates input {
+  border: 1px solid #dce3ec;
+  border-radius: 8px;
+  min-height: 44px;
+  padding: 8px;
+  background: white;
+  color: var(--dossier-ink);
+  font: inherit;
+  min-width: 0;
+}
+.today-dashboard button:disabled,
+.today-dashboard select:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.today-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.today-kpis article {
+  padding: 18px;
+  background: white;
+  border: 1px solid #e0e5ec;
+  border-radius: 12px;
+  min-width: 0;
+}
+.today-kpi-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  color: var(--dossier-muted);
+  font-size: 12px;
+}
+.today-kpi-label svg {
+  color: #687e9a;
+}
+.today-kpis article > strong {
+  display: block;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin: 12px 0 8px;
+}
+.today-muted,
+.today-change {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--dossier-muted);
+}
+.today-change {
+  display: inline-flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  align-items: center;
+  color: #32654f;
+}
+.today-change.negative {
+  color: #935039;
+}
+.today-change span {
+  color: var(--dossier-muted);
+}
+.today-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-areas: "overview agent" "attention attention" "results actions" "conversations activity";
+  gap: 20px;
+  align-items: stretch;
+}
+.today-grid > * {
+  min-width: 0;
+}
+.today-card {
+  background: white;
+  border: 1px solid #e0e5ec;
+  border-radius: 14px;
+  padding: 22px;
+}
+.today-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.today-section-heading > span,
+.today-section-heading > svg {
+  color: var(--dossier-muted);
+  font-size: 12px;
+}
+.today-overview {
+  grid-area: overview;
+}
+.today-agent {
+  grid-area: agent;
+  background: #f0edf8;
+  border-color: #e0dbee;
+  display: flex;
+  flex-direction: column;
+}
+.today-agent-identity {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.today-agent-mark {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #62549a;
+  color: white;
+  font-weight: 650;
+}
+.today-agent-identity h2 {
+  font-size: 15px;
+  color: #3e355e;
+}
+.today-agent-identity div > span {
+  font-size: 12px;
+  color: #625777;
+}
+.today-agent > h3 {
+  margin-top: 24px;
+  font-size: 22px;
+  color: #342d4c;
+  letter-spacing: -0.02em;
+}
+.today-agent > p {
+  color: #554b6c;
+  margin: 12px 0 18px;
+}
+.today-agent-signal {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: #554b6c;
+}
+.today-agent-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 22px;
+}
+.today-agent-actions a {
+  font-size: 12px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.today-agent-actions .dossier-primary {
+  background: #62549a;
+  padding: 10px 14px;
+}
+.today-agent-actions .dossier-primary:hover {
+  background: #4e427c;
+}
+.today-agent-actions > a:not(.dossier-primary) {
+  color: #554b6c;
+}
+.today-attention {
+  grid-area: attention;
+  scroll-margin-top: 24px;
+}
+.today-findings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 16px;
+}
+.today-finding h3 {
+  overflow-wrap: anywhere;
+}
+.today-finding-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--dossier-muted);
+}
+.today-finding-meta > span {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+.today-finding p {
+  margin: 12px 0;
+  max-width: 65ch;
+}
+.today-finding-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.today-status {
+  background: #f4eddf;
+  color: #705622;
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+.today-dashboard .today-text-link,
+.today-finding a,
+.today-empty a,
+.today-section-heading > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--dossier-accent);
+  font-size: 12px;
+}
+.today-section-heading > a {
+  min-width: 44px;
+  justify-content: center;
+}
+.today-chart-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.today-chart-tabs button {
+  padding: 8px 12px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dossier-muted);
+  font: inherit;
+  font-size: 12px;
+}
+.today-chart-tabs button:hover {
+  background: #f4f6f8;
+}
+.today-chart-tabs button[aria-pressed="true"] {
+  background: #edf2f9;
+  color: #345c93;
+  font-weight: 600;
+}
+.today-chart {
+  min-height: 210px;
+}
+.today-chart-summary {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.today-chart-summary strong {
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.today-chart-summary span {
+  font-size: 11px;
+  color: var(--dossier-muted);
+}
+.today-chart .interactive-trend-chart.light {
+  color: #345c93;
+}
+.today-chart .chart-active-detail {
+  font-size: 11px;
+}
+.today-chart .chart-touch-targets button {
+  min-height: 44px;
+}
+.today-chart .today-chart-insight {
+  font-size: 12px;
+  margin: 10px 0 0;
+}
+.today-overview .today-chart-source {
+  margin: 12px 0 0;
+  font-size: 11px;
+}
+.today-chart-empty {
+  padding: 24px 0;
+}
+.today-chart-empty > svg {
+  color: #71829a;
+  margin-bottom: 12px;
+}
+.today-chart-empty p {
+  font-size: 13px;
+}
+.today-chart-empty > span {
+  color: var(--dossier-muted);
+  font-size: 12px;
+}
+.today-results {
+  grid-area: results;
+}
+.today-actions {
+  grid-area: actions;
+}
+.today-conversations {
+  grid-area: conversations;
+}
+.today-activity {
+  grid-area: activity;
+}
+.today-result-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0;
+}
+.today-result-stats strong {
+  font-size: 24px;
+  font-weight: 600;
+  display: block;
+  letter-spacing: -0.02em;
+}
+.today-result-stats span {
+  font-size: 12px;
+  color: var(--dossier-muted);
+}
+.today-dashboard .today-period-note {
+  font-size: 11px;
+  color: var(--dossier-muted);
+  margin: -6px 0 0;
+}
+.today-progress {
+  border-top: 1px solid #edf0f4;
+  padding-top: 16px;
+}
+.today-progress h3 {
+  font-size: 13px;
+}
+.today-progress p {
+  font-size: 12px;
+  margin: 8px 0;
+}
+.today-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  margin: 12px 0 8px;
+  color: var(--dossier-muted);
+}
+.today-comparison-bars {
+  display: grid;
+  gap: 5px;
+}
+.today-comparison-bars span {
+  height: 5px;
+  background: #bccde1;
+  border-radius: 3px;
+}
+.today-comparison-bars span + span {
+  background: #345c93;
+}
+.today-empty {
+  padding-top: 18px;
+}
+.today-empty > svg {
+  color: #75839a;
+  margin-bottom: 10px;
+}
+.today-empty h3 {
+  font-size: 15px;
+}
+.today-empty p {
+  font-size: 13px;
+  margin: 8px 0;
+  max-width: 60ch;
+}
+.today-conversation-count {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-top: 20px;
+}
+.today-conversation-count strong {
+  font-size: 32px;
+  font-weight: 600;
+}
+.today-conversation-count span {
+  font-size: 12px;
+  color: var(--dossier-muted);
+  line-height: 1.6;
+}
+.today-conversations p,
+.today-activity p {
+  font-size: 13px;
+}
+.today-activity-note {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.today-activity h3 {
+  font-size: 13px;
+  margin-top: 16px;
+}
+.today-report-work {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: grid;
+  gap: 8px;
+}
+.today-report-work li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--dossier-muted);
+}
+.today-activity .today-text-link {
+  display: flex;
+  width: fit-content;
+}
+.today-evidence {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--dossier-muted);
+}
+.today-evidence summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding-top: 12px;
+}
+.today-evidence p {
+  font-size: 12px;
+  max-width: 75ch;
+}
+.today-dashboard[aria-busy="true"] .today-kpis,
+.today-dashboard[aria-busy="true"] .today-grid {
+  opacity: 0.65;
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .today-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .today-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "agent" "attention" "overview" "results" "actions" "conversations" "activity";
+  }
+}
+@media (max-width: 760px) {
+  .today-header {
+    gap: 12px;
+    margin-bottom: 18px;
+    align-items: flex-start;
+  }
+  .today-title {
+    gap: 8px;
+  }
+  .today-title h1 {
+    font-size: 27px;
+  }
+  .today-header p {
+    font-size: 13px;
+  }
+  .today-date label {
+    padding: 0 8px;
+    gap: 4px;
+  }
+  .today-date select {
+    max-width: 124px;
+    font-size: 12px;
+  }
+  .today-date [role="status"] {
+    font-size: 10px;
+  }
+  .today-custom-dates {
+    justify-content: stretch;
+  }
+  .today-custom-dates label {
+    flex: 1;
+    min-width: 0;
+  }
+  .today-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .today-kpis article {
+    padding: 14px;
+  }
+  .today-kpi-label {
+    font-size: 11px;
+    min-height: 28px;
+    align-items: flex-start;
+  }
+  .today-kpi-label svg {
+    width: 14px;
+    height: 14px;
+  }
+  .today-kpis article > strong {
+    font-size: 27px;
+    margin: 6px 0;
+  }
+  .today-kpis article > .today-muted,
+  .today-change {
+    font-size: 10px;
+  }
+  .today-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "agent" "attention" "overview" "results" "actions" "conversations" "activity";
+    gap: 18px;
+  }
+  .today-card {
+    padding: 18px;
+  }
+  .today-agent > h3 {
+    margin-top: 18px;
+    font-size: 21px;
+  }
+  .today-agent > p {
+    font-size: 13px;
+    margin: 10px 0 14px;
+  }
+  .today-agent-actions {
+    padding-top: 16px;
+  }
+  .today-section-heading {
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+  .today-section-heading h2 {
+    font-size: 17px;
+  }
+  .today-section-heading > span {
+    font-size: 10px;
+  }
+  .today-findings {
+    gap: 12px;
+  }
+  .today-finding p {
+    font-size: 13px;
+  }
+  .today-chart-summary span {
+    font-size: 10px;
+  }
+  .today-chart-source {
+    max-width: 34ch;
+  }
+}

@@ -1,0 +1,220 @@
+{
+  "title": "Growth1000 — agent workspace direction",
+  "question": "Both directions follow your briefing-first, mobile-first specification. Choose the structure to build in code.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Client Dossier",
+      "lineage": "A consultant's client case workspace",
+      "thesis": "One current brief, followed by decisions with their evidence attached.",
+      "palette": [
+        "#f4f6f8",
+        "#ffffff",
+        "#202b39",
+        "#456caa"
+      ],
+      "materials": [
+        "matte white panels",
+        "clear section tabs",
+        "compact evidence labels"
+      ],
+      "viewport": "Configured agent identity, a short briefing, and the most important decision; mobile navigation stays below.",
+      "risk": "Needs careful copy editing so the case structure never becomes paperwork.",
+      "comp": ".impeccable/mocks/decision/assigned.webp",
+      "raised": [
+        {
+          "from": "Type specimen",
+          "raise": "Declined: weaker business-owner identification and less room for actionable mobile copy."
+        },
+        {
+          "from": "Viewfinder",
+          "raise": "Declined: technical framing weakens both audience fit and action clarity."
+        },
+        {
+          "from": "Garden",
+          "raise": "Declined: the metaphor makes business tasks harder to recognize and act on."
+        },
+        {
+          "from": "Industrial labels",
+          "raise": "Declined: confrontational tone and styling distract from recommendations."
+        },
+        {
+          "from": "Step sequence",
+          "raise": "Declined: music-instrument controls reduce audience fit and task clarity."
+        },
+        {
+          "from": "Arcade",
+          "raise": "Declined: gaming cues undermine professional trust and clarity."
+        }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Personal Briefing",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "A concise weekly consultation",
+      "thesis": "A direct note from the agent leads into a short, prioritized action queue.",
+      "palette": [
+        "#f7f8f9",
+        "#ffffff",
+        "#26332f",
+        "#356b58"
+      ],
+      "materials": [
+        "open reading space",
+        "grouped action cards"
+      ],
+      "viewport": "Business greeting and briefing first; one review action sits above supporting progress.",
+      "risk": "Familiar and easy to use, but closer to other premium service portals.",
+      "comp": ".impeccable/mocks/decision/pick.webp"
+    },
+    {
+      "id": "emigre-bitmap-specimen",
+      "label": "Type specimen",
+      "verdict": "declined",
+      "thesis": "An oversized finding headline with supporting evidence in compact text.",
+      "palette": [
+        "#ffffff",
+        "#171717",
+        "#2858a5"
+      ],
+      "materials": [
+        "bitmap display",
+        "fine text"
+      ],
+      "viewport": "Large finding above two evidence blocks.",
+      "risk": "Display pixels feel like a design experiment, not a trusted employee.",
+      "case": "Declined: weaker business-owner identification and less room for actionable mobile copy.",
+      "kept": "Keep unmistakable hierarchy without pixel styling.",
+      "hero": "https://impeccable.style/worlds/cards/emigre-bitmap-specimen-hero.webp"
+    },
+    {
+      "id": "pop-culture-shelf-viewfinder-bracket-hud",
+      "label": "Viewfinder",
+      "verdict": "declined",
+      "thesis": "A business signal framed as the subject, with evidence at the edges.",
+      "palette": [
+        "#171b20",
+        "#ffffff",
+        "#c78c20"
+      ],
+      "materials": [
+        "live frame",
+        "corner labels"
+      ],
+      "viewport": "One finding in a full-screen frame.",
+      "risk": "Resembles a monitoring tool and disperses reading across corners.",
+      "case": "Declined: technical framing weakens both audience fit and action clarity.",
+      "kept": "Keep one unambiguous point of attention.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-viewfinder-bracket-hud-hero.webp"
+    },
+    {
+      "id": "dream-surreal-impossible-worlds-gravity-rain-garden",
+      "label": "Garden",
+      "verdict": "declined",
+      "thesis": "Opportunities grouped into connected areas of business growth.",
+      "palette": [
+        "#53605b",
+        "#7597b7",
+        "#c76760"
+      ],
+      "materials": [
+        "spatial groups",
+        "rounded labels"
+      ],
+      "viewport": "One opportunity region with related next steps.",
+      "risk": "Metaphorical navigation hides work and invites decorative motion.",
+      "case": "Declined: the metaphor makes business tasks harder to recognize and act on.",
+      "kept": "Keep relationships explicit without decorative simulation.",
+      "hero": "https://impeccable.style/worlds/cards/dream-surreal-impossible-worlds-gravity-rain-garden-hero.webp"
+    },
+    {
+      "id": "textiles-weave-drape-fashion-industrial-quote-grammar",
+      "label": "Industrial labels",
+      "verdict": "declined",
+      "thesis": "Explicitly named work areas and highly visible decision states.",
+      "palette": [
+        "#ffffff",
+        "#1b1b1b",
+        "#e77926"
+      ],
+      "materials": [
+        "label plates",
+        "bold grid"
+      ],
+      "viewport": "A plainly labelled briefing and approval cards.",
+      "risk": "Hazard styling and shouting labels conflict with calm service.",
+      "case": "Declined: confrontational tone and styling distract from recommendations.",
+      "kept": "Keep plain-language status labels.",
+      "hero": "https://impeccable.style/worlds/cards/textiles-weave-drape-fashion-industrial-quote-grammar-hero.webp"
+    },
+    {
+      "id": "signals-instruments-drum-machine-step-row",
+      "label": "Step sequence",
+      "verdict": "declined",
+      "thesis": "The path from received request to completed work stays visible.",
+      "palette": [
+        "#252525",
+        "#e47930",
+        "#e6c447"
+      ],
+      "materials": [
+        "step controls",
+        "sequenced state"
+      ],
+      "viewport": "Request stages followed by today's decisions.",
+      "risk": "A fixed unbroken step row fails the compact mobile requirement.",
+      "case": "Declined: music-instrument controls reduce audience fit and task clarity.",
+      "kept": "Keep clear sequence and immediate control feedback.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-drum-machine-step-row-hero.webp"
+    },
+    {
+      "id": "medium-native-crt-arcade-pixel-glow",
+      "label": "Arcade",
+      "verdict": "declined",
+      "thesis": "Strong state distinctions organize tasks into discrete rooms.",
+      "palette": [
+        "#101318",
+        "#438bda",
+        "#edd276"
+      ],
+      "materials": [
+        "tile grid",
+        "palette states"
+      ],
+      "viewport": "A grid of work states and a highlighted next action.",
+      "risk": "Glow and game metaphors violate the brief.",
+      "case": "Declined: gaming cues undermine professional trust and clarity.",
+      "kept": "Keep consistent state semantics without glow.",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-crt-arcade-pixel-glow-hero.webp"
+    }
+  ],
+  "buildPath": {
+    "value": "code",
+    "toggle": true
+  },
+  "canon": true,
+  "canonCard": {
+    "label": "Conventional service portal",
+    "thesis": "A familiar app shell with a briefing and action cards.",
+    "palette": [
+      "#ffffff",
+      "#192638",
+      "#4769a4"
+    ],
+    "materials": [
+      "standard sidebar",
+      "card grid"
+    ],
+    "viewport": "A standard navigation shell with briefing before metrics.",
+    "risk": "Easy to understand but less distinctive.",
+    "comp": ".impeccable/mocks/decision/canon.webp"
+  },
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "steer": true
+}

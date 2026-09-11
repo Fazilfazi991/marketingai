@@ -43,3 +43,7 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# Local design decisions runtime and QA captures (keep design documentation)
+/.impeccable/questions/
+/.impeccable/review/

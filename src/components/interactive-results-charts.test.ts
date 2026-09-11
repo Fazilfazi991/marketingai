@@ -35,3 +35,15 @@ it("renders the chart and date-labelled controls for two genuine points", () => 
   expect(html).toContain("Select 2026-09-25: 20 visitors");
   expect(html).toContain("Select 2026-09-30: 30 visitors");
 });
+it("describes a single published report as a month, not a day", () => {
+  const html = renderToStaticMarkup(
+    createElement(InteractiveTrendChart, {
+      data: [{ label: "September 2026", value: 684 }],
+      unit: "Organic clicks",
+      granularity: "month",
+    }),
+  );
+  expect(html).toContain("One recorded month");
+  expect(html).not.toContain("One recorded day");
+  expect(html).not.toContain("chart-stage");
+});

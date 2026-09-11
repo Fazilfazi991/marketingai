@@ -94,6 +94,8 @@ export type ClientReport = {
   nextFocus: string;
   users: number;
   clicks: number;
+  usersAvailable?: boolean;
+  clicksAvailable?: boolean;
   posts: number;
 };
 
@@ -573,8 +575,16 @@ const getClientSources = cache(
   },
 );
 export type ClientResultPart =
-  "all" | "primary" | "metrics" | "insights" | "leads" | "traffic" | "reports";
+  | "all"
+  | "primary"
+  | "metrics"
+  | "insights"
+  | "leads"
+  | "traffic"
+  | "reports"
+  | "today";
 const partSources: Record<ClientResultPart, string[]> = {
+  today: ["leads", "analytics", "search", "keywords", "reports", "health"],
   all: [
     "leads",
     "analytics",
@@ -844,6 +854,20 @@ export async function loadClientResults(
         "Continue the strongest-performing growth activities.",
       users: numberFrom(metrics, "users", "activeUsers", "visitors"),
       clicks: numberFrom(metrics, "clicks", "organicClicks"),
+      usersAvailable: ["users", "activeUsers", "visitors"].some(
+        (key) =>
+          metrics &&
+          typeof metrics === "object" &&
+          key in metrics &&
+          typeof (metrics as Record<string, unknown>)[key] === "number",
+      ),
+      clicksAvailable: ["clicks", "organicClicks"].some(
+        (key) =>
+          metrics &&
+          typeof metrics === "object" &&
+          key in metrics &&
+          typeof (metrics as Record<string, unknown>)[key] === "number",
+      ),
       posts: numberFrom(metrics, "posts", "socialPosts", "social_posts"),
     };
   });
