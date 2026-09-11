@@ -17,6 +17,8 @@ export function PerformanceObserverClient() {
     let route: { path: string; start: number } | undefined;
     let loginStarted: number | undefined;
     let loginReadyMs: number | undefined;
+    let rangeStarted: { range: string; start: number } | undefined;
+    const ranges: Array<{ range: string; ms: number }> = [];
     const submit = (event: Event) => {
       if (
         (event.target as HTMLFormElement)?.querySelector(
@@ -30,6 +32,11 @@ export function PerformanceObserverClient() {
       const target = (event.target as Element)?.closest("button,a,select");
       if (!target) return;
       const start = performance.now();
+      if (target.closest(".hero-chart-head") && target.tagName === "BUTTON")
+        rangeStarted = {
+          range: target.textContent?.trim().toLowerCase() ?? "",
+          start,
+        };
       const kind =
         target.getAttribute("role") === "tab"
           ? "metric-tab"
@@ -57,6 +64,18 @@ export function PerformanceObserverClient() {
     };
     document.addEventListener("click", click, true);
     const scan = () => {
+      const header = document.querySelector(".client-page-header");
+      if (
+        rangeStarted &&
+        header?.getAttribute("data-results-range") === rangeStarted.range &&
+        header.getAttribute("aria-busy") === "false"
+      ) {
+        ranges.push({
+          range: rangeStarted.range,
+          ms: Math.round(performance.now() - rangeStarted.start),
+        });
+        rangeStarted = undefined;
+      }
       if (
         loginStarted &&
         loginReadyMs === undefined &&
@@ -112,12 +131,18 @@ export function PerformanceObserverClient() {
         sections,
         actions,
         navigations,
+        ranges,
       });
     };
     sample();
     const timer = setInterval(sample, 1000);
     const observer = new MutationObserver(scan);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["aria-busy", "data-results-range"],
+    });
     return () => {
       clearInterval(timer);
       observer.disconnect();

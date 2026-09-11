@@ -167,6 +167,22 @@ describe("real-data period and tenant regression", () => {
     mock.client = null;
     await expect(loadClientResults()).rejects.toThrow("No client workspace");
   });
+  it("reads only lead data for the leads route", async () => {
+    const data = await loadClientResults({}, "leads");
+    expect(data.loadedSources).toEqual(["leads"]);
+    expect([...new Set(mock.calls.map((call) => call.table))].sort()).toEqual([
+      "client_members",
+      "leads",
+    ]);
+  });
+  it("reads only published reports for the reports route", async () => {
+    const data = await loadClientResults({}, "reports");
+    expect(data.loadedSources).toEqual(["reports"]);
+    expect([...new Set(mock.calls.map((call) => call.table))].sort()).toEqual([
+      "client_members",
+      "reports",
+    ]);
+  });
   it("does not reuse another client's table data", async () => {
     mock.client = "client-b";
     const data = await loadClientResults();

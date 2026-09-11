@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./consistency-hotfix.css";
 import "./client-ui.css";
+import "./interaction-p0.css";
 import { PerformanceObserverClient } from "@/components/performance-observer";
 
 const geistSans = Geist({

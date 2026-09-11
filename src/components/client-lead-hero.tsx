@@ -8,9 +8,27 @@ import { InteractiveTrendChart } from "./interactive-results-charts";
 
 export function ClientLeadHero({ data }: { data: ClientResultsData }) {
   const { leads } = data;
-  const { pending, navigate } = useClientRange(data);
+  const sources = leads.sources.some((source) => source.key === "other")
+    ? leads.sources
+    : [
+        ...leads.sources,
+        {
+          key: "other",
+          label: "Other",
+          value: Math.max(
+            0,
+            leads.total -
+              leads.sources.reduce((sum, source) => sum + source.value, 0),
+          ),
+        },
+      ];
+  const { pending, navigate, selectedRange } = useClientRange(data);
   return (
-    <section className="client-lead-hero" aria-label="Lead results">
+    <section
+      className="client-lead-hero"
+      aria-label="Lead results"
+      aria-busy={pending}
+    >
       <header className="client-lead-heading">
         <h2>
           {data.rangeKey === "month" ? "Leads this month" : "Leads this period"}
@@ -42,8 +60,8 @@ export function ClientLeadHero({ data }: { data: ClientResultsData }) {
                 type="button"
                 key={range}
                 disabled={pending}
-                aria-pressed={data.rangeKey === range}
-                className={data.rangeKey === range ? "active" : ""}
+                aria-pressed={selectedRange === range}
+                className={selectedRange === range ? "active" : ""}
                 onClick={() => navigate(range)}
               >
                 {range.toUpperCase()}
@@ -55,12 +73,12 @@ export function ClientLeadHero({ data }: { data: ClientResultsData }) {
           key={`${data.rangeStart}:${data.rangeEnd}`}
           tone="light"
           unit="Leads"
-          height={56}
+          height={92}
           data={leads.trend}
         />
       </div>
       <nav className="client-source-chips" aria-label="Lead source filters">
-        {leads.sources.map((source) => (
+        {sources.map((source) => (
           <Link
             key={source.key}
             href={resultHref("/client/leads", data, { source: source.key })}

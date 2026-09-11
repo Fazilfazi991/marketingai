@@ -3,7 +3,8 @@
 import { ChevronLeft, Clock3 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition, type ReactNode } from "react";
+import { useContext, useTransition, type ReactNode } from "react";
+import { ClientRangeContext } from "./client-range-state";
 import type { ClientResultsData } from "@/lib/client-results";
 import { resultHref } from "@/lib/result-consistency";
 
@@ -16,18 +17,24 @@ type HeaderData = Pick<
   | "rangeEnd"
   | "updatedAt"
   | "isDemo"
+  | "loadedSources"
 >;
 
 export function useClientRange(data: HeaderData) {
   const router = useRouter(),
     pathname = usePathname(),
     params = useSearchParams();
-  const [pending, startTransition] = useTransition();
+  const [localPending, localTransition] = useTransition();
+  const shared = useContext(ClientRangeContext);
+  const pending = shared?.pending ?? localPending;
+  const startTransition = shared?.startTransition ?? localTransition;
   const navigate = (
     range: string,
     from = data.rangeStart,
     to = data.rangeEnd,
   ) => {
+    if (pending) return;
+    shared?.setRequested(range);
     const query = new URLSearchParams(params.toString());
     query.set("range", range);
     query.delete("from");
@@ -36,9 +43,17 @@ export function useClientRange(data: HeaderData) {
       query.set("from", from);
       query.set("to", to);
     }
-    startTransition(() => router.push(`${pathname}?${query}`));
+    startTransition(() =>
+      router.push(`${pathname}?${query}`, { scroll: false }),
+    );
   };
-  return { pending, navigate };
+  return {
+    pending,
+    navigate,
+    selectedRange: pending
+      ? (shared?.requested ?? data.rangeKey)
+      : data.rangeKey,
+  };
 }
 
 export function ClientPageHeader({
@@ -54,9 +69,13 @@ export function ClientPageHeader({
   control?: ReactNode;
   periodLabel?: string;
 }) {
-  const { pending, navigate } = useClientRange(data);
+  const { pending, navigate, selectedRange } = useClientRange(data);
   return (
-    <header className="client-page-header">
+    <header
+      className="client-page-header"
+      aria-busy={pending}
+      data-results-range={data.rangeKey}
+    >
       {!overview && (
         <Link className="client-back" href={resultHref("/client", data)}>
           <ChevronLeft size={17} />
@@ -75,7 +94,7 @@ export function ClientPageHeader({
           {control ?? (
             <select
               aria-label="Date range"
-              value={data.rangeKey}
+              value={selectedRange}
               disabled={pending}
               onChange={(event) => navigate(event.target.value)}
             >
@@ -105,7 +124,9 @@ export function ClientPageHeader({
             <span>Data freshness</span>
           </summary>
           <p>
-            Updated {data.updatedAt}.{" "}
+            {data.loadedSources && !data.loadedSources.includes("health") && !data.isDemo
+              ? "Sync timestamps are available in Traffic & SEO."
+              : `Updated ${data.updatedAt}.`}{" "}
             {data.isDemo
               ? "Illustrative demo totals; no daily history is invented."
               : "Only available, authorized source data is shown."}

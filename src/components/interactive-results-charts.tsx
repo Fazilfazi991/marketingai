@@ -20,6 +20,15 @@ type TrendDatum = {
   general?: number;
 };
 
+const displayDate = (label: string) =>
+  /^\d{4}-\d{2}-\d{2}$/.test(label)
+    ? new Intl.DateTimeFormat("en", {
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(label + "T00:00:00Z"))
+    : label;
+
 function ChartTooltip({
   active,
   payload,
@@ -35,7 +44,7 @@ function ChartTooltip({
   if (!active || !point) return null;
   return (
     <div className="results-chart-tooltip">
-      <b>{label}</b>
+      <b>{displayDate(label ?? point.label)}</b>
       <span>
         <small>{unit}</small>
         <strong>{Number(payload?.[0]?.value ?? 0).toLocaleString()}</strong>
@@ -66,7 +75,7 @@ function ActiveDetail({
   if (!point) return null;
   return (
     <div className="chart-active-detail" aria-live="polite">
-      <b>{point.label}</b>
+      <b>{displayDate(point.label)}</b>
       <span>
         {point.value.toLocaleString()} {unit.toLowerCase()}
       </span>
@@ -98,7 +107,7 @@ export function InteractiveTrendChart({
       <div className={`trend-period-state ${tone}`}>
         {data.length === 1 ? (
           <>
-            <b>{data[0].label}</b>
+            <b>{displayDate(data[0].label)}</b>
             <span>
               {data[0].value.toLocaleString()} {unit.toLowerCase()}
             </span>
@@ -127,6 +136,9 @@ export function InteractiveTrendChart({
             </defs>
             <XAxis
               dataKey="label"
+              tickFormatter={displayDate}
+              height={18}
+              minTickGap={24}
               axisLine={false}
               tickLine={false}
               interval="preserveStartEnd"
@@ -144,8 +156,7 @@ export function InteractiveTrendChart({
               stroke="currentColor"
               strokeWidth={2.2}
               fill={`url(#${gradientId})`}
-              isAnimationActive
-              animationDuration={420}
+              isAnimationActive={false}
               activeDot={{ r: 6, strokeWidth: 3 }}
               dot={(props) => {
                 const { cx = 0, cy = 0, index = 0 } = props;

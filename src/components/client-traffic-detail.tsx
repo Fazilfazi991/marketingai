@@ -39,6 +39,19 @@ export function ClientTrafficDetail({ data }: { data: ClientResultsData }) {
           <Link
             key={item}
             href={href(item)}
+            prefetch={false}
+            onClick={(event) => {
+              if (
+                event.button !== 0 ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey
+              )
+                return;
+              event.preventDefault();
+              window.history.pushState(null, "", href(item));
+            }}
             aria-current={view === item ? "page" : undefined}
           >
             {item[0].toUpperCase() + item.slice(1)}

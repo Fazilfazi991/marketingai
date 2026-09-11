@@ -17,7 +17,7 @@ it("renders a compact single-day value rather than a fabricated trend", () => {
       unit: "Visitors",
     }),
   );
-  expect(html).toContain("2026-09-25");
+  expect(html).toContain("Sep 25");
   expect(html).toContain("One recorded day");
   expect(html).not.toContain("chart-stage");
 });

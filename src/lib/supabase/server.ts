@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { measuredFetch } from "@/lib/performance";
-export async function createClient() {
+import { cache } from "react";
+export const createClient = cache(async function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
     key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key)
@@ -22,4 +23,4 @@ export async function createClient() {
       },
     },
   });
-}
+});

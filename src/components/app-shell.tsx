@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { PendingLink } from "./pending-link";
+import { ClientNotifications } from "./client-notifications";
 import { usePathname } from "next/navigation";
 import {
   Bell,
@@ -106,7 +108,7 @@ export function AppShell({
         </div>
         <nav>
           {nav[role].map(([label, href, Icon]) => (
-            <Link
+            <PendingLink
               key={href as string}
               className={pathname === href ? "active" : ""}
               href={href as string}
@@ -114,7 +116,7 @@ export function AppShell({
             >
               <Icon size={18} />
               {label as string}
-            </Link>
+            </PendingLink>
           ))}
         </nav>
         <div className="sidebar-footer">
@@ -173,10 +175,14 @@ export function AppShell({
             </span>
             <kbd>⌘ K</kbd>
           </div>
-          <button className="icon-button">
-            <Bell size={18} />
-            <i />
-          </button>
+          {role === "client" ? (
+            <ClientNotifications />
+          ) : (
+            <button className="icon-button">
+              <Bell size={18} />
+              <i />
+            </button>
+          )}
         </header>
         <div className="page">
           {role !== "client" && (

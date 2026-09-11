@@ -1,0 +1,119 @@
+.results-skeleton,
+.results-retry {
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid #dde7e1;
+  border-radius: 12px;
+  background: #fff;
+}
+.results-skeleton i {
+  display: block;
+  height: 14px;
+  margin-top: 14px;
+  background: #eaf0ec;
+  border-radius: 4px;
+}
+.results-skeleton i:last-child {
+  width: 65%;
+}
+.results-retry button,
+.notification-panel button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.route-transition-notice {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #163f32;
+  color: white;
+  pointer-events: none;
+}
+.navigation-pending {
+  font-size: 11px;
+  margin-left: 6px;
+}
+.client-notifications {
+  position: relative;
+}
+.notification-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 10px;
+  background: #27614e;
+  color: white;
+}
+.notification-panel {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  width: min(360px, calc(100vw - 32px));
+  max-height: 70dvh;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid #dde7e1;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 12px 32px #163f3226;
+  z-index: 30;
+}
+.notification-panel header,
+.notification-panel li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.notification-panel h2 {
+  font-size: 17px;
+}
+.notification-panel ul {
+  padding: 0;
+  list-style: none;
+}
+.notification-panel li {
+  border-top: 1px solid #edf0ee;
+  padding: 6px 0;
+}
+.notification-panel li a {
+  padding-block: 12px;
+}
+.notification-panel .read {
+  color: #66736c;
+}
+.notification-panel footer {
+  font-size: 11px;
+  margin-top: 12px;
+}
+.client-notifications :focus-visible {
+  outline: 2px solid #27614e;
+  outline-offset: 2px;
+}
+@media (max-width: 700px) {
+  .client-source-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .client-source-chips a {
+    min-width: 0;
+    justify-content: space-between;
+    white-space: normal;
+  }
+  .growth-ai-panel {
+    top: calc(var(--chat-viewport-top, 0px) + 8px);
+    bottom: auto;
+    height: calc(var(--chat-viewport-height, 100dvh) - 16px);
+    max-height: calc(var(--chat-viewport-height, 100dvh) - 16px);
+  }
+  .growth-ai-panel form {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+}
