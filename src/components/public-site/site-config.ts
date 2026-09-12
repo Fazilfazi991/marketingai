@@ -39,10 +39,10 @@ export function getPublicSite(env: PublicSiteEnv = process.env) {
     formalName: "Gro by Fusion Ventures",
     positioning: "Your dedicated Growth Agent",
     appOrigin,
-    origin: appOrigin,
-    homepageUrl: `${appOrigin}/`,
+    origin: PRODUCTION_ORIGIN,
+    homepageUrl: `${PRODUCTION_ORIGIN}/`,
     loginUrl: `${appOrigin}/login`,
-    socialImageUrl: `${appOrigin}/gro-social`,
+    socialImageUrl: `${PRODUCTION_ORIGIN}/gro-social`,
     indexable,
   } as const;
 }

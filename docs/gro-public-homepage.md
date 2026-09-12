@@ -24,6 +24,7 @@ Primary buttons lead to the contact section; the final button opens WhatsApp at 
 - OG/Twitter large-image metadata uses the absolute `APP_URL` origin and the rendered 1200x630 branded image.
 - Organization and WebSite JSON-LD use the canonical homepage URL and include only supplied factual brand/company names.
 - Production indexing is allowed only when both `VERCEL_ENV=production` and `APP_URL=https://gro.expert`. Preview and localhost remain `noindex, nofollow`; their robots response disallows crawling.
+- Preview metadata keeps the intended `https://gro.expert/` canonical and never publishes the Vercel Preview hostname; Preview application links may still use an explicit Preview `APP_URL`.
 - The sitemap uses `APP_URL` and includes only the homepage. Login remains `noindex, nofollow` and private application routes are excluded.
 
 ## Domain readiness

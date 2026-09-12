@@ -28,6 +28,7 @@ describe("Gro public domain configuration", () => {
     });
 
     expect(site).toMatchObject({
+      appOrigin: PRODUCTION_ORIGIN,
       origin: PRODUCTION_ORIGIN,
       homepageUrl: `${PRODUCTION_ORIGIN}/`,
       loginUrl: `${PRODUCTION_ORIGIN}/login`,
@@ -37,7 +38,8 @@ describe("Gro public domain configuration", () => {
   });
 
   it("falls back safely on localhost and rejects unsafe APP_URL values", () => {
-    expect(getPublicSite({}).origin).toBe(LOCAL_ORIGIN);
+    expect(getPublicSite({}).appOrigin).toBe(LOCAL_ORIGIN);
+    expect(getPublicSite({}).origin).toBe(PRODUCTION_ORIGIN);
     expect(getPublicSite({}).indexable).toBe(false);
     expect(() => getPublicSite({ APP_URL: "http://gro.expert" })).toThrow();
     expect(() =>
@@ -45,14 +47,16 @@ describe("Gro public domain configuration", () => {
     ).toThrow();
   });
 
-  it("uses an explicit non-production APP_URL without enabling indexing", () => {
+  it("uses an explicit Preview APP_URL for application links without changing the canonical", () => {
     const preview = getPublicSite({
       APP_URL: "https://preview.example",
       VERCEL_ENV: "preview",
     });
 
-    expect(preview.origin).toBe("https://preview.example");
-    expect(preview.homepageUrl).toBe("https://preview.example/");
+    expect(preview.appOrigin).toBe("https://preview.example");
+    expect(preview.loginUrl).toBe("https://preview.example/login");
+    expect(preview.origin).toBe(PRODUCTION_ORIGIN);
+    expect(preview.homepageUrl).toBe(`${PRODUCTION_ORIGIN}/`);
     expect(preview.indexable).toBe(false);
   });
 
@@ -68,6 +72,22 @@ describe("Gro public domain configuration", () => {
     expect(buildRobots(preview)).toEqual({
       rules: { userAgent: "*", disallow: "/" },
     });
+    expect(buildSitemap(preview)).toEqual([]);
+  });
+
+  it("never emits the Preview host as the public canonical", () => {
+    const preview = configuredSite({
+      APP_URL:
+        "https://marketingai-git-codex-growth-agent-v1-faziils-projects.vercel.app",
+      VERCEL_ENV: "preview",
+    });
+    const metadata = buildHomeMetadata(preview);
+
+    expect(preview.appOrigin).toContain("marketingai-git-codex-growth-agent-v1");
+    expect(metadata.alternates?.canonical).toBe(`${PRODUCTION_ORIGIN}/`);
+    expect(JSON.stringify(metadata)).not.toContain(
+      "marketingai-git-codex-growth-agent-v1",
+    );
   });
 
   it("renders canonical production metadata and absolute social URLs", () => {
@@ -78,8 +98,8 @@ describe("Gro public domain configuration", () => {
     const metadata = buildHomeMetadata(site);
 
     expect(metadata.title).toBe("Gro | AI Growth Agent for Your Business");
-    expect(metadata.description).toContain(
-      "digital growth — backed by Fusion Ventures",
+    expect(metadata.description).toBe(
+      "Get an AI-powered Growth Agent for your business. Gro helps with your website, Google visibility, customer conversations, social media and digital growth — backed by Fusion Ventures.",
     );
     expect(metadata.alternates?.canonical).toBe(`${PRODUCTION_ORIGIN}/`);
     expect(metadata.openGraph?.url).toBe(`${PRODUCTION_ORIGIN}/`);
