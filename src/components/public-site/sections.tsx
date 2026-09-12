@@ -1,457 +1,328 @@
 import {
   ArrowDown,
+  ArrowRight,
   ArrowUpRight,
-  Check,
+  BarChart3,
+  CircleCheck,
+  FileCheck2,
   Globe2,
+  Instagram,
   MessageCircle,
+  PenLine,
+  Radar,
   Search,
+  ShieldCheck,
   Sparkles,
   TrendingUp,
-  ChartNoAxesCombined,
-  PenLine,
+  UserRoundCheck,
   Users,
-  MoveUpRight,
 } from "lucide-react";
 import { GrowthCTA } from "./chrome";
+import { IndustryChooser, ObserveUnderstandAct } from "./homepage-experience";
 import { publicSite } from "./site-config";
-import s from "./public-site.module.css";
+import s from "./homepage.module.css";
+
+const signalRows = [
+  [Search, "Google", "Service page moving toward Page 1", TrendingUp, "Recommend", "Improve service page"],
+  [MessageCircle, "WhatsApp", "Pricing question appearing again", PenLine, "Prepare", "Pricing FAQ draft"],
+  [Globe2, "Website", "Visitors leaving before enquiry", BarChart3, "Flag", "Review enquiry path"],
+  [Instagram, "Social", "This week’s post is ready", CircleCheck, "Ready", "Content for approval"],
+] as const;
+
+const stripSignals = [
+  [Search, "Google · opportunity found"],
+  [MessageCircle, "WhatsApp · enquiry answered"],
+  [Globe2, "Website · issue detected"],
+  [Instagram, "Social · post prepared"],
+  [MessageCircle, "Customer chat · FAQ identified"],
+  [BarChart3, "Analytics · change explained"],
+] as const;
 
 export function Hero() {
   return (
-    <section className={s.hero}>
-      <div className={s.heroCopy}>
-        <p className={s.eyebrow}>
-          <span /> AI-powered. Human-backed.
-        </p>
-        <h1>Get a Growth Agent for your business.</h1>
-        <p className={s.lead}>
-          Your website. Your Google visibility. Your customer conversations.
-          Your social media. One Growth Agent helping move it all forward.
-        </p>
-        <p className={s.heroReassurance}>
-          Configured for your business. Managed with you by Fusion Ventures. No
-          new software to learn.
-        </p>
-        <div className={s.actions}>
-          <GrowthCTA />
-          <a className={s.textLink} href="#how-it-works">
-            See how Gro works <ArrowDown size={16} />
-          </a>
-        </div>
-      </div>
-      <div className={s.heroVisual}>
-        <div className={s.visualCaption}>
-          <span>A little more clarity. Every day.</span>
-          <span>↓</span>
-        </div>
-        <article className={s.agentNote}>
-          <header>
-            <div className={s.agentMark}>g↗</div>
-            <div>
-              <h2>Your Growth Agent</h2>
-              <span className={s.status}>
-                <i /> Looking after your business
-              </span>
+    <>
+      <section className={s.hero}>
+        <div className={`${s.shell} ${s.heroGrid}`}>
+          <div className={s.heroCopy}>
+            <h1 className={`${s.display} ${s.heroTitle}`}>
+              Get a Growth Agent <span>for your business.</span>
+            </h1>
+            <p className={s.heroLead}>
+              Gro watches the digital signals around your business, understands
+              what matters, and prepares the next useful move.
+            </p>
+            <div className={s.heroActions}>
+              <GrowthCTA className={s.primaryLink} />
+              <a className={s.secondaryLink} href="#gro-at-work">
+                See Gro at Work <ArrowDown size={16} aria-hidden="true" />
+              </a>
             </div>
-            <Sparkles size={21} />
-          </header>
-          <p className={s.noteTitle}>
-            “I found a few things
-            <br />
-            worth your attention.”
-          </p>
-          <div className={s.noteRows}>
-            {[
-              [
-                Search,
-                "Google",
-                "Your service page is getting closer to Page 1.",
-              ],
-              [
-                MessageCircle,
-                "Customers",
-                "Several customers asked about pricing.",
-              ],
-              [PenLine, "Social", "This week’s content is ready for review."],
-            ].map(([Icon, title, copy]) => {
-              const ItemIcon = Icon as typeof Search;
-              return (
-                <div key={String(title)}>
-                  <ItemIcon size={18} />
-                  <p>
-                    <b>{String(title)}</b>
-                    <span>{String(copy)}</span>
-                  </p>
-                  <ArrowUpRight size={15} />
-                </div>
-              );
-            })}
-          </div>
-          <div className={s.opportunity}>
-            <span>
-              <TrendingUp size={16} /> An opportunity worth exploring
-            </span>
-            <p>
-              Let’s add clear installation pricing to your service page. Answer
-              a common question. Make enquiring easier.
+            <p className={s.heroStatement}>
+              AI-powered. Human-backed. Working around your business.
             </p>
           </div>
-          <footer>
-            <span className={s.miniAvatar}>fv</span> Backed by your Fusion
-            Ventures team
-          </footer>
-        </article>
-        <p className={s.exampleCaption}>
-          An illustrative briefing. Your agent follows your business.
-        </p>
+
+          <div>
+            <div className={s.agentStage}>
+              <div className={s.orbit} aria-hidden="true" />
+              <article className={s.agentCore} aria-label="Illustrative Gro Agent Core">
+                <header className={s.coreHeader}>
+                  <div className={s.coreMark}>gro↗</div>
+                  <div>
+                    <h2>Your Growth Agent</h2>
+                    <span className={s.activeState}><i /> Active · watching your business</span>
+                  </div>
+                  <div className={s.workingState}>
+                    <small>GRO IS WORKING</small>
+                    <span className={s.workingWords} aria-label="Watching, understanding, preparing, responding and improving">
+                      <span>Watching</span><span>Understanding</span><span>Preparing</span><span>Responding</span><span>Improving</span>
+                    </span>
+                  </div>
+                </header>
+                <div className={s.coreMap}>
+                  <div className={s.signals}>
+                    <span className={s.coreLabel}>Signals coming in</span>
+                    {signalRows.map(([Icon, channel, signal]) => (
+                      <div className={s.signal} key={channel}>
+                        <Icon size={16} strokeWidth={1.7} />
+                        <span><b>{channel}</b>{signal}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className={s.coreFlow} aria-hidden="true"><ArrowRight size={16} /></div>
+                  <div className={s.actionsList}>
+                    <span className={s.coreLabel}>Actions taking shape</span>
+                    {signalRows.map(([, channel, , ActionIcon, action, result]) => (
+                      <div className={s.agentAction} key={channel}>
+                        <ActionIcon size={16} />
+                        <span><b>{action}</b>{result}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <footer className={s.coreFooter}>
+                  <span>Connected evidence · supervised actions</span>
+                  <span>Fusion Ventures team available</span>
+                </footer>
+              </article>
+            </div>
+            <p className={s.illustrative}>Illustrative agent experience. Signals depend on connected business channels.</p>
+          </div>
+        </div>
+      </section>
+
+      <div className={s.signalStrip} aria-label="Live business signals">
+        <div className={`${s.shell} ${s.signalStripInner}`}>
+          <span className={s.stripTitle}><i /> Live from a Gro business</span>
+          <div className={s.stripSignals}>
+            <div className={s.stripTrack}>
+              {[false, true].map((duplicate) => (
+                <div aria-hidden={duplicate || undefined} className={s.stripCopy} key={String(duplicate)}>
+                  {stripSignals.map(([Icon, label]) => <span key={label}><Icon size={15} /> {label}</span>)}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
+    </>
   );
 }
-export function ProblemSection() {
+
+export function BusinessSignals() {
+  const sources = [
+    ["Customer chat", "Questions, intent and unanswered needs"],
+    ["Your website", "Traffic patterns and paths to enquiry"],
+    ["Google", "Visibility, searches and nearby opportunities"],
+    ["Social", "Momentum, responses and content gaps"],
+    ["Analytics", "What is changing and where attention is needed"],
+  ];
   return (
-    <section className={s.problem}>
-      <p className={s.sectionKicker}>
-        A business to run. A lot to keep an eye on.
-      </p>
-      <h2>
-        Running your business is a full-time job.
-        <br />
-        Watching everything online shouldn’t be another one.
-      </h2>
-      <div>
-        <p>
-          Customers are asking questions. Your website is getting traffic.
-          Google is showing opportunities. Your social channels need attention.
-        </p>
-        <p>
-          Your business is already generating signals every day.{" "}
-          <strong>Gro connects the dots.</strong>
-        </p>
+    <section className={s.talking}>
+      <div className={s.shell}>
+        <div className={s.talkingHeader}>
+          <h2 className={`${s.display} ${s.sectionTitle}`}>Your business is talking all day.</h2>
+          <p className={s.sectionLead}>Every search, question, visit and conversation carries a clue. Gro brings those separate signals into one attentive view.</p>
+        </div>
+        <div className={s.signalField}>
+          <div className={s.sourceStreams}>
+            {sources.map(([source, meaning]) => (
+              <div className={s.sourceStream} key={source}>
+                <b>{source}</b><div className={s.streamLine} aria-hidden="true" /><p>{meaning}</p>
+              </div>
+            ))}
+          </div>
+          <div className={s.listener}><div><strong>gro↗</strong><span>listens to all of it.</span></div></div>
+        </div>
       </div>
     </section>
   );
 }
-const capabilities = [
-  [
-    TrendingUp,
-    "Find more opportunities",
-    "See what could bring more visibility, enquiries and customers, with a clear next step.",
-  ],
-  [
-    MessageCircle,
-    "Organise customer conversations",
-    "Bring supported website enquiries and conversation workflows into a supervised request process.",
-  ],
-  [
-    PenLine,
-    "Create & stay active",
-    "Prepare relevant social content and help keep your business showing up consistently.",
-  ],
-  [
-    Globe2,
-    "Improve your website",
-    "Find the pages, missing information and customer journeys that could work harder.",
-  ],
-  [
-    Search,
-    "Grow on Google",
-    "Spot SEO and search opportunities, then understand what to improve next.",
-  ],
-  [
-    ChartNoAxesCombined,
-    "Understand what’s working",
-    "Turn business analytics and marketing signals into recommendations you can use.",
-  ],
+
+export function AgentStory() {
+  return (
+    <section className={s.story} id="gro-at-work">
+      <div className={s.shell}>
+        <div className={s.storyIntro}>
+          <h2 className={`${s.display} ${s.sectionTitle}`}>From signal to useful action.</h2>
+          <p className={s.sectionLead}>Gro follows the thread: observe what is happening, understand why it matters, then prepare a practical next move.</p>
+        </div>
+        <ObserveUnderstandAct />
+      </div>
+    </section>
+  );
+}
+
+export function CommandCentre() {
+  const events = [
+    ["09:12", Radar, "Signal received", "Pricing question detected across customer conversations."],
+    ["09:14", Search, "Evidence checked", "Related service page reviewed for a clear answer."],
+    ["09:16", Sparkles, "Opportunity found", "A pricing guide could answer intent earlier."],
+    ["09:19", FileCheck2, "Work prepared", "Page guidance and reply draft queued for review."],
+  ] as const;
+  return (
+    <section className={s.command} id="why-gro">
+      <div className={s.shell}>
+        <div className={s.commandHeader}>
+          <h2 className={`${s.display} ${s.sectionTitle}`}>Gro is always looking for what matters next.</h2>
+          <p className={s.sectionLead}>A calm view of what Gro has noticed, how the evidence connects, and what should happen next.</p>
+        </div>
+        <div className={s.commandBoard}>
+          <div className={s.timeline}>
+            <div className={s.panelHeader}><h3>Activity timeline</h3><span>Illustrative · Today</span></div>
+            <ol>
+              {events.map(([time, Icon, title, copy]) => (
+                <li key={title}><time>{time}</time><span className={s.timelineIcon}><Icon size={13} /></span><div><b>{title}</b><p>{copy}</p></div></li>
+              ))}
+            </ol>
+          </div>
+          <aside className={s.nextAction}>
+            <span>Next Best Action</span>
+            <h3>Add clear installation pricing guidance.</h3>
+            <p>Answer a repeated customer question on the page where people are already deciding whether to enquire.</p>
+            <div className={s.actionStatus}><i /> Status · ready for human review</div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function ChannelConstellation() {
+  const nodes = [
+    [s.nodeWebsite, Globe2, "Website", "High visits, fewer enquiries → path review prepared"],
+    [s.nodeGoogle, Search, "Google", "Search opportunity → page improvement prepared"],
+    [s.nodeWhatsapp, MessageCircle, "WhatsApp", "Customer needs a price → answer prepared"],
+    [s.nodeSocial, Instagram, "Social media", "Quiet week → three posts prepared"],
+    [s.nodeAnalytics, BarChart3, "Analytics", "Conversion pattern → likely cause explained"],
+    [s.nodeChat, MessageCircle, "Customer chat", "Question repeated → FAQ opportunity found"],
+  ] as const;
+  return (
+    <section className={s.constellation}>
+      <div className={s.shell}>
+        <h2 className={`${s.display} ${s.sectionTitle}`}>One agent across your digital business.</h2>
+        <p className={s.sectionLead}>The value is in the connection: a question can shape a web page, a search opportunity can shape content, and each signal can inform the next action.</p>
+        <div className={s.constellationMap}>
+          <svg className={s.constellationLines} viewBox="0 0 900 560" aria-hidden="true">
+            <line className={s.lineWebsite} x1="450" y1="280" x2="120" y2="110"/><line className={s.lineGoogle} x1="450" y1="280" x2="780" y2="110"/><line className={s.lineWhatsapp} x1="450" y1="280" x2="70" y2="360"/><line className={s.lineSocial} x1="450" y1="280" x2="830" y2="360"/><line className={s.lineAnalytics} x1="450" y1="280" x2="270" y2="510"/><line className={s.lineChat} x1="450" y1="280" x2="630" y2="510"/>
+          </svg>
+          <div className={s.constellationCore}><strong>gro↗</strong><span>Your Growth Agent</span></div>
+          {nodes.map(([className, Icon, label, example]) => <div className={`${s.channelNode} ${className}`} key={label} tabIndex={0}><Icon size={20} strokeWidth={1.6}/><span>{label}</span><small>{example}</small></div>)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const capabilityStories = [
+  [TrendingUp, "Find the opportunity", "Gro watches for the signals that could lead to more visibility, enquiries or customer clarity.", "A service page is moving closer to Page 1. Focus the next improvement there."],
+  [MessageCircle, "Understand the customer", "Repeated questions and conversation patterns show what people need before they can take the next step.", "Three pricing questions this week. Prepare one clear, reusable answer."],
+  [PenLine, "Prepare useful work", "Gro turns connected evidence into recommendations, content and responses your team can review.", "Turn a common customer concern into a short FAQ and social post."],
+  [BarChart3, "Keep improving", "Gro keeps watching after the work is done, so the next decision can reflect what changed.", "The new answer is helping more visitors reach the enquiry step."],
 ] as const;
+
 export function Capabilities() {
   return (
-    <section className={s.section} id="what-gro-does">
-      <div className={s.sectionHeading}>
-        <h2>
-          A little less to manage.
-          <br />A lot more looked after.
-        </h2>
-        <p>
-          One Growth Agent, built around the everyday jobs that help your
-          business grow online.
-        </p>
-      </div>
-      <div className={s.capabilities}>
-        {capabilities.map(([Icon, title, copy]) => (
-          <article key={title}>
-            <Icon size={23} strokeWidth={1.5} />
-            <h3>{title}</h3>
-            <p>{copy}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-export function IntelligenceExamples() {
-  return (
-    <section className={s.intelligence} id="why-gro">
-      <div className={s.sectionHeading}>
-        <h2>
-          Gro doesn’t just show you data.
-          <br />
-          It tells you what matters.
-        </h2>
-        <p>
-          From an everyday signal to a useful next move. Here’s what that could
-          look like.
-        </p>
-      </div>
-      <div className={s.exampleMain}>
-        <div>
-          <span className={s.sectionKicker}>What customers are saying</span>
-          <blockquote>
-            “How much does
-            <br />
-            installation cost?”
-          </blockquote>
-          <p>The same question keeps coming up in customer conversations.</p>
+    <section className={s.capabilities} id="what-gro-does">
+      <div className={s.shell}>
+        <div className={s.capabilitiesHeader}>
+          <h2 className={`${s.display} ${s.sectionTitle}`}>A little less to manage. A lot more looked after.</h2>
+          <p className={s.sectionLead}>Gro works around the everyday growth jobs that otherwise compete for your attention.</p>
         </div>
-        <div className={s.exampleResponse}>
-          <span className={s.agentMark}>g↗</span>
-          <h3>A question is also an opportunity.</h3>
-          <p>
-            Your service page doesn’t clearly explain installation pricing. Add
-            pricing guidance and a short FAQ to help customers take the next
-            step.
-          </p>
-          <span className={s.impact}>
-            <Check size={16} /> Clearer answers. An easier path to enquiry.
-          </span>
-        </div>
-      </div>
-      <div className={s.exampleList}>
-        {[
-          [
-            "Almost on Page 1",
-            "A service page is around positions 10–15.",
-            "You’re close. Improving this page could be one of your strongest search opportunities this week.",
-          ],
-          [
-            "A quiet social feed",
-            "There hasn’t been a recent post.",
-            "Let’s build this week’s content around the services customers are asking about.",
-          ],
-          [
-            "Fewer enquiries",
-            "Traffic is stable, but enquiries have dropped.",
-            "Fewer visitors are reaching the enquiry step. I recommend reviewing this page first.",
-          ],
-        ].map(([title, signal, response]) => (
-          <article key={title}>
-            <h3>{title}</h3>
-            <p>{signal}</p>
-            <div>
-              <Sparkles size={16} />
-              <p>{response}</p>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-export function ConnectedGrowth() {
-  return (
-    <section className={`${s.section} ${s.connected}`}>
-      <h2>
-        One Growth Agent.
-        <br />
-        Across your digital business.
-      </h2>
-      <div className={s.connectionVisual}>
-        <div className={s.channelList}>
-          {[
-            "Website",
-            "Google",
-            "WhatsApp",
-            "Website chat",
-            "Social media",
-            "Analytics",
-            "Customer enquiries",
-          ].map((x) => (
-            <span key={x}>{x}</span>
-          ))}
-        </div>
-        <div className={s.connectionLine} aria-hidden="true" />
-        <div className={s.hub}>
-          <strong>gro↗</strong>
-          <span>Your Growth Agent</span>
-        </div>
-        <div className={s.connectionLine} aria-hidden="true" />
-        <div className={s.outputList}>
-          {[
-            "Useful answers",
-            "Clear recommendations",
-            "Relevant content",
-            "Actions & improvements",
-            "Thoughtful follow-ups",
-          ].map((x) => (
-            <span key={x}>
-              <Check size={16} />
-              {x}
-            </span>
+        <div className={s.capabilityList}>
+          {capabilityStories.map(([Icon, title, copy, example]) => (
+            <article className={s.capabilityStory} key={title}>
+              <span className={s.capabilityIcon}><Icon size={22} strokeWidth={1.6}/></span>
+              <h3>{title}</h3>
+              <div className={s.capabilityDetail}><p>{copy}</p><div className={s.liveExample}><span>Example in motion</span><p>{example}</p></div></div>
+            </article>
           ))}
         </div>
       </div>
-      <p>All those separate signals. A more joined-up way forward.</p>
-      <GrowthCTA />
     </section>
   );
 }
-export function HowItWorks() {
-  return (
-    <section className={s.section} id="how-it-works">
-      <div className={s.sectionHeading}>
-        <h2>
-          Your business is unique.
-          <br />
-          Your Growth Agent should be too.
-        </h2>
-        <p>
-          We handle the setup and the technical side. You bring the business you
-          know best.
-        </p>
-      </div>
-      <ol className={s.steps}>
-        {[
-          [
-            "We understand your business.",
-            "We learn what you sell, who your customers are, your goals and how your business works online.",
-          ],
-          [
-            "We prepare your Growth Agent.",
-            "We configure Gro around your business and connect the digital channels that matter to you.",
-          ],
-          [
-            "Your Growth Agent gets to work.",
-            "Gro brings verified signals together, highlights opportunities and prepares work for human review.",
-          ],
-        ].map(([title, copy], i) => (
-          <li key={title}>
-            <span>0{i + 1}</span>
-            <h3>{title}</h3>
-            <p>{copy}</p>
-          </li>
-        ))}
-      </ol>
-      <div className={s.reassurance}>
-        <Check size={17} /> No complicated setup. No marketing dashboards to
-        learn.
-      </div>
-    </section>
-  );
-}
+
 export function HumanBacked() {
   return (
     <section className={s.human}>
-      <div>
-        <p className={s.sectionKicker}>Intelligence, with people behind it.</p>
-        <h2>
-          AI-powered.
-          <br />
-          Human-backed.
-        </h2>
-        <p>
-          Gro can analyse connected evidence, prepare work and recommend next
-          steps. When implementation or judgement is needed, the Fusion
-          Ventures team is behind your Growth Agent.
-        </p>
-        <p>
-          You have a team to talk to, and a Growth Agent built around verified
-          information.
-        </p>
-      </div>
-      <div className={s.teamVisual}>
-        <span>
-          <Users size={20} /> You & your business
-        </span>
-        <i aria-hidden="true">↕</i>
-        <strong>
-          gro↗<small>Your Growth Agent</small>
-        </strong>
-        <i aria-hidden="true">↕</i>
-        <span>
-          <span className={s.miniAvatar}>fv</span> Fusion Ventures team
-        </span>
+      <div className={`${s.shell} ${s.humanGrid}`}>
+        <div><h2 className={`${s.display} ${s.sectionTitle}`}>AI-powered. Human-backed.</h2><p className={s.sectionLead}>Gro can analyse connected evidence, prepare work and recommend what happens next. When judgement or implementation is needed, your Fusion Ventures team is there.</p></div>
+        <div className={s.humanFlow}>
+          <div className={s.humanLayer}><Users size={23}/><div><b>You bring the business.</b><span>Your goals, customers and knowledge set the direction.</span></div></div>
+          <div className={s.humanLayer}><span className={s.humanLayerMark}>gro↗</span><div><b>Gro keeps watch.</b><span>Signals are connected and useful work is prepared.</span></div></div>
+          <div className={s.humanLayer}><UserRoundCheck size={23}/><div><b>People stay involved.</b><span>The Fusion Ventures team supports judgement, review and action.</span></div></div>
+          <div className={s.humanLayer}><ShieldCheck size={23}/><div><b>You stay in control.</b><span>Prepared work can be reviewed before it moves forward.</span></div></div>
+        </div>
       </div>
     </section>
   );
 }
-export function WhoItsFor() {
+
+export function SetupJourney() {
+  const steps = [
+    ["Understand the business", "We learn what you sell, who you serve and where you want to grow.", "Business brief"],
+    ["Connect the right signals", "The supported digital channels that matter to your business are brought into view.", "Signal map"],
+    ["Configure your agent", "Gro is shaped around your priorities, language and operating context.", "Agent profile"],
+    ["Begin the working rhythm", "Gro watches, prepares and surfaces work for your team to review.", "First action plan"],
+  ] as const;
   return (
-    <section className={`${s.section} ${s.audience}`} id="for-businesses">
-      <h2>
-        Built for businesses that want growth
-        <br />
-        without another tool to manage.
-      </h2>
-      <p>
-        Whether you serve a neighbourhood or customers everywhere, Gro starts
-        with what matters to your business.
-      </p>
-      <div>
-        {[
-          "Local businesses",
-          "Professional services",
-          "Retail & e-commerce",
-          "Clinics",
-          "Home services",
-          "Hospitality",
-          "Property businesses",
-          "Growing SMEs",
-        ].map((x) => (
-          <span key={x}>{x}</span>
-        ))}
+    <section className={s.setup} id="how-it-works">
+      <div className={s.shell}>
+        <div className={s.setupHeader}><h2 className={`${s.display} ${s.sectionTitle}`}>From your business to a working Growth Agent.</h2><p className={s.sectionLead}>We handle the setup and technical side. You bring the business you know best.</p></div>
+        <div className={s.setupFlow}>
+          {steps.map(([title, copy, artifact]) => <article className={s.setupStep} key={title}><h3>{title}</h3><p>{copy}</p><span className={s.artifact}><CircleCheck size={13}/>{artifact}</span></article>)}
+        </div>
+        <div className={s.agentActive}><i /> GRO IS ACTIVE</div>
       </div>
     </section>
   );
 }
+
+export function Industries() {
+  return (
+    <section className={s.industries} id="for-businesses">
+      <div className={s.shell}>
+        <div className={s.industryHeader}><h2 className={`${s.display} ${s.sectionTitle}`}>Gro starts with what matters to your business.</h2><p className={s.sectionLead}>Choose a business type to see how the same attentive system can respond to a different working reality.</p></div>
+        <IndustryChooser />
+      </div>
+    </section>
+  );
+}
+
 export function FinalCTA() {
   return (
-    <section className={s.finalCta} id="contact">
-      <div>
-        <p className={s.sectionKicker}>Let’s talk about your business.</p>
-        <h2>
-          Your business shouldn’t
-          <br />
-          have to grow alone.
-        </h2>
-        <p>
-          Get a Growth Agent configured around your business, customers and
-          goals.
-        </p>
-      </div>
-      <div className={s.contactPanel}>
-        <MoveUpRight size={30} />
-        <h3>A conversation is the first step.</h3>
-        <p>
-          Tell us about your business and what you’d like to improve. We’ll work
-          out where Gro can help.
-        </p>
-        {publicSite.contactUrl ? (
-          <a className={s.cta} href={publicSite.contactUrl}>
-            Get My Growth Agent <ArrowUpRight size={17} />
-          </a>
-        ) : (
-          <p className={s.contactPending}>
-            Online enquiries are opening soon. If you’re already speaking with
-            Fusion Ventures, contact your team directly to discuss Gro.
-          </p>
-        )}
-        <a
-          className={s.textLink}
-          href="mailto:info@fusionventuresglobal.com?subject=Gro%20Growth%20Agent%20enquiry"
-        >
-          Or email our team <ArrowUpRight size={15} />
-        </a>
-        <small>Opens WhatsApp. No account with Gro needed.</small>
+    <section className={s.final} id="contact">
+      <div className={`${s.shell} ${s.finalGrid}`}>
+        <h2 className={`${s.display} ${s.sectionTitle}`}>Give your business someone who’s paying attention.</h2>
+        <div>
+          <p className={s.finalText}>Tell us about your business, your channels and the growth work that needs more attention. We’ll show you where Gro can help.</p>
+          <div className={s.finalActions}>
+            {publicSite.contactUrl && <a className={s.primaryLink} href={publicSite.contactUrl}>Get My Growth Agent <ArrowUpRight size={17}/></a>}
+            <a className={s.secondaryLink} href="mailto:info@fusionventuresglobal.com?subject=Gro%20Growth%20Agent%20enquiry">Talk to Our Team <ArrowUpRight size={16}/></a>
+          </div>
+          <span className={s.ready}><i /> READY TO LEARN YOUR BUSINESS</span>
+        </div>
       </div>
     </section>
   );

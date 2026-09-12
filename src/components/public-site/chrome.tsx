@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, Menu } from "lucide-react";
 import s from "./public-site.module.css";
 
@@ -9,16 +10,20 @@ export function Wordmark() {
       className={s.wordmark}
       aria-label="Gro by Fusion Ventures home"
     >
-      <strong>
-        gro<span>↗</span>
-      </strong>
-      <small>by Fusion Ventures</small>
+      <Image
+        alt=""
+        className={s.wordmarkImage}
+        height={941}
+        sizes="(max-width: 600px) 112px, 148px"
+        src="/gro-logo.png"
+        width={1672}
+      />
     </Link>
   );
 }
-export function GrowthCTA() {
+export function GrowthCTA({ className }: { className?: string } = {}) {
   return (
-    <Link className={s.cta} href="/#contact">
+    <Link className={className ?? s.cta} href="/#contact">
       Get My Growth Agent <ArrowUpRight size={17} aria-hidden="true" />
     </Link>
   );

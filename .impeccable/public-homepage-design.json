@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-12T00:00:00Z",
+  "title": "Design System: Gro Public Homepage",
+  "extensions": {
+    "scope": {
+      "surface": "public-homepage",
+      "document": "docs/public-homepage-design.md",
+      "excludes": [
+        "authenticated client workspace",
+        "admin surfaces",
+        "staff surfaces"
+      ]
+    },
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "#f4f0e9",
+        "tonalRamp": ["#fbf9f5", "#f4f0e9", "#ebe5df"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Editorial Ink",
+        "canonical": "#17131f",
+        "tonalRamp": ["#645f69", "#241b2e", "#17131f"]
+      },
+      "violet": {
+        "role": "primary",
+        "displayName": "Gro Violet",
+        "canonical": "#7554e8",
+        "tonalRamp": ["#e5dcfb", "#9a76ff", "#7554e8", "#6542df"]
+      },
+      "green": {
+        "role": "secondary",
+        "displayName": "Attentive Green",
+        "canonical": "#79b899",
+        "tonalRamp": ["#deeee5", "#79b899", "#4d9b70"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Editorial Display",
+        "purpose": "Major public propositions and narrative chapter headings."
+      },
+      "hero": {
+        "displayName": "Hero Display",
+        "purpose": "The single homepage proposition, balanced within a narrow measure."
+      },
+      "body": {
+        "displayName": "Operational Body",
+        "purpose": "Explanations, navigation, evidence, status, and controls."
+      },
+      "label": {
+        "displayName": "Signal Label",
+        "purpose": "Short uppercase state and category markers only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "primary-action",
+        "value": "0 14px 32px rgba(72,48,150,.22)",
+        "purpose": "Lift the principal violet homepage action."
+      },
+      {
+        "name": "agent-core",
+        "value": "0 34px 80px rgba(36,25,66,.25)",
+        "purpose": "Establish the hero agent demonstration as the focal operational surface."
+      },
+      {
+        "name": "story-panel",
+        "value": "0 36px 90px rgba(28,20,46,.18)",
+        "purpose": "Hold the desktop Observe, Understand, Act story above the paper field."
+      },
+      {
+        "name": "listener-halo",
+        "value": "0 24px 60px rgba(79,52,168,.25), 0 0 0 24px rgba(117,84,232,.07), 0 0 0 50px rgba(117,84,232,.035)",
+        "purpose": "Show continuous attention around the single listening hub."
+      },
+      {
+        "name": "header-action",
+        "value": "0 10px 24px rgba(23,19,31,.12)",
+        "purpose": "Give the compact sticky-header CTA a restrained lift."
+      }
+    ],
+    "motion": [
+      {
+        "name": "agent-scenario",
+        "value": "12s infinite",
+        "purpose": "Coordinate each incoming signal with the action taking shape."
+      },
+      {
+        "name": "working-word-cycle",
+        "value": "15s infinite with 3s offsets",
+        "purpose": "Rotate Watching, Understanding, Preparing, Responding, and Improving."
+      },
+      {
+        "name": "signal-marquee",
+        "value": "30s linear infinite",
+        "purpose": "Move the compact business-signal strip."
+      },
+      {
+        "name": "state-feedback",
+        "value": "200ms–350ms ease or cubic-bezier(.2,.8,.2,1)",
+        "purpose": "Hover, focus, and story-state feedback."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.001ms, one iteration",
+        "purpose": "Collapse decorative and explanatory animation while preserving visible content."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "tablet-tighten",
+        "value": "1050px"
+      },
+      {
+        "name": "narrative-stack",
+        "value": "780px"
+      },
+      {
+        "name": "public-chrome-mobile",
+        "value": "600px"
+      },
+      {
+        "name": "phone-tighten",
+        "value": "430px"
+      }
+    ],
+    "assets": [
+      {
+        "name": "Gro wordmark",
+        "path": "public/gro-logo.png",
+        "usage": "Exact public wordmark displayed in a clipped dark tile; do not recreate as text."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary homepage action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The main enquiry action on warm paper; reversed to white on the violet final section.",
+      "html": "<a class=\"ds-primary-action\" href=\"#contact\">Get My Growth Agent <svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M7 17 17 7\"/><path d=\"M7 7h10v10\"/></svg></a>",
+      "css": ".ds-primary-action{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:14px 20px;border-radius:12px;background:#7554e8;color:#fff;text-decoration:none;font:700 .84rem Geist,sans-serif;box-shadow:0 14px 32px rgba(72,48,150,.22);transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s}.ds-primary-action:hover{transform:translateY(-2px);background:#6542df}.ds-primary-action:focus-visible{outline:3px solid #9076cd;outline-offset:5px}@media(prefers-reduced-motion:reduce){.ds-primary-action{transition-duration:.001ms}}"
+    },
+    {
+      "name": "Hero agent core",
+      "kind": "custom",
+      "refersTo": "agent-core",
+      "description": "An illustrative signal-to-action panel that makes Gro's supervised operating model visible.",
+      "html": "<article class=\"ds-agent-core\"><header><span class=\"ds-agent-mark\">gro↗</span><span><strong>Your Growth Agent</strong><small><i></i> Active · watching your business</small></span></header><div class=\"ds-agent-row\"><span>Google<small>Service page moving toward Page 1</small></span><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m13 6 6 6-6 6\"/></svg><span>Recommend<small>Improve service page</small></span></div><footer>Connected evidence · supervised actions</footer></article>",
+      "css": ".ds-agent-core{max-width:550px;padding:28px;border-radius:16px;background:#1b1625;color:#f8f5ff;font-family:Geist,sans-serif;box-shadow:0 34px 80px rgba(36,25,66,.25)}.ds-agent-core header{display:flex;align-items:center;gap:14px;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.1)}.ds-agent-core header>span:last-child{display:grid;gap:4px}.ds-agent-core header strong{font-size:.96rem}.ds-agent-core header small{color:#b8d9c7;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase}.ds-agent-core header i{display:inline-block;width:6px;height:6px;margin-right:7px;border-radius:50%;background:#7bd5a4}.ds-agent-mark{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#7554e8;font-weight:800}.ds-agent-row{display:grid;grid-template-columns:1fr 24px 1fr;gap:10px;align-items:center;margin-top:22px}.ds-agent-row>span{display:grid;gap:4px;padding:12px;border-radius:12px;background:rgba(255,255,255,.055);font-size:.71rem;font-weight:600}.ds-agent-row small{color:#d9d2e3;font-size:.66rem;font-weight:400;line-height:1.4}.ds-agent-row svg{color:#a68af7}.ds-agent-core footer{margin-top:20px;padding-top:17px;border-top:1px solid rgba(255,255,255,.1);color:#8f869b;font-size:.61rem}@media(max-width:520px){.ds-agent-core{padding:16px}.ds-agent-row{grid-template-columns:1fr}.ds-agent-row svg{transform:rotate(90deg);justify-self:center}}"
+    },
+    {
+      "name": "Next best action",
+      "kind": "card",
+      "refersTo": "recommendation",
+      "description": "A lavender recommendation that explicitly remains ready for human review.",
+      "html": "<aside class=\"ds-next-action\"><span>Next Best Action</span><h3>Add clear installation pricing guidance.</h3><p>Answer a repeated customer question on the page where people are already deciding whether to enquire.</p><div><i></i>Status · ready for human review</div></aside>",
+      "css": ".ds-next-action{display:flex;flex-direction:column;min-height:360px;padding:32px;border-radius:16px;background:#e5dcfb;color:#17131f;font-family:Geist,sans-serif}.ds-next-action>span{color:#66577e;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase}.ds-next-action h3{margin:28px 0 0;font:500 3rem/1 Newsreader,Georgia,serif;letter-spacing:-.035em}.ds-next-action p{margin:18px 0;color:#5f5669;font-size:.83rem;line-height:1.65}.ds-next-action div{display:flex;align-items:center;gap:9px;margin-top:auto;padding-top:38px;border-top:1px solid rgba(23,19,31,.13);font-size:.7rem;font-weight:650}.ds-next-action i{width:7px;height:7px;border-radius:50%;background:#5d9d7c}"
+    },
+    {
+      "name": "Channel node",
+      "kind": "custom",
+      "description": "A focusable channel in the desktop constellation with an explanatory outcome tooltip.",
+      "html": "<div class=\"ds-channel-node\" tabindex=\"0\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20\"/></svg><span>Website</span><small>High visits, fewer enquiries → path review prepared</small></div>",
+      "css": ".ds-channel-node{position:relative;display:grid;place-items:center;align-content:center;gap:5px;width:112px;height:112px;border:1px solid #dcd3e4;border-radius:50%;background:#f4f0e9;color:#5d5663;font:.68rem Geist,sans-serif;transition:transform .25s ease-out,background .25s,color .25s}.ds-channel-node svg{color:#7554e8}.ds-channel-node small{position:absolute;z-index:3;top:calc(100% + 10px);left:50%;width:190px;padding:10px 12px;border-radius:10px;background:#17131f;color:#fff;font-size:.61rem;line-height:1.45;opacity:0;pointer-events:none;translate:-50% 5px;transition:opacity .2s,translate .2s}.ds-channel-node:hover,.ds-channel-node:focus-visible{transform:scale(1.06);background:#eee7fb;color:#17131f;outline:3px solid rgba(117,84,232,.32);outline-offset:4px}.ds-channel-node:hover small,.ds-channel-node:focus-visible small{opacity:1;translate:-50% 0}@media(prefers-reduced-motion:reduce){.ds-channel-node,.ds-channel-node small{transition-duration:.001ms}}"
+    },
+    {
+      "name": "Capability row",
+      "kind": "custom",
+      "description": "Editorial capability statement paired with one concrete example in motion.",
+      "html": "<article class=\"ds-capability\"><span class=\"ds-capability-icon\">↗</span><h3>Find the opportunity</h3><div><p>Gro watches for signals that could lead to more visibility, enquiries or customer clarity.</p><aside><span>Example in motion</span><p>A service page is moving closer to Page 1. Focus the next improvement there.</p></aside></div></article>",
+      "css": ".ds-capability{display:grid;grid-template-columns:70px minmax(220px,.75fr) 1.3fr;gap:45px;align-items:start;padding:48px 0;border-block:1px solid rgba(23,19,31,.14);background:#f4f0e9;color:#17131f;font-family:Geist,sans-serif}.ds-capability-icon{display:grid;place-items:center;width:54px;height:54px;border-radius:14px;background:#e8e0f5;color:#7554e8;font-size:22px}.ds-capability h3{margin:0;font:500 3rem/1.05 Newsreader,Georgia,serif;letter-spacing:-.03em}.ds-capability>div{display:grid;grid-template-columns:.8fr 1.2fr;gap:42px}.ds-capability p{margin:0;color:#645f69;font-size:.86rem;line-height:1.7}.ds-capability aside{padding:18px;border-radius:14px;background:#fbf9f5}.ds-capability aside span{color:#7554e8;font-size:.62rem;font-weight:750;letter-spacing:.08em;text-transform:uppercase}.ds-capability aside p{margin-top:10px;color:#48414f;font-size:.76rem;line-height:1.55}@media(max-width:700px){.ds-capability{grid-template-columns:55px 1fr;gap:22px;padding:36px 0}.ds-capability>div{grid-column:2;grid-template-columns:1fr;gap:18px}.ds-capability h3{font-size:2.2rem}}"
+    },
+    {
+      "name": "Industry tab",
+      "kind": "chip",
+      "refersTo": "industry-tab-active",
+      "description": "A 44px minimum roving-focus tab that selects an illustrative business example.",
+      "html": "<div class=\"ds-industry-tabs\" role=\"tablist\" aria-label=\"Choose a business type\"><button role=\"tab\" aria-selected=\"true\">Local services</button><button role=\"tab\" aria-selected=\"false\" tabindex=\"-1\">Clinics</button></div>",
+      "css": ".ds-industry-tabs{display:flex;flex-wrap:wrap;gap:8px}.ds-industry-tabs button{min-height:44px;padding:10px 15px;border:1px solid #d6ccd9;border-radius:999px;background:transparent;color:#5f5865;font:.72rem Geist,sans-serif;cursor:pointer;transition:background .2s,color .2s,border-color .2s}.ds-industry-tabs button:hover,.ds-industry-tabs button[aria-selected=\"true\"]{border-color:#17131f;background:#17131f;color:#fff}.ds-industry-tabs button:focus-visible{outline:3px solid #9076cd;outline-offset:5px}@media(prefers-reduced-motion:reduce){.ds-industry-tabs button{transition-duration:.001ms}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Attentive Editorial Desk",
+    "overview": "The Gro public homepage combines a warm editorial service narrative with concrete operational scenes. Newsreader headings, Geist evidence, warm paper, deep ink chapters, violet intelligence, lavender recommendations, and green readiness states show an agent that observes, understands, prepares, and stays accountable to people. This public specification is separate from the authenticated Client Dossier system.",
+    "keyCharacteristics": [
+      "Warm editorial paper and strong light-dark chapter contrast.",
+      "Agent activity shown as signals, interpretation, preparation, and review.",
+      "Violet traces Gro through the experience; green marks attentive readiness.",
+      "Exact supplied logo in a clipped dark tile.",
+      "Meaningful motion with complete reduced-motion handling."
+    ],
+    "rules": [
+      {
+        "name": "The Violet Thread Rule",
+        "body": "Use violet to trace Gro's role through emphasis, processing, connection, and action without saturating every surface.",
+        "section": "colors"
+      },
+      {
+        "name": "The Editorial-to-Operational Rule",
+        "body": "Use Newsreader for propositions and interpretations, and Geist for facts, status, evidence, navigation, and controls.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Focal Lift Rule",
+        "body": "Lift the current agent or action focal point and keep surrounding editorial material flat.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do preserve this document's public-homepage scope and the root design system's authenticated scope.",
+      "Do use the exact public/gro-logo.png asset in the established dark tile.",
+      "Do label example signals and simulated operating states as illustrative.",
+      "Do keep ready for human review distinct from executed or completed work.",
+      "Do preserve focus, minimum target size, keyboard, responsive, and reduced-motion behavior."
+    ],
+    "donts": [
+      "Don't spread this public identity into authenticated, staff, or admin surfaces without a separate decision.",
+      "Don't redraw the public wordmark as text.",
+      "Don't use neon AI effects, futuristic motifs, or chart-first dashboard layouts.",
+      "Don't present illustrative content as live evidence, autonomous publishing, or guaranteed outcomes.",
+      "Don't replace the chapter rhythm with a repetitive card grid."
+    ]
+  }
+}

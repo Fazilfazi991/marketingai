@@ -3,13 +3,14 @@ import { redirect } from "next/navigation";
 import { PublicHeader, PublicFooter } from "@/components/public-site/chrome";
 import {
   Hero,
-  ProblemSection,
+  BusinessSignals,
+  AgentStory,
+  CommandCentre,
+  ChannelConstellation,
   Capabilities,
-  IntelligenceExamples,
-  ConnectedGrowth,
-  HowItWorks,
   HumanBacked,
-  WhoItsFor,
+  SetupJourney,
+  Industries,
   FinalCTA,
 } from "@/components/public-site/sections";
 import {
@@ -17,6 +18,7 @@ import {
   buildStructuredData,
 } from "@/components/public-site/public-seo";
 import s from "@/components/public-site/public-site.module.css";
+import home from "@/components/public-site/homepage.module.css";
 
 export const metadata: Metadata = buildHomeMetadata();
 const structuredData = buildStructuredData();
@@ -34,15 +36,16 @@ export default async function Home({
         Skip to content
       </a>
       <PublicHeader />
-      <main id="main-content">
+      <main id="main-content" className={home.home}>
         <Hero />
-        <ProblemSection />
+        <BusinessSignals />
+        <AgentStory />
+        <CommandCentre />
+        <ChannelConstellation />
         <Capabilities />
-        <IntelligenceExamples />
-        <ConnectedGrowth />
-        <HowItWorks />
         <HumanBacked />
-        <WhoItsFor />
+        <SetupJourney />
+        <Industries />
         <FinalCTA />
       </main>
       <PublicFooter />
