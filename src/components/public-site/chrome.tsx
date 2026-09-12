@@ -18,16 +18,16 @@ export function Wordmark() {
 }
 export function GrowthCTA() {
   return (
-    <a className={s.cta} href="#contact">
+    <Link className={s.cta} href="/#contact">
       Get My Growth Agent <ArrowUpRight size={17} aria-hidden="true" />
-    </a>
+    </Link>
   );
 }
 export const publicNavigation = [
-  ["#how-it-works", "How it works"],
-  ["#what-gro-does", "What Gro does"],
-  ["#why-gro", "Why Gro"],
-  ["#for-businesses", "For businesses"],
+  ["/#how-it-works", "How it works"],
+  ["/#what-gro-does", "What Gro does"],
+  ["/#why-gro", "Why Gro"],
+  ["/#for-businesses", "For businesses"],
 ] as const;
 export const publicClientLoginHref = "/login";
 export function PublicHeader() {
@@ -36,9 +36,9 @@ export function PublicHeader() {
       <Wordmark />
       <nav className={s.desktopNav} aria-label="Main navigation">
         {publicNavigation.map(([href, label]) => (
-          <a key={href} href={href}>
+          <Link key={href} href={href}>
             {label}
-          </a>
+          </Link>
         ))}
       </nav>
       <div className={s.headerActions}>
@@ -53,11 +53,11 @@ export function PublicHeader() {
         </summary>
         <nav aria-label="Mobile navigation">
           {publicNavigation.map(([href, label]) => (
-            <a key={href} href={href}>
+            <Link key={href} href={href}>
               {label}
-            </a>
+            </Link>
           ))}
-          <a href="#contact">Contact</a>
+          <Link href="/#contact">Contact</Link>
           <Link href={publicClientLoginHref}>Client Login</Link>
         </nav>
       </details>
@@ -76,11 +76,11 @@ export function PublicFooter() {
         </p>
       </div>
       <nav aria-label="Footer navigation">
-        <a href="#how-it-works">How it works</a>
-        <a href="#what-gro-does">What Gro does</a>
-        <a href="#contact">Contact</a>
+        <Link href="/#how-it-works">How it works</Link>
+        <Link href="/#what-gro-does">What Gro does</Link>
+        <Link href="/#contact">Contact</Link>
         <Link href={publicClientLoginHref}>Client Login</Link>
-        <Link href="/privacy">Privacy</Link>
+        <Link href="/privacy">Privacy Policy</Link>
         <Link href="/terms">Terms</Link>
       </nav>
       <div className={s.footerBottom}>

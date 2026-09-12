@@ -790,6 +790,85 @@
 .loginCard > .textLink {
   margin-top: 20px;
 }
+.legalMain {
+  width: min(920px, calc(100% - 96px));
+  margin-inline: auto;
+  padding: 72px 0 96px;
+}
+.legalIntro {
+  padding-bottom: 48px;
+  border-bottom: 1px solid var(--gro-line);
+}
+.legalIntro h1 {
+  max-width: 760px;
+  margin-bottom: 22px;
+}
+.legalLead {
+  max-width: 720px;
+  font-size: 18px;
+  line-height: 1.75;
+}
+.legalDates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 36px;
+  margin: 30px 0 0;
+}
+.legalDates div {
+  display: flex;
+  gap: 8px;
+}
+.legalDates dt,
+.legalDates dd {
+  margin: 0;
+  font-size: 12px;
+}
+.legalDates dt {
+  color: var(--gro-muted);
+}
+.legalDates dd {
+  color: var(--gro-ink);
+  font-weight: 600;
+}
+.legalArticle {
+  max-width: 760px;
+  padding-top: 18px;
+}
+.legalArticle section {
+  padding: 38px 0;
+  border-bottom: 1px solid var(--gro-line);
+}
+.legalArticle section:last-child {
+  border-bottom: 0;
+}
+.legalArticle h2 {
+  margin-bottom: 16px;
+  font-size: 24px;
+  letter-spacing: -0.7px;
+}
+.legalArticle p,
+.legalArticle li {
+  color: var(--gro-muted);
+  font-size: 15px;
+  line-height: 1.8;
+}
+.legalArticle p + p,
+.legalArticle p + ul,
+.legalArticle ul + p {
+  margin-top: 16px;
+}
+.legalArticle ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 24px;
+}
+.legalArticle a {
+  color: var(--gro-violet);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
 @media (min-width: 1500px) {
   .hero {
     padding-block: 85px 95px;
@@ -810,6 +889,9 @@
   .human,
   .finalCta,
   .footer {
+    width: calc(100% - 64px);
+  }
+  .legalMain {
     width: calc(100% - 64px);
   }
   .hero {
@@ -1006,6 +1088,32 @@
   .finalCta,
   .footer {
     width: calc(100% - 40px);
+  }
+  .legalMain {
+    width: calc(100% - 40px);
+    padding: 45px 0 60px;
+  }
+  .legalIntro {
+    padding-bottom: 35px;
+  }
+  .legalLead {
+    font-size: 16px;
+  }
+  .legalDates {
+    display: grid;
+    gap: 7px;
+    margin-top: 24px;
+  }
+  .legalArticle section {
+    padding: 30px 0;
+  }
+  .legalArticle h2 {
+    font-size: 21px;
+  }
+  .legalArticle p,
+  .legalArticle li {
+    font-size: 14px;
+    line-height: 1.75;
   }
   .header {
     height: 78px;

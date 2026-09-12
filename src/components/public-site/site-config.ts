@@ -52,7 +52,7 @@ export const publicSite = {
   ...getPublicSite(),
   title: "Gro | AI Growth Agent for Your Business",
   description:
-    "Your dedicated Growth Agent for clearer website, Google and analytics priorities, backed by the Fusion Ventures team.",
+    "Get an AI-powered Growth Agent for your business. Gro helps with your website, Google visibility, customer conversations, social media and digital growth — backed by Fusion Ventures.",
   contactUrl:
     "https://wa.me/971542763828?text=Hi%20Fusion%20Ventures%2C%20I%27d%20like%20a%20Growth%20Agent%20for%20my%20business.",
 };

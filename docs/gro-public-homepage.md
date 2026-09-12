@@ -16,7 +16,7 @@ Primary buttons lead to the contact section; the final button opens WhatsApp at 
 ## Exact SEO and conversion copy
 
 - Title: Gro | AI Growth Agent for Your Business
-- Description: Your dedicated Growth Agent for clearer website, Google and analytics priorities, backed by the Fusion Ventures team.
+- Description: Get an AI-powered Growth Agent for your business. Gro helps with your website, Google visibility, customer conversations, social media and digital growth — backed by Fusion Ventures.
 - H1: Get a Growth Agent for your business.
 - Main CTA: Get My Growth Agent
 - Canonical: `https://gro.expert/` in every environment; Preview never emits its host as canonical.
@@ -25,7 +25,7 @@ Primary buttons lead to the contact section; the final button opens WhatsApp at 
 - Organization and WebSite JSON-LD use the canonical homepage URL and include only supplied factual brand/company names.
 - Production indexing is allowed only when both `VERCEL_ENV=production` and `APP_URL=https://gro.expert`. Preview and localhost remain `noindex, nofollow`; their robots response disallows crawling.
 - Preview metadata keeps the intended `https://gro.expert/` canonical and never publishes the Vercel Preview hostname; Preview application links may still use an explicit Preview `APP_URL`.
-- The sitemap is empty outside explicit Production. In Production it uses `https://gro.expert/` and includes only the homepage. Login remains `noindex, nofollow` and private application routes are excluded.
+- The sitemap is empty outside explicit Production. In Production it includes only the homepage, Privacy Policy, and Terms of Service. Login remains `noindex, nofollow` and private application routes are excluded.
 
 ## Domain readiness
 
@@ -33,7 +33,14 @@ Primary buttons lead to the contact section; the final button opens WhatsApp at 
 - Current Production behavior remains `gro.expert` → `www.gro.expert`, where the old Production application is served.
 - Future intended behavior is `www.gro.expert` → `gro.expert`, with `https://gro.expert/` as canonical.
 - This repository pass does not change Vercel domains, DNS, TLS, redirects, Production environment variables, or deploy Production.
-- `APP_URL` is the server-side runtime application origin used for absolute login/invitation links and Production indexability gating. Set it to `https://gro.expert` in Production; Preview uses its stable branch URL. Local development safely falls back to `http://127.0.0.1:3000`. SEO canonical URLs remain fixed to the approved Production origin.
+- `APP_URL` is the server-side runtime application origin used for absolute login/invitation links and Production indexability gating. Set it to `https://gro.expert` in Production; Preview may use its stable branch URL. Local development safely falls back to `http://localhost:3000`. SEO canonical URLs remain fixed to the approved Production origin.
+
+## Public legal pages
+
+- `/privacy` identifies Fusion Ventures FZ-LLC as the operator and covers supplied, generated, connected, Google-authorized, and AI-processed information; purposes, sharing, service providers, retention, security, international processing, client responsibilities, individual requests, children, updates, and contact.
+- `/terms` covers the managed-service model, eligibility, accounts, client responsibilities, integrations, AI and human review, requests and approvals, acceptable use, client materials, intellectual property, third-party dependencies, fees, availability, cancellation, disclaimers, liability, updates, and contact.
+- Both pages use the public Gro header/footer, the verified `info@fusionventuresglobal.com` contact, route-specific canonical metadata, Production-only indexing, and the 12 September 2026 effective/updated date.
+- Google wording reflects the implemented `openid`, `email`, Analytics read-only, and Search Console read-only scopes. No OAuth scopes or provider configuration were changed.
 
 ## Auth boundary
 
@@ -59,7 +66,7 @@ Primary buttons lead to the contact section; the final button opens WhatsApp at 
 
 ## Remaining launch dependencies
 
-- **LEGAL CONTENT REQUIRED:** public `/privacy` and `/terms` route structure exists with factual status/contact copy, but approved legal content is still required before Production OAuth verification.
+- Obtain business/legal review before Production publication, including confirmation of the governing law and forum, registered office/company particulars, and service-specific billing, cancellation, and refund terms.
 - Configure and verify the Production OAuth client and consent flow.
 - Set Production Supabase Site URL and exact redirect allowlist for Gro.
 - Set and verify Production Vercel environment values, including `APP_URL=https://gro.expert`.

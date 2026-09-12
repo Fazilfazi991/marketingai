@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   buildHomeMetadata,
+  buildPublicPageMetadata,
   buildRobots,
   buildSitemap,
   buildStructuredData,
@@ -100,8 +101,8 @@ describe("Gro public domain configuration", () => {
     expect(metadata.title).toEqual({
       absolute: "Gro | AI Growth Agent for Your Business",
     });
-    expect(metadata.description).toContain(
-      "backed by the Fusion Ventures team",
+    expect(metadata.description).toBe(
+      "Get an AI-powered Growth Agent for your business. Gro helps with your website, Google visibility, customer conversations, social media and digital growth — backed by Fusion Ventures.",
     );
     expect(metadata.alternates?.canonical).toBe(`${PRODUCTION_ORIGIN}/`);
     expect(metadata.openGraph?.url).toBe(`${PRODUCTION_ORIGIN}/`);
@@ -129,8 +130,10 @@ describe("Gro public domain configuration", () => {
     const sitemap = buildSitemap(site);
     const serialized = JSON.stringify(sitemap);
 
-    expect(sitemap).toEqual([
-      expect.objectContaining({ url: `${PRODUCTION_ORIGIN}/` }),
+    expect(sitemap.map((entry) => entry.url)).toEqual([
+      `${PRODUCTION_ORIGIN}/`,
+      `${PRODUCTION_ORIGIN}/privacy`,
+      `${PRODUCTION_ORIGIN}/terms`,
     ]);
     expect(serialized).not.toMatch(/admin|staff|client|api|login/);
     expect(JSON.stringify(buildStructuredData(site))).toContain(
@@ -149,6 +152,53 @@ describe("Gro public domain configuration", () => {
       expect.arrayContaining([
         expect.stringMatching(/^\/(admin|staff|client)/),
       ]),
+    );
+  });
+
+  it("builds indexable Production and noindex Preview metadata for legal pages", () => {
+    const production = getPublicSite({
+      APP_URL: PRODUCTION_ORIGIN,
+      VERCEL_ENV: "production",
+    });
+    const preview = getPublicSite({
+      APP_URL: "https://preview.example",
+      VERCEL_ENV: "preview",
+    });
+    const page = {
+      title: "Privacy Policy | Gro by Fusion Ventures",
+      description: "Gro privacy information.",
+      path: "/privacy" as const,
+    };
+
+    expect(buildPublicPageMetadata(page, production)).toMatchObject({
+      title: { absolute: page.title },
+      alternates: { canonical: `${PRODUCTION_ORIGIN}/privacy` },
+      openGraph: { url: `${PRODUCTION_ORIGIN}/privacy` },
+      robots: { index: true, follow: true },
+    });
+    expect(buildPublicPageMetadata(page, preview)).toMatchObject({
+      alternates: { canonical: `${PRODUCTION_ORIGIN}/privacy` },
+      robots: { index: false, follow: false },
+    });
+  });
+
+  it("publishes legal links without exposing private navigation", () => {
+    const chrome = readFileSync(
+      "src/components/public-site/chrome.tsx",
+      "utf8",
+    );
+    const legalSources = [
+      "src/app/privacy/page.tsx",
+      "src/app/terms/page.tsx",
+    ]
+      .map((path) => readFileSync(path, "utf8"))
+      .join("\n");
+
+    expect(chrome).toContain('href="/privacy"');
+    expect(chrome).toContain('href="/terms"');
+    expect(legalSources).toContain("Fusion Ventures FZ-LLC");
+    expect(legalSources).not.toMatch(
+      /Growth1000|Marketing AI|Internal Growth Operating System/,
     );
   });
 

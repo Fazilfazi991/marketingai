@@ -4,6 +4,35 @@ import { getPublicSite, publicSite } from "./site-config";
 type SiteIdentity = ReturnType<typeof getPublicSite>;
 type Site = SiteIdentity & Pick<typeof publicSite, "title" | "description">;
 
+export function buildPublicPageMetadata(
+  page: { title: string; description: string; path: `/${string}` },
+  site: SiteIdentity = publicSite,
+): Metadata {
+  const url = `${site.origin}${page.path}`;
+
+  return {
+    metadataBase: new URL(site.origin),
+    title: { absolute: page.title },
+    description: page.description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      title: page.title,
+      description: page.description,
+      siteName: site.formalName,
+      url,
+      images: [site.socialImageUrl],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: page.title,
+      description: page.description,
+      images: [site.socialImageUrl],
+    },
+    robots: { index: site.indexable, follow: site.indexable },
+  };
+}
+
 export function buildHomeMetadata(site: Site = publicSite): Metadata {
   return {
     metadataBase: new URL(site.origin),
@@ -86,6 +115,16 @@ export function buildSitemap(
       url: site.homepageUrl,
       changeFrequency: "monthly",
       priority: 1,
+    },
+    {
+      url: `${site.origin}/privacy`,
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${site.origin}/terms`,
+      changeFrequency: "yearly",
+      priority: 0.3,
     },
   ];
 }
