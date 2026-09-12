@@ -85,7 +85,7 @@ The Gro public website presents one steady operating presence around a business.
 
 This specification is scoped to the public routes `/`, `/how-it-works`, `/what-gro-does`, `/about`, `/for-businesses`, `/contact`, `/privacy`, `/terms`, and `/login`, plus their shared public chrome. The implementation lives in `src/app`, `src/components/public-site/sections.tsx`, `src/components/public-site/detail-sections.tsx`, `src/components/public-site/business-experience.tsx`, and the public-site CSS modules. The exact wordmark asset is `public/gro-logo.png`. The root `DESIGN.md` and `.impeccable/design.json` continue to govern the authenticated client workspace; this document does not alter or extend their authority.
 
-The homepage is the concise six-chapter entry point: agentic hero, compact signal convergence, one Observe → Understand → Act example, four capability previews, AI-powered/human-backed philosophy, and the closing invitation. Detailed process, capabilities, brand philosophy, industry examples, and conversion content live on focused routes. All business signals and outcomes are illustrative. Copy and state treatments must continue to distinguish prepared work from completed action and human review from autonomous execution.
+The homepage is the concise six-chapter entry point: agentic hero, compact signal convergence, one Observe → Understand → Act example, four capability previews, AI-powered/human-backed philosophy, and the closing invitation. The hero explicitly names website, Google visibility, customer conversations, social media, and digital growth, identifies Fusion Ventures backing, and frames the service as managed for the business, AI-powered, and human-backed. Detailed process, capabilities, brand philosophy, industry examples, and conversion content live on focused routes. All business signals and outcomes are illustrative. Copy and state treatments must continue to distinguish prepared work from completed action and human review from autonomous execution.
 
 **Key Characteristics:**
 
@@ -154,7 +154,7 @@ The primary shell is `min(1320px, calc(100% - 96px))`. Desktop sections commonly
 
 The homepage hero fills approximately one viewport beneath the 90px sticky header, pairing its proposition with the agent stage. The remaining five homepage chapters are deliberately compact. Dedicated pages use distinct hero compositions: process flow on How It Works, connected channels on What Gro Does, consolidation on About, orbiting business context on For Businesses, and one restrained readiness panel on Contact. The command centre belongs to How It Works; the constellation and operational capability rows belong to What Gro Does; the interactive chooser belongs to For Businesses.
 
-At 1050px, the shell inset becomes 32px per side and complex columns tighten. At 780px, the shell inset becomes 20px, paired columns stack, sections use 95px vertical padding, the sticky story becomes three inline mobile cards, and the constellation becomes a readable vertical list with its explanations always visible. At 430px, the shell inset becomes 16px, principal actions stack full width, and industry tabs scroll horizontally. Shared public chrome uses a 78px header and a 112×52 logo tile at 600px and below.
+At 1050px, the shell inset becomes 32px per side and complex columns tighten. At 780px, the shell inset becomes 20px, paired columns stack, sections use 95px vertical padding, the sticky story becomes three inline mobile cards, and the constellation becomes a readable vertical list with its explanations always visible. At 430px, the shell inset becomes 16px, homepage hero spacing tightens slightly, principal actions stack full width, and industry tabs scroll horizontally. Meaningful agent-state labels retain readable sizing as surrounding phone spacing contracts. Shared public chrome uses a 78px header and a 112×52 logo tile at 600px and below.
 
 ## Elevation & Depth
 
@@ -182,7 +182,7 @@ The Gro wordmark always uses the exact supplied raster asset. It appears inside 
 
 ### Public header and footer
 
-The header is a 90px sticky, blurred paper bar with the logo, four compact exploration links, client login, and an ink CTA to `/contact` that rises 2px and turns violet on hover. Below 850px, navigation moves into a native `details` menu containing the four exploration links, Contact, Client Login, and the primary action. The grouped footer exposes Explore, Contact, and Legal destinations only. Keyboard focus throughout the public shell uses a 3px violet outline with a 5px offset. A skip link becomes visible on focus.
+The header is a 90px sticky, blurred paper bar with the logo, four compact exploration links, client login, and an ink CTA to `/contact` that rises 2px and turns violet on hover. Below 850px, navigation moves into a native `details` menu containing the four exploration links, Contact, Client Login, and the primary action. Its accessible summary label is state-neutral so it remains accurate whether the menu is open or closed. The grouped footer exposes Explore, Contact, and Legal destinations only. Keyboard focus throughout the public shell uses a 3px violet outline with a 5px offset. A skip link becomes visible on focus.
 
 ### Hero agent core
 
@@ -210,7 +210,7 @@ The homepage previews four capabilities in a compact editorial treatment. `/what
 
 ### Dedicated page flow
 
-Every detail page ends with a conversion action and a subtle next-page link so exploration never reaches a dead end. `/contact` stays intentionally short, leading with WhatsApp and email and closing with the three-step onboarding expectation.
+Every detail page ends with a conversion action and a subtle next-page link so exploration never reaches a dead end. `/contact` stays intentionally short: compact WhatsApp and email actions sit directly in the hero above the fold, followed by the three-step onboarding expectation.
 
 ### Industry chooser
 
@@ -229,6 +229,8 @@ Motion is explanatory and route-specific: signal processing on Home, progressive
 - **Do** keep the homepage to six concise chapters and move detailed explanation to its focused public route.
 - **Do** label examples and simulated operational states as illustrative near the relevant visual.
 - **Do** keep “ready for human review” distinct from executed or completed work.
+- **Do** keep meaningful agent-state labels readable when phone hero spacing tightens.
+- **Do** keep the `/contact` WhatsApp and email actions in the hero before the three-step onboarding explanation.
 - **Do** preserve keyboard behavior, minimum control sizes, focus rings, and reduced-motion behavior.
 
 ### Don't:

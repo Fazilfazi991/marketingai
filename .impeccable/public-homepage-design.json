@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-12T20:30:00Z",
+  "generatedAt": "2026-09-13T00:00:00Z",
   "title": "Design System: Gro Public Website",
   "extensions": {
     "scope": {
@@ -197,14 +197,17 @@
   ],
   "narrative": {
     "northStar": "The Attentive Editorial Desk",
-    "overview": "The Gro public website combines a concise six-chapter homepage with focused pages for process, capabilities, brand philosophy, business use cases, and contact. Newsreader headings, Geist evidence, warm paper, deep ink chapters, violet intelligence, lavender recommendations, and green readiness states show an agent that observes, understands, prepares, and stays accountable to people. This public specification is separate from the authenticated Client Dossier system.",
+    "overview": "The Gro public website combines a concise six-chapter homepage with focused pages for process, capabilities, brand philosophy, business use cases, and contact. The homepage hero explicitly names website, Google visibility, customer conversations, social media, and digital growth, identifies Fusion Ventures backing, and presents a managed, AI-powered, human-backed service. On phones, hero spacing tightens while meaningful agent-state labels stay readable. The compact /contact hero places WhatsApp and email actions above the fold before the three-step onboarding expectation. Newsreader headings, Geist evidence, warm paper, deep ink chapters, violet intelligence, lavender recommendations, and green readiness states show an agent that observes, understands, prepares, and stays accountable to people. This public specification is separate from the authenticated Client Dossier system.",
     "keyCharacteristics": [
       "Warm editorial paper and strong light-dark chapter contrast.",
       "Agent activity shown as signals, interpretation, preparation, and review.",
       "Violet traces Gro through the experience; green marks attentive readiness.",
       "Exact supplied logo in a clipped dark tile.",
       "Meaningful route-specific motion with complete reduced-motion handling.",
-      "Distinct flow, operations, editorial, interactive, and conversion page personalities."
+      "Distinct flow, operations, editorial, interactive, and conversion page personalities.",
+      "Phone hero spacing tightens without shrinking meaningful agent-state labels.",
+      "Contact exposes compact WhatsApp and email actions before its three-step onboarding explanation.",
+      "Native mobile navigation uses a state-neutral accessible label."
     ],
     "rules": [
       {
@@ -229,6 +232,9 @@
       "Do keep the homepage to six concise chapters and move detail to the relevant public route.",
       "Do label example signals and simulated operating states as illustrative.",
       "Do keep ready for human review distinct from executed or completed work.",
+      "Do keep meaningful agent-state labels readable when phone hero spacing tightens.",
+      "Do keep the /contact WhatsApp and email actions in the hero before the three-step onboarding explanation.",
+      "Do use a state-neutral accessible label for the native mobile navigation menu.",
       "Do preserve focus, minimum target size, keyboard, responsive, and reduced-motion behavior."
     ],
     "donts": [

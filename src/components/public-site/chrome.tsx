@@ -53,7 +53,7 @@ export function PublicHeader() {
         <GrowthCTA />
       </div>
       <details className={s.mobileMenu}>
-        <summary aria-label="Open navigation">
+        <summary aria-label="Toggle navigation">
           <Menu size={23} />
         </summary>
         <nav aria-label="Mobile navigation">

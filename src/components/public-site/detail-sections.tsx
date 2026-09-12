@@ -30,16 +30,17 @@ type DetailHeroProps = {
   description: string;
   children: React.ReactNode;
   compact?: boolean;
+  actions?: React.ReactNode;
 };
 
-function DetailHero({ title, accent, description, children, compact }: DetailHeroProps) {
+function DetailHero({ title, accent, description, children, compact, actions }: DetailHeroProps) {
   return (
     <section className={`${s.detailHero} ${compact ? s.detailHeroCompact : ""}`}>
       <div className={`${s.shell} ${s.detailHeroGrid}`}>
         <div>
           <h1>{title} <span>{accent}</span></h1>
           <p>{description}</p>
-          <a className={s.scrollCue} href="#page-detail">Explore the page <ArrowDown size={15}/></a>
+          {actions ?? <a className={s.scrollCue} href="#page-detail">Explore the page <ArrowDown size={15}/></a>}
         </div>
         {children}
       </div>
@@ -224,21 +225,22 @@ export function ForBusinessesContent() {
 export function ContactContent() {
   return (
     <>
-      <DetailHero compact title="Let’s build your" accent="Growth Agent." description="Tell us about your business. We’ll show you how Gro could fit into it.">
+      <DetailHero
+        compact
+        title="Let’s build your"
+        accent="Growth Agent."
+        description="Tell us about your business. We’ll show you how Gro could fit into it."
+        actions={
+          <div className={s.contactHeroActions}>
+            <a className={s.contactHeroPrimary} href={publicSite.contactUrl}><MessageCircle size={19}/> WhatsApp <ArrowUpRight size={16}/></a>
+            <a className={s.contactHeroSecondary} href="mailto:info@fusionventuresglobal.com?subject=Gro%20Growth%20Agent%20enquiry"><PenLine size={19}/> Email Gro <ArrowUpRight size={16}/></a>
+          </div>
+        }
+      >
         <div className={s.contactStatus}><span><i/> Ready to learn your business</span><p>No account registration. Start with a conversation.</p></div>
       </DetailHero>
 
-      <section className={s.contactOptions} id="page-detail">
-        <div className={`${s.shell} ${s.contactGrid}`}>
-          <div><h2>Choose the easiest way to talk.</h2><p>Share your business, website and the work you want more help with. A short introduction is enough.</p></div>
-          <div className={s.contactActions}>
-            <a className={s.contactPrimary} href={publicSite.contactUrl}><MessageCircle size={23}/><span><small>Start on WhatsApp</small><strong>Message the Gro team</strong></span><ArrowUpRight size={18}/></a>
-            <a className={s.contactSecondary} href="mailto:info@fusionventuresglobal.com?subject=Gro%20Growth%20Agent%20enquiry"><PenLine size={23}/><span><small>Send an email</small><strong>info@fusionventuresglobal.com</strong></span><ArrowUpRight size={18}/></a>
-          </div>
-        </div>
-      </section>
-
-      <section className={s.nextSteps}>
+      <section className={s.nextSteps} id="page-detail">
         <div className={s.shell}><div className={s.pageIntro}><h2>What happens next?</h2><p>A simple path from first conversation to a Growth Agent prepared around your business.</p></div><ol><li><span>1</span><div><h3>We learn about your business.</h3><p>Your services, customers, goals and current digital presence.</p></div></li><li><span>2</span><div><h3>We understand what Gro should handle.</h3><p>The signals and growth work that deserve the most attention.</p></div></li><li><span>3</span><div><h3>We prepare your Growth Agent.</h3><p>Configuration, supported connections and a clear working rhythm.</p></div></li></ol><p className={s.contactReassurance}><ShieldCheck size={17}/> You stay involved. Important work can be reviewed before it moves forward.</p></div>
       </section>
     </>

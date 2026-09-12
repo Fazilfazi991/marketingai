@@ -48,8 +48,9 @@ export function Hero() {
               Get a Growth Agent <span>for your business.</span>
             </h1>
             <p className={s.heroLead}>
-              Gro watches the digital signals around your business, understands
-              what matters, and prepares the next useful move.
+              Gro helps look after your website, Google visibility, customer
+              conversations, social media and digital growth — backed by the
+              Fusion Ventures team.
             </p>
             <div className={s.heroActions}>
               <GrowthCTA className={s.primaryLink} />
@@ -58,7 +59,7 @@ export function Hero() {
               </a>
             </div>
             <p className={s.heroStatement}>
-              AI-powered. Human-backed. Working around your business.
+              Managed for your business. AI-powered. Human-backed.
             </p>
           </div>
 
