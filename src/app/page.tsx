@@ -12,65 +12,14 @@ import {
   WhoItsFor,
   FinalCTA,
 } from "@/components/public-site/sections";
-import { publicSite } from "@/components/public-site/site-config";
+import {
+  buildHomeMetadata,
+  buildStructuredData,
+} from "@/components/public-site/public-seo";
 import s from "@/components/public-site/public-site.module.css";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(
-    publicSite.url ??
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "https://marketingai-ruddy-xi.vercel.app"),
-  ),
-  title: publicSite.title,
-  description: publicSite.description,
-  ...(publicSite.url
-    ? {
-        metadataBase: new URL(publicSite.url),
-        alternates: { canonical: publicSite.url },
-      }
-    : {}),
-  openGraph: {
-    type: "website",
-    title: publicSite.title,
-    description: publicSite.description,
-    siteName: "Gro by Fusion Ventures",
-    ...(publicSite.url ? { url: publicSite.url } : {}),
-    images: [
-      {
-        url: "/gro-social",
-        width: 1200,
-        height: 630,
-        alt: "Gro by Fusion Ventures. Get a Growth Agent for your business. AI-powered. Human-backed.",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: publicSite.title,
-    description: publicSite.description,
-    images: ["/gro-social"],
-  },
-  icons: { icon: "/gro-icon.svg", apple: "/gro-apple-icon" },
-  robots: { index: true, follow: true },
-};
-const structuredData = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      name: "Gro by Fusion Ventures",
-      brand: { "@type": "Brand", name: "Gro" },
-      parentOrganization: { "@type": "Organization", name: "Fusion Ventures" },
-      ...(publicSite.url ? { url: publicSite.url } : {}),
-    },
-    {
-      "@type": "WebSite",
-      name: "Gro by Fusion Ventures",
-      ...(publicSite.url ? { url: publicSite.url } : {}),
-    },
-  ],
-};
+export const metadata: Metadata = buildHomeMetadata();
+const structuredData = buildStructuredData();
 export default async function Home({
   searchParams,
 }: {

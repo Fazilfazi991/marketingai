@@ -42,8 +42,8 @@ export function ClientPortalSection({ data }: { data: ClientResultsData }) {
         <div className="client-report-empty">
           <h2>No published report yet</h2>
           <p>
-            Your Growth1000 partner will publish verified growth summaries here
-            when they are ready.
+            Your Fusion Ventures team will publish verified growth summaries
+            here when they are ready.
           </p>
         </div>
       ) : (

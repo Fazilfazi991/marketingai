@@ -20,7 +20,7 @@ export default async function ClientLogin({
     <main className={`${s.site} ${s.loginPage}`}>
       <div className={s.loginCard}>
         <Wordmark />
-        <h1>Welcome back to Gro</h1>
+        <h1>Welcome back.</h1>
         <p>Sign in to your Growth Agent workspace.</p>
         {error && (
           <p className={s.loginError} role="alert">

@@ -67,12 +67,12 @@ export function LazyAssistant({ data }: { data: ClientResultsData }) {
             ref={launcher}
             className="growth-ai-launcher"
             type="button"
-            aria-label="Ask Growth1000 AI"
+            aria-label="Ask your Growth Agent"
             aria-haspopup="dialog"
             onClick={() => setOpen(true)}
           >
             <Bot size={23} />
-            <span>Ask Growth1000 AI</span>
+            <span>Ask your Growth Agent</span>
           </button>
         )}
       </div>
@@ -83,7 +83,7 @@ export function LazyAssistant({ data }: { data: ClientResultsData }) {
               <aside
                 className="growth-ai-panel"
                 role="dialog"
-                aria-label="Growth1000 AI assistant"
+                aria-label="Gro Growth Agent"
               >
                 <header>
                   <b>Opening assistant…</b>

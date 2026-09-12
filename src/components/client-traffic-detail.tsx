@@ -75,8 +75,8 @@ export function ClientTrafficDetail({ data }: { data: ClientResultsData }) {
               {data.search.connected ? "Connected" : "Not connected"}
             </p>
             <p>
-              Only successfully synced results are shown. Contact your
-              Growth1000 partner to connect a source.
+              Only successfully synced results are shown. Contact your Fusion
+              Ventures team to connect a source.
             </p>
           </div>
         </details>

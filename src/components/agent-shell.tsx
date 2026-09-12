@@ -90,8 +90,7 @@ export function AgentShell({ children }: { children: React.ReactNode }) {
       <div className="dossier-main">
         <header className="dossier-topbar">
           <span>
-            Growth1000{" "}
-            <span className="dossier-topbar-note">/ Your workspace</span>
+            Gro <span className="dossier-topbar-note">/ Your workspace</span>
           </span>
           <ClientNotifications />
         </header>

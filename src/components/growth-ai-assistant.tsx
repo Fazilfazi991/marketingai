@@ -174,19 +174,19 @@ export function GrowthAiAssistant({
         <button
           type="button"
           className="growth-ai-launcher"
-          aria-label="Ask Growth1000 AI"
+          aria-label="Ask your Growth Agent"
           aria-expanded="false"
           onClick={() => setOpen(true)}
         >
           <GrowthAiIcon />
-          <span>Ask Growth1000 AI</span>
+          <span>Ask your Growth Agent</span>
         </button>
       )}
       {open && (
         <aside
           ref={panel}
           className="growth-ai-panel"
-          aria-label="Growth1000 AI assistant"
+          aria-label="Gro Growth Agent"
           role="dialog"
         >
           <header>

@@ -23,25 +23,26 @@ export function GrowthCTA() {
     </a>
   );
 }
-const links = [
+export const publicNavigation = [
   ["#how-it-works", "How it works"],
   ["#what-gro-does", "What Gro does"],
   ["#why-gro", "Why Gro"],
   ["#for-businesses", "For businesses"],
-];
+] as const;
+export const publicClientLoginHref = "/login";
 export function PublicHeader() {
   return (
     <header className={s.header}>
       <Wordmark />
       <nav className={s.desktopNav} aria-label="Main navigation">
-        {links.map(([href, label]) => (
+        {publicNavigation.map(([href, label]) => (
           <a key={href} href={href}>
             {label}
           </a>
         ))}
       </nav>
       <div className={s.headerActions}>
-        <Link className={s.loginLink} href="/login">
+        <Link className={s.loginLink} href={publicClientLoginHref}>
           Client Login
         </Link>
         <GrowthCTA />
@@ -51,13 +52,13 @@ export function PublicHeader() {
           <Menu size={23} />
         </summary>
         <nav aria-label="Mobile navigation">
-          {links.map(([href, label]) => (
+          {publicNavigation.map(([href, label]) => (
             <a key={href} href={href}>
               {label}
             </a>
           ))}
           <a href="#contact">Contact</a>
-          <Link href="/login">Client Login</Link>
+          <Link href={publicClientLoginHref}>Client Login</Link>
         </nav>
       </details>
     </header>
@@ -78,7 +79,7 @@ export function PublicFooter() {
         <a href="#how-it-works">How it works</a>
         <a href="#what-gro-does">What Gro does</a>
         <a href="#contact">Contact</a>
-        <Link href="/login">Client Login</Link>
+        <Link href={publicClientLoginHref}>Client Login</Link>
       </nav>
       <div className={s.footerBottom}>
         <span>A Fusion Ventures service.</span>
