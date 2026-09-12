@@ -476,7 +476,7 @@ function Editor({
                 <i />
                 <span>
                   <b>{item}</b>
-                  <small>Growth1000 · Partner</small>
+                  <small>Gro · Partner</small>
                 </span>
               </div>
             ))}

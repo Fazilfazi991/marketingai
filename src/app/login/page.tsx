@@ -5,7 +5,7 @@ import { SignInButton } from "@/components/submit-button";
 import { Wordmark } from "@/components/public-site/chrome";
 import s from "@/components/public-site/public-site.module.css";
 export const metadata: Metadata = {
-  title: "Client Login | Gro",
+  title: "Client Login",
   description: "Sign in to your Gro Growth Agent workspace.",
   robots: { index: false, follow: false },
   icons: { icon: "/gro-icon.svg", apple: "/gro-apple-icon" },

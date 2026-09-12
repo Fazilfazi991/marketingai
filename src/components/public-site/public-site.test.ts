@@ -97,9 +97,11 @@ describe("Gro public domain configuration", () => {
     });
     const metadata = buildHomeMetadata(site);
 
-    expect(metadata.title).toBe("Gro | AI Growth Agent for Your Business");
-    expect(metadata.description).toBe(
-      "Get an AI-powered Growth Agent for your business. Gro helps with your website, Google visibility, customer conversations, social media and digital growth — backed by Fusion Ventures.",
+    expect(metadata.title).toEqual({
+      absolute: "Gro | AI Growth Agent for Your Business",
+    });
+    expect(metadata.description).toContain(
+      "backed by the Fusion Ventures team",
     );
     expect(metadata.alternates?.canonical).toBe(`${PRODUCTION_ORIGIN}/`);
     expect(metadata.openGraph?.url).toBe(`${PRODUCTION_ORIGIN}/`);
@@ -109,6 +111,14 @@ describe("Gro public domain configuration", () => {
       ]),
     );
     expect(metadata.robots).toEqual({ index: true, follow: true });
+    expect(buildRobots(site)).toEqual({
+      rules: {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/admin/", "/staff/", "/client/", "/api/", "/login"],
+      },
+      sitemap: `${PRODUCTION_ORIGIN}/sitemap.xml`,
+    });
   });
 
   it("uses APP_URL for the public-only sitemap and structured data", () => {
@@ -173,5 +183,16 @@ describe("Gro public domain configuration", () => {
     expect(clientSources).not.toMatch(
       /Growth1000|Marketing AI|Internal Growth Operating System/,
     );
+  });
+
+  it("preserves internal Growth1000 compatibility identifiers", () => {
+    const leadRoute = readFileSync("src/app/api/leads/route.ts", "utf8");
+    const workflow = readFileSync("n8n/DAILY_GOOGLE_SYNC.json", "utf8");
+
+    expect(leadRoute).toContain("x-growth1000-site");
+    expect(leadRoute).toContain("x-growth1000-site-key");
+    expect(workflow).toContain("GROWTH1000_APP_URL");
+    expect(workflow).toContain("GROWTH1000_WEBHOOK_SECRET");
+    expect(workflow).not.toContain("GROWTH1000_BASE_URL");
   });
 });

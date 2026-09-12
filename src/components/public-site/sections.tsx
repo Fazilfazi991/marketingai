@@ -140,8 +140,8 @@ const capabilities = [
   ],
   [
     MessageCircle,
-    "Talk to customers",
-    "Help answer questions through website chatbots, WhatsApp automation and enquiry support.",
+    "Organise customer conversations",
+    "Bring supported website enquiries and conversation workflows into a supervised request process.",
   ],
   [
     PenLine,
@@ -331,7 +331,7 @@ export function HowItWorks() {
           ],
           [
             "Your Growth Agent gets to work.",
-            "Gro monitors, finds opportunities, helps with conversations and prepares work, keeping you informed.",
+            "Gro brings verified signals together, highlights opportunities and prepares work for human review.",
           ],
         ].map(([title, copy], i) => (
           <li key={title}>
@@ -359,11 +359,14 @@ export function HumanBacked() {
           Human-backed.
         </h2>
         <p>
-          Gro can monitor, analyse, create and recommend at speed. When
-          important work needs review, implementation or judgement, the Fusion
+          Gro can analyse connected evidence, prepare work and recommend next
+          steps. When implementation or judgement is needed, the Fusion
           Ventures team is behind your Growth Agent.
         </p>
-        <p>You have a team to talk to, and a Growth Agent paying attention.</p>
+        <p>
+          You have a team to talk to, and a Growth Agent built around verified
+          information.
+        </p>
       </div>
       <div className={s.teamVisual}>
         <span>

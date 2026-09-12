@@ -196,7 +196,7 @@ function demoAdminClient(slug: string): AdminClientWorkspaceData {
     city: identity.location.split(",")[0],
     country: "UAE",
     profile: {
-      description: `${identity.name} is a demo client workspace used to preview Growth1000 operations.`,
+      description: `${identity.name} is a demo client workspace used to preview Gro operations.`,
       industry: slug === "abc-interiors" ? "Interior Design / Renovation" : "",
       services:
         slug === "abc-interiors"
@@ -447,7 +447,7 @@ function demoAdminClient(slug: string): AdminClientWorkspaceData {
         id: "demo-audit-3",
         action: "Monthly delivery generated",
         detail: "September 2026",
-        actor: "Growth1000",
+        actor: "Gro",
         createdAt: "1 Sep · 08:05",
       },
     ],
@@ -897,7 +897,7 @@ export async function loadAdminClient(
         actor =
           (Array.isArray(profile)
             ? profile[0]?.full_name
-            : profile?.full_name) ?? "Growth1000";
+            : profile?.full_name) ?? "Gro";
       return {
         id: String(item.id),
         action: titleCase(String(item.action).replaceAll(".", "_")),

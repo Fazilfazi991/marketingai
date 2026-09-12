@@ -111,7 +111,7 @@ export function AppShell({
           <span>
             <b>{roleLabel}</b>
             <small>
-              {role === "client" ? "Results dashboard" : "Growth1000"}
+              {role === "client" ? "Results dashboard" : "Gro"}
             </small>
           </span>
         </div>

@@ -7,7 +7,7 @@ export async function signIn(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim(),
     password = String(formData.get("password") ?? "");
   if (!email || !password)
-    redirect("/?error=Email%20and%20password%20are%20required");
+    redirect("/login?error=Email%20and%20password%20are%20required");
   let destination = "/",
     message = "";
   try {
@@ -45,14 +45,14 @@ export async function signIn(formData: FormData) {
           Boolean(clientMembership.data),
         );
         if (role) destination = homeForRole(role);
-        else message = "No active Growth1000 membership";
+        else message = "No active Gro membership";
       }
       if (message) await supabase.auth.signOut();
     }
   } catch {
     message = "Sign-in is temporarily unavailable. Please try again.";
   }
-  redirect(message ? `/?error=${encodeURIComponent(message)}` : destination);
+  redirect(message ? `/login?error=${encodeURIComponent(message)}` : destination);
 }
 export async function signOut() {
   const supabase = await createClient();

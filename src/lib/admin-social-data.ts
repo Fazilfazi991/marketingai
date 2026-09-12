@@ -153,7 +153,7 @@ export async function loadAdminSocial(): Promise<AdminSocialData> {
       issueNote: row.staff_note || "",
       status: labels[row.status] ?? "Idea",
       color: colors[index % colors.length],
-      history: ["Loaded from Growth1000 content records"],
+      history: ["Loaded from Gro content records"],
       imagePrompt: row.image_prompt || row.creative_brief || "",
       cta: row.cta || "",
       imageModel:

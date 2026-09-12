@@ -80,6 +80,8 @@ export function PublicFooter() {
         <a href="#what-gro-does">What Gro does</a>
         <a href="#contact">Contact</a>
         <Link href={publicClientLoginHref}>Client Login</Link>
+        <Link href="/privacy">Privacy</Link>
+        <Link href="/terms">Terms</Link>
       </nav>
       <div className={s.footerBottom}>
         <span>A Fusion Ventures service.</span>

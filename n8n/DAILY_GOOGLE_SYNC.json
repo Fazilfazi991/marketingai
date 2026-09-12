@@ -2,7 +2,7 @@
   "name": "Growth1000 — Daily Google Sync",
   "nodes": [
     {"parameters":{"rule":{"interval":[{"field":"days","daysInterval":1,"triggerAtHour":3}]}},"name":"Daily 03:00","type":"n8n-nodes-base.scheduleTrigger","typeVersion":1.2,"position":[0,0]},
-    {"parameters":{"method":"POST","url":"={{$env.GROWTH1000_BASE_URL + '/api/automations/google-sync'}}","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Growth1000-Key","value":"={{$env.GROWTH1000_WEBHOOK_SECRET}}"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={}"},"name":"Sync all active clients","type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[260,0]}
+    {"parameters":{"method":"POST","url":"={{$env.GROWTH1000_APP_URL + '/api/automations/google-sync'}}","sendHeaders":true,"headerParameters":{"parameters":[{"name":"X-Growth1000-Key","value":"={{$env.GROWTH1000_WEBHOOK_SECRET}}"}]},"sendBody":true,"specifyBody":"json","jsonBody":"={}"},"name":"Sync all active clients","type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[260,0]}
   ],
   "connections":{"Daily 03:00":{"main":[[{"node":"Sync all active clients","type":"main","index":0}]]}},
   "active": false,

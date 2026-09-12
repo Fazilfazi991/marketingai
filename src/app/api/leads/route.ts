@@ -3,24 +3,46 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { parseLeadIngestion } from "@/lib/leads/ingestion";
 import {
   matchesSiteSecret,
+  normalizeOrigin,
   obviousSpam,
   originMatches,
 } from "@/lib/leads/site-auth";
 
 export const runtime = "nodejs";
-const json = (body: Record<string, unknown>, status: number) =>
+const corsHeaders = (origin?: string | null) => ({
+  "Cache-Control": "no-store",
+  Vary: "Origin",
+  ...(origin ? { "Access-Control-Allow-Origin": origin } : {}),
+});
+const json = (
+  body: Record<string, unknown>,
+  status: number,
+  origin?: string | null,
+) =>
   Response.json(body, {
     status,
-    headers: {
-      "Cache-Control": "no-store",
-      "Access-Control-Allow-Origin": "*",
-    },
+    headers: corsHeaders(origin),
   });
-export function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
+  const requestOrigin = normalizeOrigin(request.headers.get("origin"));
+  if (!requestOrigin)
+    return new Response(null, { status: 400, headers: corsHeaders() });
+  const supabase = createAdminClient();
+  const { data: sites, error } = await supabase
+    .from("client_sites")
+    .select("origin")
+    .eq("status", "active");
+  if (error)
+    return new Response(null, { status: 500, headers: corsHeaders() });
+  const allowed = (sites ?? []).some((site) =>
+    originMatches(String(site.origin ?? ""), requestOrigin),
+  );
+  if (!allowed)
+    return new Response(null, { status: 403, headers: corsHeaders() });
   return new Response(null, {
     status: 204,
     headers: {
-      "Access-Control-Allow-Origin": "*",
+      ...corsHeaders(requestOrigin),
       "Access-Control-Allow-Headers":
         "content-type,x-growth1000-site,x-growth1000-site-key",
       "Access-Control-Allow-Methods": "POST,OPTIONS",
@@ -42,20 +64,23 @@ export async function POST(request: NextRequest) {
     .eq("site_identifier", siteIdentifier)
     .maybeSingle();
   if (siteError) return json({ error: "Unable to validate site" }, 500);
+  const requestOrigin = request.headers.get("origin");
+  const allowedOrigin = originMatches(site?.origin ?? null, requestOrigin)
+    ? normalizeOrigin(requestOrigin)
+    : null;
   if (
     !site ||
     site.status !== "active" ||
     !matchesSiteSecret(siteKey, String(site.secret_hash))
   )
-    return json({ error: "Unauthorized" }, 401);
-  const requestOrigin = request.headers.get("origin");
+    return json({ error: "Unauthorized" }, 401, allowedOrigin);
   if (!originMatches(site.origin, requestOrigin))
     return json({ error: "Origin not allowed" }, 403);
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return json({ error: "Invalid JSON" }, 400);
+    return json({ error: "Invalid JSON" }, 400, allowedOrigin);
   }
   const record =
     body && typeof body === "object" && !Array.isArray(body)
@@ -64,10 +89,10 @@ export async function POST(request: NextRequest) {
   if (obviousSpam(record))
     return typeof record.company_website === "string" &&
       record.company_website.trim()
-      ? json({ accepted: true }, 202)
-      : json({ error: "Message rejected" }, 400);
+      ? json({ accepted: true }, 202, allowedOrigin)
+      : json({ error: "Message rejected" }, 400, allowedOrigin);
   const parsed = parseLeadIngestion({ ...record, client_id: site.client_id });
-  if (!parsed.ok) return json({ error: parsed.error }, 400);
+  if (!parsed.ok) return json({ error: parsed.error }, 400, allowedOrigin);
   const lead = parsed.value,
     campaign =
       record.campaign &&
@@ -116,13 +141,14 @@ export async function POST(request: NextRequest) {
       .eq("external_id", lead.eventId)
       .maybeSingle();
     return existing
-      ? json({ id: existing.id, created: false }, 200)
-      : json({ error: "Unable to resolve duplicate" }, 500);
+      ? json({ id: existing.id, created: false }, 200, allowedOrigin)
+      : json({ error: "Unable to resolve duplicate" }, 500, allowedOrigin);
   }
-  if (error) return json({ error: "Unable to record lead" }, 500);
+  if (error)
+    return json({ error: "Unable to record lead" }, 500, allowedOrigin);
   await supabase
     .from("client_sites")
     .update({ last_lead_at: new Date().toISOString() })
     .eq("id", site.id);
-  return json({ id: data.id, created: true }, 201);
+  return json({ id: data.id, created: true }, 201, allowedOrigin);
 }

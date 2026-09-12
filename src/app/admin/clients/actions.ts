@@ -8,6 +8,7 @@ import {
 } from "@/lib/business-knowledge";
 import { createHash, randomBytes } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getPublicSite } from "@/components/public-site/site-config";
 
 export type MutationResult =
   | { ok: true; slug?: string }
@@ -389,7 +390,10 @@ export async function inviteClientUser(
     if (!user) {
       const { data, error } = await admin.auth.admin.inviteUserByEmail(
         normalized,
-        { data: { full_name: fullName.trim() || normalized.split("@")[0] } },
+        {
+          data: { full_name: fullName.trim() || normalized.split("@")[0] },
+          redirectTo: getPublicSite().loginUrl,
+        },
       );
       if (error) return { ok: false, error: error.message };
       user = data.user;

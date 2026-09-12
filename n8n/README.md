@@ -9,4 +9,4 @@ These workflows are generic. Never duplicate them per client.
 - `SEO_REVIEW(client_id, run_id)` loads tracked keyword and verified business context through Growth1000, creates evidence-linked SEO tasks, and stops at `awaiting_review`.
 - `MONTHLY_REPORT(client_id, month, run_id)` aggregates leads, traffic, search, content and delivery records, generates a grounded summary, and stops at `needs_review`.
 
-Before publishing, configure n8n variables `GROWTH1000_APP_URL` and `GROWTH1000_WEBHOOK_SECRET`. The app must use the same value for `N8N_API_KEY` and `N8N_WEBHOOK_SECRET`. Never publish a workflow until the webhook secret exists and a test execution completes successfully.
+Before publishing, configure n8n variables `GROWTH1000_APP_URL` and `GROWTH1000_WEBHOOK_SECRET`. `GROWTH1000_APP_URL` is the canonical internal workflow target for every n8n callback; the former `GROWTH1000_BASE_URL` name is deprecated. The app must use the same value for `N8N_API_KEY` and `N8N_WEBHOOK_SECRET`. Never publish a workflow until the webhook secret exists and a test execution completes successfully.

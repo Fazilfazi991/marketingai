@@ -9,7 +9,7 @@ export async function proxy(request: NextRequest) {
     key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key)
     return NextResponse.redirect(
-      new URL("/?error=Sign-in%20is%20temporarily%20unavailable", request.url),
+      new URL("/login?error=Sign-in%20is%20temporarily%20unavailable", request.url),
     );
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, {
@@ -36,7 +36,7 @@ export async function proxy(request: NextRequest) {
       supabase.auth.getClaims(),
     );
     const userId = data?.claims?.sub;
-    if (error || !userId) return go("/?error=Please%20sign%20in");
+    if (error || !userId) return go("/login?error=Please%20sign%20in");
     const [org, client] = await timed("proxy.membership", () =>
       Promise.all([
         supabase
@@ -56,16 +56,16 @@ export async function proxy(request: NextRequest) {
     );
     if (org.error || client.error)
       return go(
-        "/?error=Workspace%20temporarily%20unavailable.%20Please%20try%20again.",
+        "/login?error=Workspace%20temporarily%20unavailable.%20Please%20try%20again.",
       );
     const role = resolveAppRole(org.data?.role, Boolean(client.data));
-    if (!role) return go("/?error=No%20active%20Growth1000%20membership");
+    if (!role) return go("/login?error=No%20active%20Gro%20membership");
     if (!canOpenPath(role, request.nextUrl.pathname))
       return go(homeForRole(role));
     response.headers.set("Cache-Control", "private, no-store");
     return response;
   } catch {
-    return go("/?error=Sign-in%20check%20timed%20out.%20Please%20try%20again.");
+    return go("/login?error=Sign-in%20check%20timed%20out.%20Please%20try%20again.");
   }
 }
 export const config = {

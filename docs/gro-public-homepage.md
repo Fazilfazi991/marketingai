@@ -16,16 +16,16 @@ Primary buttons lead to the contact section; the final button opens WhatsApp at 
 ## Exact SEO and conversion copy
 
 - Title: Gro | AI Growth Agent for Your Business
-- Description: Get an AI-powered Growth Agent for your business. Gro helps with your website, Google visibility, customer conversations, social media and digital growth — backed by Fusion Ventures.
+- Description: Your dedicated Growth Agent for clearer website, Google and analytics priorities, backed by the Fusion Ventures team.
 - H1: Get a Growth Agent for your business.
 - Main CTA: Get My Growth Agent
-- Canonical: `https://gro.expert/` when Production has `APP_URL=https://gro.expert`.
-- Open Graph URL: `https://gro.expert/` in that Production configuration.
-- OG/Twitter large-image metadata uses the absolute `APP_URL` origin and the rendered 1200x630 branded image.
+- Canonical: `https://gro.expert/` in every environment; Preview never emits its host as canonical.
+- Open Graph URL: `https://gro.expert/`.
+- OG/Twitter large-image metadata uses the absolute canonical Production origin and the rendered 1200x630 branded image.
 - Organization and WebSite JSON-LD use the canonical homepage URL and include only supplied factual brand/company names.
 - Production indexing is allowed only when both `VERCEL_ENV=production` and `APP_URL=https://gro.expert`. Preview and localhost remain `noindex, nofollow`; their robots response disallows crawling.
 - Preview metadata keeps the intended `https://gro.expert/` canonical and never publishes the Vercel Preview hostname; Preview application links may still use an explicit Preview `APP_URL`.
-- The sitemap uses `APP_URL` and includes only the homepage. Login remains `noindex, nofollow` and private application routes are excluded.
+- The sitemap is empty outside explicit Production. In Production it uses `https://gro.expert/` and includes only the homepage. Login remains `noindex, nofollow` and private application routes are excluded.
 
 ## Domain readiness
 
@@ -33,33 +33,33 @@ Primary buttons lead to the contact section; the final button opens WhatsApp at 
 - Current Production behavior remains `gro.expert` → `www.gro.expert`, where the old Production application is served.
 - Future intended behavior is `www.gro.expert` → `gro.expert`, with `https://gro.expert/` as canonical.
 - This repository pass does not change Vercel domains, DNS, TLS, redirects, Production environment variables, or deploy Production.
-- `APP_URL` is the canonical server-side public application URL. Set it to `https://gro.expert` in Production. Local development safely falls back to `http://localhost:3000`.
+- `APP_URL` is the server-side runtime application origin used for absolute login/invitation links and Production indexability gating. Set it to `https://gro.expert` in Production; Preview uses its stable branch URL. Local development safely falls back to `http://127.0.0.1:3000`. SEO canonical URLs remain fixed to the approved Production origin.
 
 ## Auth boundary
 
-/login presents the existing email/password form and imports the existing signIn server action unchanged. Existing /?error= redirects are forwarded to /login?error= by the public root, preserving failed-sign-in and protected-route entry behavior. Public error text is generic to avoid exposing internal wording. No changes to proxy, auth actions, role routing, Supabase, internal components, integrations, or environment variables. Authenticated sign-in was not tested with a real account.
+`/login` presents the existing email/password form and sign-in action. Existing `/?error=` redirects are forwarded to `/login?error=`, and protected-route/auth failures now land on `/login`. Admin invitations use the exact `APP_URL` login URL. No hosted Supabase Auth settings were changed.
 
 ## Validation
 
-- pnpm typecheck: passed.
-- pnpm lint: passed; targeted lint also passed after formatting.
-- pnpm build: final build passed including TypeScript and all existing route compilation, without metadata warning.
-- Actual browser QA against production build on port 3002: 390, 430, 768, 1440 widths; no horizontal overflow, correct title/H1, no broken anchor targets. Screenshots reviewed.
-- Mobile menu opens; login and legacy error redirect load the existing form; social/Apple images and robots/sitemap endpoints respond.
-- No customer messages sent or live database submissions performed.
-- A shell quoting error created two scratch files that caused a transient Turbopack glob failure. Those files were removed and final build passed. Existing shared dev process was not restarted.
+- `pnpm typecheck`: passed.
+- `pnpm lint`: passed.
+- `pnpm test`: 375/375 passed, including public metadata, OAuth callback, lead CORS, and tenant-binding regressions.
+- `pnpm build`: passed with Next.js 16.3.4, including `/privacy`, `/terms`, `/robots.txt`, and `/sitemap.xml`.
+- Local production-server smoke: homepage and login returned 200; title was exact; canonical was `https://gro.expert`; non-production robots metadata was `noindex, nofollow`; robots disallowed all; sitemap was empty; no legacy public brand or stale Vercel host appeared.
+- `git diff --check`: passed.
+- No customer messages or live lead submissions were made.
 
 ## Integration readiness and boundaries
 
 - Google OAuth already requires an explicit exact `GOOGLE_OAUTH_REDIRECT_URI` and accepts HTTPS callbacks at `/api/integrations/google/callback`. Future Production configuration must use `https://gro.expert/api/integrations/google/callback`. The QA OAuth client and callbacks were not changed.
 - Hosted Supabase configuration was not changed. Future Production Site URL: `https://gro.expert`; relevant allowed redirects must use exact Gro URLs.
-- `/api/leads` is a cross-origin ingestion endpoint for configured client websites, not the Gro homepage enquiry action. It requires site identity/key headers and validates each stored client-site origin before accepting data. Its wildcard CORS response was preserved because restricting it to the Gro origin would break that purpose; the homepage continues to use WhatsApp/email and no lead backend was changed.
-- `APP_URL` is the public canonical URL. Existing n8n `GROWTH1000_APP_URL` remains the internal workflow target and `N8N_BASE_URL` remains the app's outbound n8n host. They serve different directions, so neither was renamed.
+- `/api/leads` is a cross-origin ingestion endpoint for configured client websites, not the Gro homepage enquiry action. It requires site identity/key headers, emits CORS only for an exact active `client_sites.origin`, rejects arbitrary browser origins, and preserves authenticated server-to-server requests without an `Access-Control-Allow-Origin` header.
+- `GROWTH1000_APP_URL` is the normalized internal n8n callback target. `GROWTH1000_BASE_URL` is no longer used by the daily Google workflow. `N8N_BASE_URL` remains the app's outbound n8n host, and webhook/header compatibility names remain unchanged.
 - Public and client-facing copy now uses Gro, Your Growth Agent, or Fusion Ventures. Internal protocol headers, environment variables, database identifiers, audit files, and admin/staff operational wording retain Growth1000 where required.
 
 ## Remaining launch dependencies
 
-- **LEGAL CONTENT REQUIRED:** approved Privacy Policy and Terms content/routes do not exist. No generic legal text or broken footer links were added.
+- **LEGAL CONTENT REQUIRED:** public `/privacy` and `/terms` route structure exists with factual status/contact copy, but approved legal content is still required before Production OAuth verification.
 - Configure and verify the Production OAuth client and consent flow.
 - Set Production Supabase Site URL and exact redirect allowlist for Gro.
 - Set and verify Production Vercel environment values, including `APP_URL=https://gro.expert`.

@@ -8,6 +8,7 @@ import "./agent-workspace.css";
 import "./today-dashboard.css";
 import "./agent-conversation.css";
 import { PerformanceObserverClient } from "@/components/performance-observer";
+import { publicSite } from "@/components/public-site/site-config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,8 +21,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Growth1000 — Digital growth operations",
-  description: "Operate client growth work and report measurable results.",
+  metadataBase: new URL(publicSite.origin),
+  title: {
+    default: "Gro — Your dedicated Growth Agent",
+    template: "%s | Gro",
+  },
+  description:
+    "Gro brings verified website, Google and analytics signals into one supervised Growth Agent workspace.",
+  icons: { icon: "/gro-icon.svg", apple: "/gro-apple-icon" },
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

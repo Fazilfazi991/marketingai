@@ -7,7 +7,7 @@ type Site = SiteIdentity & Pick<typeof publicSite, "title" | "description">;
 export function buildHomeMetadata(site: Site = publicSite): Metadata {
   return {
     metadataBase: new URL(site.origin),
-    title: site.title,
+    title: { absolute: site.title },
     description: site.description,
     alternates: { canonical: site.homepageUrl },
     openGraph: {

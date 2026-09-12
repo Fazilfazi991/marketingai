@@ -861,7 +861,7 @@ export function ClientWorkspace({
       <div className="workspace-layout">
         <Panel
           title="Website"
-          meta="Growth1000 tracks access and authorized maintenance work only"
+          meta="Gro tracks access and authorized maintenance work only"
         >
           <div className="panel-body">
             <div className="task-item">
