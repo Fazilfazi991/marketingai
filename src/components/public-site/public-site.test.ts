@@ -200,6 +200,13 @@ describe("Gro public domain configuration", () => {
     expect(legalSources).not.toMatch(
       /Growth1000|Marketing AI|Internal Growth Operating System/,
     );
+    const legalPage = readFileSync(
+      "src/components/public-site/legal-page.tsx",
+      "utf8",
+    );
+    expect(legalPage).toContain("Preview draft.");
+    expect(legalPage).toContain("Legal approval required");
+    expect(legalPage).not.toContain("<dt>Effective</dt>");
   });
 
   it("does not restore stale Vercel metadata fallbacks or public legacy branding", () => {

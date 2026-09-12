@@ -28,9 +28,17 @@ export function LegalPage({
           </p>
           <h1>{title}</h1>
           <p className={s.legalLead}>{introduction}</p>
+          <p className={s.legalLead} role="note">
+            <strong>Preview draft.</strong> This content requires legal review
+            and approval before Production use.
+          </p>
           <dl className={s.legalDates}>
             <div>
-              <dt>Effective</dt>
+              <dt>Status</dt>
+              <dd>Legal approval required</dd>
+            </div>
+            <div>
+              <dt>Draft dated</dt>
               <dd>{LEGAL_EFFECTIVE_DATE}</dd>
             </div>
             <div>
