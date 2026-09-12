@@ -7,6 +7,7 @@ import {
   type AgentWorkspace,
 } from "@/lib/agent-workflow";
 import { RequestDetail } from "./agent-conversation";
+import { agentDate, agentTime } from "@/lib/agent-date";
 export function AgentInbox({ initial }: { initial: AgentWorkspace }) {
   const [data, setData] = useState(initial),
     [selected, setSelected] = useState(initial.topics[0]?.id ?? "");
@@ -179,7 +180,7 @@ export function AgentInbox({ initial }: { initial: AgentWorkspace }) {
           <section className="agent-inbox-detail">
             <p className="agent-meta">
               {topic.clientName} ·{" "}
-              {new Date(topic.created_at).toLocaleDateString("en-GB")}
+              {agentDate(topic.created_at)}
             </p>
             {request ? (
               <RequestDetail request={request} data={data} />
@@ -269,7 +270,7 @@ export function AgentInbox({ initial }: { initial: AgentWorkspace }) {
                             : "Workspace receipt"}
                       </strong>
                       <time dateTime={m.created_at}>
-                        {new Date(m.created_at).toLocaleString("en-GB")}
+                        {agentTime(m.created_at)}
                       </time>
                     </div>
                     <p>{m.body}</p>

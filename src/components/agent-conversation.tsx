@@ -8,6 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { WorkflowNotificationFeed } from "./client-notifications";
+import { agentDate, agentTime } from "@/lib/agent-date";
 import {
   agentPrompts,
   statusLabel,
@@ -32,7 +33,7 @@ export function RequestDetail({
       </div>
       <p className="agent-original">{request.description}</p>
       <p className="agent-meta">
-        Created {new Date(request.created_at).toLocaleDateString("en-GB")}
+        Created {agentDate(request.created_at)}
       </p>
       <h3>Progress</h3>
       <ol className="agent-history">
@@ -42,7 +43,7 @@ export function RequestDetail({
             <li key={e.id}>
               <span>{statusLabel(e.status)}</span>
               <time dateTime={e.created_at}>
-                {new Date(e.created_at).toLocaleDateString("en-GB")}
+                {agentDate(e.created_at)}
               </time>
               <p>{e.body}</p>
             </li>
@@ -281,12 +282,7 @@ export function AgentConversation({ initial }: { initial: AgentWorkspace }) {
                             : "Workspace receipt"}
                       </strong>
                       <time dateTime={message.created_at}>
-                        {new Date(message.created_at).toLocaleString("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {agentTime(message.created_at, true)}
                       </time>
                     </div>
                     <p>{message.body}</p>
