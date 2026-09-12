@@ -1,11 +1,5 @@
-import { loadClientResults } from "@/lib/client-results";
+import { loadAgentWorkspace } from "@/lib/agent-data";
 import { AgentConversation } from "@/components/agent-conversation";
-export default async function Agent({
-  searchParams,
-}: {
-  searchParams: Promise<{ range?: string; from?: string; to?: string }>;
-}) {
-  return (
-    <AgentConversation data={await loadClientResults(await searchParams)} />
-  );
+export default async function Agent() {
+  return <AgentConversation initial={await loadAgentWorkspace()} />;
 }

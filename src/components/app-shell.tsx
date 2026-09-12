@@ -24,11 +24,13 @@ import {
 import { useState } from "react";
 import { Brand } from "./brand";
 import { signOut } from "@/app/auth/actions";
+import { isDemoMode } from "@/lib/demo-mode";
 const nav = {
   admin: [
     ["Overview", "/admin", LayoutDashboard],
     ["Clients", "/admin/clients", Building2],
     ["Tasks", "/admin/tasks", ClipboardCheck],
+    ["Client requests", "/staff/requests", ClipboardCheck],
     ["Content", "/admin/content", CalendarCheck2],
     ["Blogs", "/admin/blogs", BookOpenText],
     ["Approvals", "/admin/approvals", WandSparkles],
@@ -41,6 +43,7 @@ const nav = {
   ],
   staff: [
     ["Posting queue", "/staff", CalendarCheck2],
+    ["Client requests", "/staff/requests", ClipboardCheck],
     ["Issues", "/staff/issues", ClipboardCheck],
   ],
   client: [
@@ -65,7 +68,13 @@ export function AppShell({
 }) {
   const pathname = usePathname(),
     [open, setOpen] = useState(false),
-    demo = process.env.NODE_ENV === "development";
+    demo = isDemoMode({
+      NODE_ENV: process.env.NODE_ENV,
+      NEXT_PUBLIC_DEMO_MODE: process.env.NEXT_PUBLIC_DEMO_MODE,
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    });
   const roleLabel =
       role === "admin"
         ? "Partner workspace"

@@ -1,7 +1,7 @@
 import type { AIProvider, GenerationContext } from "./provider";
 
 export type BlogCandidate = { keyword: string; intent?: string | null };
-export type PreparedBlog = { topic: string; targetKeyword: string; brief: string; body: string; seoMetadata: { intent: string; title: string; description: string } };
+export type PreparedBlog = { topic: string; targetKeyword: string; brief: string; body: string; seoMetadata: { intent: string; title: string; description: string };cta:string;featuredImagePrompt:string;structuredDataRecommendation:string };
 
 const titleFor = (keyword: string) => `A practical guide to ${keyword}`.replace(/\b\w/g, letter => letter.toUpperCase());
 const descriptionFrom = (body: string) => {
@@ -24,7 +24,7 @@ export async function prepareMonthlyBlogs(provider: AIProvider, context: Generat
     if (!brief.data.trim() || !draft.data.trim()) throw new Error(`Provider returned incomplete blog content for ${candidate.keyword}`);
     providerName = draft.provider; model = draft.model;
     estimatedCost += (brief.usage?.estimatedCost ?? 0) + (draft.usage?.estimatedCost ?? 0);
-    blogs.push({ topic, targetKeyword: candidate.keyword, brief: brief.data, body: draft.data, seoMetadata: { intent: candidate.intent || "Informational", title: topic.slice(0, 60), description: descriptionFrom(draft.data) } });
+    blogs.push({ topic, targetKeyword: candidate.keyword, brief: brief.data, body: draft.data, seoMetadata: { intent: candidate.intent || "Informational", title: topic.slice(0, 60), description: descriptionFrom(draft.data) },cta:context.offers[0]||"Contact the team to discuss your requirements.",featuredImagePrompt:`Create an editorial featured image for “${topic}”. Reflect the verified service context without logos, text, prices, awards, testimonials or unverified claims.`,structuredDataRecommendation:"Article structured data; include FAQPage only when the final reviewed article contains genuine FAQs." });
   }
   return { blogs, provider: providerName, model, estimatedCost };
 }

@@ -107,7 +107,9 @@ components:
 
 Matte white panels, slate text, restrained blue actions, and generous grouping make the client workspace calm and readable in everyday daylight. The voice is human, concise, and trustworthy; evidence and availability labels carry meaning without decorative AI effects.
 
-This documents the implemented client shell and Today screen, sourced from `src/app/agent-workspace.css`, `src/app/today-dashboard.css`, `src/components/agent-shell.tsx`, `src/components/agent-today.tsx`, and `src/components/today-dashboard-controls.tsx`. Today now uses a compact operating dashboard with restrained purple agent emphasis within the accepted Client Dossier identity. It is not a replacement specification for the entire application. Legacy Results and the embedded assistant retain their older visual systems; admin, staff, and public surfaces are outside this document's authority. Shared brand and notification components are retained integrations, not newly standardized primitives.
+This documents the implemented client shell and Today screen, sourced from `src/app/agent-workspace.css`, `src/app/today-dashboard.css`, `src/components/agent-shell.tsx`, `src/components/agent-today.tsx`, and `src/components/today-dashboard-controls.tsx`. Today now uses a compact operating dashboard with restrained purple agent emphasis within the accepted Client Dossier identity. It is not a replacement specification for the entire application. Legacy Results, unrelated admin/staff surfaces, and public surfaces remain outside this document's authority. Shared brand and notification components are retained integrations, not newly standardized primitives.
+
+Phase 2 adds the code-first Ask Agent conversation and request workflow within this pinned identity, sourced from `src/app/agent-conversation.css`, `src/components/agent-conversation.tsx`, and `src/components/agent-inbox.tsx`. Ask Agent now uses its own message ledger and composer, replacing the embedded assistant on this route. Only the related staff request inbox is included in this extension. This records implemented design, not approval of the full milestone: browser QA covers read-only demo empty states; signed-in persistence, populated states, slow/offline behavior, and real mobile keyboard QA remain behind the separate development gate in `docs/growth-agent-phase-2.md`.
 
 **Key Characteristics:**
 
@@ -145,6 +147,8 @@ At 1100px and below, Today uses 2×2 KPIs and a single ordered stack: agent brie
 
 The More surface is anchored 16px from the right and 84px from the bottom, with width `min(360px, calc(100vw - 32px))`. Its existing implementation is a navigation section, not a modal dialog.
 
+Ask Agent uses a compact identity header, Conversation/Requests switch, independently scrolling ledger, and a non-shrinking composer with safe-area bottom padding. Message text is capped at 75ch. The mobile composer keeps a 16px text input and 44px send target. Visual-viewport handling adjusts workspace height and hides bottom navigation when a keyboard is detected; physical-device keyboard behavior remains unverified.
+
 ## Elevation & Depth
 
 The documented shell and Today surfaces have no shadows. White paper, cool canvas, thin borders, and spacing establish depth. Mobile navigation uses stacking level 50, More uses 60, and the focused skip link uses 100. No decorative entrance animation is specified or implemented by the Dossier stylesheet.
@@ -173,7 +177,15 @@ Desktop links have a 48px minimum height, 12px icon gap, and pale-blue active/ho
 
 ### Secondary content
 
-Today uses bordered cards for results, prepared actions, conversations, and activity. Results show selected-period totals and enquiry comparison only when a baseline exists. Prepared actions explicitly say recommendations are unavailable; there are no approval controls. Conversation numbers are attributed enquiries, with unavailable threads and insights stated nearby. Agent activity states that the feed is unavailable; any published work is separately labeled team-reported. Ask Agent embeds the existing assistant styling with placement adjustments; Results retains its existing presentation.
+Today uses bordered cards for results, prepared actions, conversations, and activity. Results show selected-period totals and enquiry comparison only when a baseline exists. Prepared actions explicitly say recommendations are unavailable; there are no approval controls. Conversation numbers are attributed enquiries, with unavailable threads and insights stated nearby. Agent activity states that the feed is unavailable; any published work is separately labeled team-reported. Results retains its existing presentation.
+
+### Ask Agent conversation and requests
+
+The two view controls are grouped buttons with `aria-pressed`, a blue active underline, and 44px minimum height. Empty-state suggestions populate and focus the composer without sending. The plain message ledger identifies You, Your growth team, and Workspace receipt with dates. Saved request receipts use a pale purple surface, 12px corners, and 16px padding; selecting one opens its request title, status, original message, and progress history. Mobile receipts stack their contents. Follow-ups explicitly select a topic and show removable reply context.
+
+The white bordered composer has 12px corners, a visible label, and a blue send action. Its 12px footer reads “Messages are saved after you send. Your team reviews requests before work begins.” Sending disables editing and submission, while failures preserve the in-memory draft for retry; unsent drafts are not described as saved. Save and refresh feedback use a live status, errors use an alert, and read-only demo or unavailable service states disable sending. Focus uses a 2px blue outline with 3px offset. Button background transitions last 150ms and are removed for reduced motion. These are restrained functional states, with no autonomous execution implied.
+
+The related staff inbox uses client/request search, status filtering, selected conversation rows, and explicit reply versus staff-only internal-note controls. Ownership controls are admin-only. Its reuse of this extension does not standardize unrelated staff or admin pages.
 
 ### Performance and period controls
 
@@ -183,10 +195,10 @@ Growth Overview has local Traffic, Google, and Enquiries buttons with `aria-pres
 
 ## Do's and Don'ts
 
-- Do preserve the scoped client shell and Today authority of this document.
+- Do preserve the scoped client shell, Today, and Phase 2 Ask Agent/request inbox authority of this document.
 - Do use the blue accent for actionable links, navigation state, and visible keyboard focus.
 - Do keep limitations and missing records readable beside the relevant content.
 - Do preserve mobile bottom clearance and usable control heights.
-- Don't imply scans, persisted requests, approvals, or configured identity that Phase 1 does not implement.
-- Don't spread this specification into legacy Results, the embedded assistant, admin, staff, or public surfaces without a separate migration decision.
+- Don't imply scans, approvals, autonomous execution, or configured identity that the documented surfaces do not implement; Phase 2 request persistence still requires signed-in development QA.
+- Don't spread this specification into legacy Results, unrelated admin/staff pages, or public surfaces without a separate migration decision.
 - Don't add glowing AI effects or decorative entrance animations to the chosen Client Dossier world.

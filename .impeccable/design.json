@@ -1,10 +1,16 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-11T09:46:42.629Z",
+  "generatedAt": "2026-09-11T21:17:17.482Z",
   "title": "Design System: Growth1000 Client Dossier",
   "extensions": {
     "shadows": [],
-    "motion": [],
+    "motion": [
+      {
+        "name": "agent-control-feedback",
+        "value": "background-color 150ms ease-out",
+        "purpose": "Ask Agent and request inbox buttons only; disabled under prefers-reduced-motion: reduce."
+      }
+    ],
     "breakpoints": [
       {
         "name": "mobile",
@@ -62,11 +68,32 @@
       "description": "Prepared actions and activity distinguish unavailable features from an empty completed queue.",
       "html": "<section class=\"ds-empty\"><h2>Actions prepared for you</h2><h3>Your next actions will appear here</h3><p>Prepared recommendations are not available in this workspace yet. Talk to your agent about what you’d like to improve.</p><a href=\"#agent\">Discuss an improvement</a></section>",
       "css": ".ds-empty{background:white;border:1px solid #e0e5ec;border-radius:14px;padding:22px;font:13px Geist,sans-serif;color:#202b39}.ds-empty h2{font-size:18px;font-weight:600;margin:0;letter-spacing:-.02em}.ds-empty h3{font-size:15px;margin-top:28px}.ds-empty p{color:#536173;line-height:1.6;max-width:60ch}.ds-empty a{display:inline-flex;align-items:center;min-height:44px;color:#345c93;font-size:12px;text-underline-offset:4px}.ds-empty a:hover{text-decoration:underline}.ds-empty a:focus-visible{outline:2px solid #345c93;outline-offset:4px}@media(max-width:760px){.ds-empty{padding:18px}}"
+    },
+    {
+      "name": "Ask Agent view switch",
+      "kind": "nav",
+      "description": "Conversation and Requests are grouped pressed-state buttons, not ARIA tabs; demo empty-state browser QA only.",
+      "html": "<div class=\"ds-agent-views\" role=\"group\" aria-label=\"Workspace view\"><button aria-pressed=\"true\">Conversation</button><button aria-pressed=\"false\">Requests</button></div>",
+      "css": ".ds-agent-views{display:flex;gap:24px;border-bottom:1px solid #dce3ec}.ds-agent-views button{padding:10px 0;min-height:44px;border:0;border-bottom:2px solid transparent;background:none;color:#536173;font:14px Geist,sans-serif;cursor:pointer}.ds-agent-views button[aria-pressed=\"true\"]{border-bottom-color:#345c93;color:#284b7b;font-weight:600}.ds-agent-views button:hover{color:#284b7b}.ds-agent-views button:focus-visible{outline:2px solid #345c93;outline-offset:3px}"
+    },
+    {
+      "name": "Ask Agent request receipt",
+      "kind": "button",
+      "description": "Saved receipt opens request status and progress history. Illustrative label below is not live evidence; signed-in populated-state QA remains pending.",
+      "html": "<button class=\"ds-receipt\"><span><strong>Example work request</strong><small>Received</small></span><span>View request</span></button>",
+      "css": ".ds-receipt{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;text-align:left;background:#f0edf8;border:1px solid #ded8ee;border-radius:12px;padding:16px;color:#4e427c;font:12px Geist,sans-serif;cursor:pointer;transition:background-color 150ms ease-out}.ds-receipt strong{display:block;font-size:14px;font-weight:600}.ds-receipt small{display:block;margin-top:5px}.ds-receipt:focus-visible{outline:2px solid #345c93;outline-offset:3px}@media(max-width:760px){.ds-receipt{flex-direction:column;align-items:flex-start;gap:10px}}@media(prefers-reduced-motion:reduce){.ds-receipt{transition:none}}"
+    },
+    {
+      "name": "Ask Agent composer",
+      "kind": "input",
+      "description": "Labeled composer with explicit post-send saving language and 12px footer. Sending locks editing; failures preserve an in-memory draft. Live persistence and physical keyboard QA remain pending.",
+      "html": "<div class=\"ds-composer\"><label for=\"ds-message\">Message your growth team</label><div><textarea id=\"ds-message\" rows=\"2\" maxlength=\"4000\" placeholder=\"What would you like to work on?\"></textarea><button disabled>Send</button></div><p>Messages are saved after you send. Your team reviews requests before work begins.</p></div>",
+      "css": ".ds-composer{background:#fff;border:1px solid #dce3ec;border-radius:12px;padding:12px 16px calc(10px + env(safe-area-inset-bottom));font-family:Geist,sans-serif;color:#202b39}.ds-composer label{font-size:12px;font-weight:600}.ds-composer>div{display:flex;align-items:flex-end;gap:12px;margin-top:6px}.ds-composer textarea{resize:none;flex:1;min-width:0;border:0;background:#fff;font:16px/1.5 Geist,sans-serif;color:#202b39;caret-color:#345c93}.ds-composer textarea::placeholder{color:#627084}.ds-composer button{min-height:44px;border:0;border-radius:9px;background:#345c93;color:#fff;padding:10px 16px;font:13px Geist,sans-serif;transition:background-color 150ms ease-out}.ds-composer button:hover:not(:disabled){background:#284b7b}.ds-composer button:disabled{cursor:not-allowed;opacity:.55}.ds-composer :is(textarea,button):focus-visible{outline:2px solid #345c93;outline-offset:3px}.ds-composer>p{font-size:12px;color:#536173;margin:8px 0 0}@media(max-width:760px){.ds-composer{padding:10px 12px calc(8px + env(safe-area-inset-bottom))}.ds-composer>div{gap:8px}}@media(prefers-reduced-motion:reduce){.ds-composer button{transition:none}}"
     }
   ],
   "narrative": {
     "northStar": "Client Dossier",
-    "overview": "Matte white panels, slate text, restrained blue actions, and generous grouping make the client workspace calm and readable in everyday daylight. The voice is human, concise, and trustworthy; evidence and availability labels carry meaning without decorative AI effects.\n\nThis documents the implemented client shell and Today screen, sourced from `src/app/agent-workspace.css`, `src/app/today-dashboard.css`, `src/components/agent-shell.tsx`, `src/components/agent-today.tsx`, and `src/components/today-dashboard-controls.tsx`. Today now uses a compact operating dashboard with restrained purple agent emphasis within the accepted Client Dossier identity. It is not a replacement specification for the entire application. Legacy Results and the embedded assistant retain their older visual systems; admin, staff, and public surfaces are outside this document's authority. Shared brand and notification components are retained integrations, not newly standardized primitives.",
+    "overview": "Matte white panels, slate text, restrained blue actions, and generous grouping make the client workspace calm and readable in everyday daylight. The voice is human, concise, and trustworthy; evidence and availability labels carry meaning without decorative AI effects.\n\nThis documents the implemented client shell and Today screen, sourced from `src/app/agent-workspace.css`, `src/app/today-dashboard.css`, `src/components/agent-shell.tsx`, `src/components/agent-today.tsx`, and `src/components/today-dashboard-controls.tsx`. Today now uses a compact operating dashboard with restrained purple agent emphasis within the accepted Client Dossier identity. It is not a replacement specification for the entire application. Legacy Results, unrelated admin/staff surfaces, and public surfaces remain outside this document's authority. Shared brand and notification components are retained integrations, not newly standardized primitives.\n\nPhase 2 adds the code-first Ask Agent conversation and request workflow within this pinned identity, sourced from `src/app/agent-conversation.css`, `src/components/agent-conversation.tsx`, and `src/components/agent-inbox.tsx`. Ask Agent now uses its own message ledger and composer, replacing the embedded assistant on this route. Only the related staff request inbox is included in this extension. This records implemented design, not approval of the full milestone: browser QA covers read-only demo empty states; signed-in persistence, populated states, slow/offline behavior, and real mobile keyboard QA remain behind the separate development gate in `docs/growth-agent-phase-2.md`.",
     "keyCharacteristics": [
       "Matte surfaces and subtle borders.",
       "Restrained blue for actions and navigation state.",
@@ -76,14 +103,14 @@
     ],
     "rules": [],
     "dos": [
-      "Do preserve the scoped client shell and Today authority of this document.",
+      "Do preserve the scoped client shell, Today, and Phase 2 Ask Agent/request inbox authority of this document.",
       "Do use the blue accent for actionable links, navigation state, and visible keyboard focus.",
       "Do keep limitations and missing records readable beside the relevant content.",
       "Do preserve mobile bottom clearance and usable control heights."
     ],
     "donts": [
-      "Don't imply scans, persisted requests, approvals, or configured identity that Phase 1 does not implement.",
-      "Don't spread this specification into legacy Results, the embedded assistant, admin, staff, or public surfaces without a separate migration decision.",
+      "Don't imply scans, approvals, autonomous execution, or configured identity that the documented surfaces do not implement; Phase 2 request persistence still requires signed-in development QA.",
+      "Don't spread this specification into legacy Results, unrelated admin/staff pages, or public surfaces without a separate migration decision.",
       "Don't add glowing AI effects or decorative entrance animations to the chosen Client Dossier world."
     ]
   }

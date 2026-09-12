@@ -91,6 +91,29 @@ export function NotificationFeed({ data }: { data: ClientResultsData }) {
   }, [data, setFeed]);
   return null;
 }
+export function WorkflowNotificationFeed({
+  scope,
+  notices,
+}: {
+  scope: string;
+  notices: { id: string; title: string }[];
+}) {
+  const setFeed = useContext(NotificationContext)?.setFeed;
+  useEffect(() => {
+    if (!scope || !setFeed) return;
+    setFeed({
+      scope,
+      items: notices.map((n) => ({
+        ...n,
+        href: "/client/agent",
+        source: "requests",
+      })),
+      unavailable: false,
+      loaded: ["requests"],
+    });
+  }, [scope, notices, setFeed]);
+  return null;
+}
 export function ClientNotifications() {
   const context = useContext(NotificationContext);
   const [open, setOpen] = useState(false);

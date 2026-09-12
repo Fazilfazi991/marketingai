@@ -52,4 +52,13 @@ describe("Supabase migration security",()=>{
     expect(transitionRepair).toContain("old.status = 'scheduled' and new.status in ('published', 'issue')");
     expect(transitionRepair).toContain("revoke all on function private.enforce_social_transition() from public, anon, authenticated");
   });
+  it("keeps Goal 3B inventory and review data admin-only and tenant-scoped",()=>{
+    const goal3b=readFileSync(join(migrationsDir,"20260909152843_goal_3b_seo_blog_factory.sql"),"utf8").toLowerCase();
+    expect(goal3b).toContain("alter table public.website_inventory_runs enable row level security");
+    expect(goal3b).toContain("alter table public.seo_reviews enable row level security");
+    expect(goal3b).toContain("private.is_org_admin(c.organization_id)");
+    expect(goal3b).toContain("revoke all on public.website_inventory_runs,public.seo_reviews from anon");
+    expect(goal3b).not.toContain("create policy \"clients");
+    expect(goal3b).toContain("ready_for_codex");
+  });
 });
