@@ -117,6 +117,31 @@ export function buildSitemap(
       priority: 1,
     },
     {
+      url: `${site.origin}/how-it-works`,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${site.origin}/what-gro-does`,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${site.origin}/about`,
+      changeFrequency: "yearly",
+      priority: 0.6,
+    },
+    {
+      url: `${site.origin}/for-businesses`,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${site.origin}/contact`,
+      changeFrequency: "yearly",
+      priority: 0.7,
+    },
+    {
       url: `${site.origin}/privacy`,
       changeFrequency: "yearly",
       priority: 0.3,

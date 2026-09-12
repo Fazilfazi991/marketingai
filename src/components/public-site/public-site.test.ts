@@ -132,6 +132,11 @@ describe("Gro public domain configuration", () => {
 
     expect(sitemap.map((entry) => entry.url)).toEqual([
       `${PRODUCTION_ORIGIN}/`,
+      `${PRODUCTION_ORIGIN}/how-it-works`,
+      `${PRODUCTION_ORIGIN}/what-gro-does`,
+      `${PRODUCTION_ORIGIN}/about`,
+      `${PRODUCTION_ORIGIN}/for-businesses`,
+      `${PRODUCTION_ORIGIN}/contact`,
       `${PRODUCTION_ORIGIN}/privacy`,
       `${PRODUCTION_ORIGIN}/terms`,
     ]);
@@ -148,6 +153,12 @@ describe("Gro public domain configuration", () => {
     ];
 
     expect(publicClientLoginHref).toBe("/login");
+    expect(publicNavigation.map(([href]) => href)).toEqual([
+      "/how-it-works",
+      "/what-gro-does",
+      "/about",
+      "/for-businesses",
+    ]);
     expect(hrefs).not.toEqual(
       expect.arrayContaining([
         expect.stringMatching(/^\/(admin|staff|client)/),
@@ -207,6 +218,30 @@ describe("Gro public domain configuration", () => {
     expect(legalPage).toContain("Preview draft.");
     expect(legalPage).toContain("Legal approval required");
     expect(legalPage).not.toContain("<dt>Effective</dt>");
+  });
+
+  it("publishes unique canonical metadata for every public discovery page", () => {
+    const production = getPublicSite({
+      APP_URL: PRODUCTION_ORIGIN,
+      VERCEL_ENV: "production",
+    });
+    const pages = [
+      ["/how-it-works", "How Gro Works | Your AI Growth Agent"],
+      ["/what-gro-does", "What Gro Does | AI Growth Agent for Businesses"],
+      ["/about", "About Gro | AI-Powered, Human-Backed Growth"],
+      ["/for-businesses", "Gro for Businesses | Your Dedicated Growth Agent"],
+      ["/contact", "Get Your Growth Agent | Contact Gro"],
+    ] as const;
+
+    for (const [path, title] of pages) {
+      const metadata = buildPublicPageMetadata(
+        { title, description: `${title} description`, path },
+        production,
+      );
+      expect(metadata.title).toEqual({ absolute: title });
+      expect(metadata.alternates?.canonical).toBe(`${PRODUCTION_ORIGIN}${path}`);
+      expect(metadata.robots).toEqual({ index: true, follow: true });
+    }
   });
 
   it("does not restore stale Vercel metadata fallbacks or public legacy branding", () => {

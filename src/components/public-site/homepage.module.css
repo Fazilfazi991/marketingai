@@ -122,7 +122,7 @@
 .storyOutcome { min-height: 58px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 0 18px; border-radius: 12px; background: #332b3c; color: #aaa1b3; font-size: .74rem; transition: background .3s, color .3s; }
 .storyOutcomeReady { background: #21332b; color: #cbe8d8; }
 
-.command { padding: 150px 0; color: #f8f4ff; background: #17131f; }
+.command { padding: 120px 0; color: #f8f4ff; background: #17131f; }
 .command::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 80% 15%, rgba(117,84,232,.16), transparent 26%); }
 .commandHeader { display: grid; grid-template-columns: 1fr .65fr; gap: 70px; align-items: end; position: relative; }
 .commandHeader .sectionLead { color: #aaa1b2; }
@@ -142,10 +142,10 @@
 .nextAction p { margin-top: 18px; color: #5f5669; font-size: .83rem; line-height: 1.65; }
 .actionStatus { display: flex; align-items: center; gap: 9px; margin-top: auto; padding-top: 38px; border-top: 1px solid rgba(23,19,31,.13); font-size: .7rem; font-weight: 650; }.actionStatus i { width: 7px; height: 7px; border-radius: 50%; background: #5d9d7c; }
 
-.constellation { padding: 150px 0; background: var(--paper-bright); text-align: center; }
+.constellation { padding: 120px 0; background: var(--paper-bright); text-align: center; }
 .constellation .sectionTitle { margin-inline: auto; max-width: 12ch; }.constellation .sectionLead { margin: 26px auto 0; }
 .constellationMap { position: relative; width: min(900px, 100%); height: 560px; margin: 70px auto 0; }
-.constellationLines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }.constellationLines line { stroke: #c5b9d7; stroke-width: 1; stroke-dasharray: 3 7; transition: stroke .25s, stroke-width .25s; }
+.constellationLines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }.constellationLines line { stroke: #c5b9d7; stroke-width: 1; stroke-dasharray: 3 7; transition: stroke .25s, opacity .25s; }
 .channelNode, .constellationCore { position: absolute; display: grid; place-items: center; border-radius: 50%; transition: transform .25s ease-out, background .25s, color .25s; }
 .channelNode { width: 112px; height: 112px; color: #5d5663; background: var(--paper); border: 1px solid #dcd3e4; font-size: .68rem; gap: 5px; align-content: center; }
 .channelNode svg { color: var(--violet); }.channelNode:hover, .channelNode:focus-visible { transform: scale(1.06); background: #eee7fb; color: var(--ink); outline: 3px solid rgba(117,84,232,.32); outline-offset: 4px; }
@@ -248,4 +248,65 @@
   .stripTrack { transform: none; }
   .stripCopy[aria-hidden="true"] { display: none; }
   .agentAction { opacity: 1; transform: none; }
+}
+
+/* Multi-page homepage: six concise chapters. */
+.talkingCompact { padding: 105px 0 96px; }
+.talkingCompact .talkingHeader h2 span { display: block; color: var(--violet); }
+.talkingCompact .talkingHeader > div,
+.homeStory .storyIntro > div,
+.homeCapabilities .capabilitiesHeader > div { display: grid; align-content: end; gap: 20px; }
+.talkingCompact .signalField { margin-top: 56px; }
+.talkingCompact .sourceStream { min-height: 58px; }
+.talkingCompact .listener { max-width: 190px; justify-self: end; }
+.contextLink { display: inline-flex; align-items: center; gap: 8px; width: fit-content; min-height: 44px; color: var(--violet); border-bottom: 1px solid rgba(117,84,232,.35); font-size: .75rem; font-weight: 700; }
+.contextLink svg { transition: transform .25s ease; }.contextLink:hover svg { transform: translate(2px,-2px); }
+.contextLinkLight { color: #d8caff; border-color: rgba(216,202,255,.42); }
+
+.homeStory { padding: 105px 0; }
+.homeStory .storyIntro { margin-bottom: 58px; }
+.compactStory { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 22px; align-items: center; }
+.compactStory article { min-height: 310px; display: flex; flex-direction: column; padding: 28px; border-radius: 16px; color: #fff; background: var(--night); }
+.compactStory article:nth-of-type(2) { color: var(--ink); background: var(--lavender); }
+.compactStory article:nth-of-type(2) p { color: #665d70; }
+.compactStory article:nth-of-type(3) { background: #23342b; }
+.compactStory article > span { color: var(--violet-bright); font-size: .65rem; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.compactStory article:nth-of-type(2) > span { color: var(--violet); }
+.compactStory article > svg { margin-top: 40px; color: var(--violet-bright); }
+.compactStory article:nth-of-type(3) > svg { color: #8fd2ae; }
+.compactStory h3 { margin-top: 18px !important; font-family: var(--font-gro-display),Georgia,serif; font-size: clamp(1.55rem,2.2vw,2.1rem); font-weight: 500; letter-spacing: -.03em; line-height: 1.08; }
+.compactStory p { margin-top: auto !important; padding-top: 25px; color: #a99fb1; font-size: .73rem; line-height: 1.6; }
+.compactStoryArrow { color: var(--violet); }
+
+.homeCapabilities { padding: 105px 0; }
+.homeCapabilities .capabilitiesHeader { margin-bottom: 46px; }
+.homeCapabilities .capabilityStory { grid-template-columns: 58px minmax(190px,.65fr) 1.35fr; gap: 30px; padding: 28px 0; }
+.homeCapabilities .capabilityIcon { width: 46px; height: 46px; border-radius: 12px; }
+.homeCapabilities .capabilityStory h3 { font-size: clamp(1.7rem,2.5vw,2.25rem); }
+.homeCapabilities .liveExample { padding: 14px 16px; }
+
+.homeHuman { padding: 100px 0; }
+.homeHuman .humanGrid { gap: 90px; }
+.homeHuman .humanLayer { min-height: 82px; padding: 14px 0; }
+.homeHuman .contextLink { margin-top: 25px; }
+.final { padding: 105px 0 95px; }
+
+@media (max-width: 780px) {
+  .talkingCompact,.homeStory,.homeCapabilities,.homeHuman,.final { padding-block: 82px; }
+  .talkingCompact .talkingHeader > div,.homeStory .storyIntro > div,.homeCapabilities .capabilitiesHeader > div { gap: 14px; }
+  .compactStory { grid-template-columns: 1fr; gap: 15px; }
+  .compactStory article { min-height: 260px; }
+  .compactStoryArrow { justify-self: center; rotate: 90deg; }
+  .homeCapabilities .capabilityStory { grid-template-columns: 48px 1fr; }
+  .homeCapabilities .capabilityDetail { grid-column: 2; }
+}
+
+@media (max-width: 520px) {
+  .talkingCompact,.homeStory,.homeCapabilities,.homeHuman,.final { padding-block: 68px; }
+  .talkingCompact .signalField { margin-top: 38px; }
+  .talkingCompact .listener { max-width: 165px; justify-self: center; }
+  .compactStory article { min-height: 245px; padding: 24px; }
+  .homeCapabilities .capabilityStory { grid-template-columns: 42px 1fr; gap: 18px; }
+  .homeCapabilities .capabilityIcon { width: 42px; height: 42px; }
+  .homeCapabilities .capabilityDetail { grid-template-columns: 1fr; gap: 14px; }
 }

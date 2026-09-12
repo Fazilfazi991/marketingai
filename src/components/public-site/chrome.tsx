@@ -23,16 +23,16 @@ export function Wordmark() {
 }
 export function GrowthCTA({ className }: { className?: string } = {}) {
   return (
-    <Link className={className ?? s.cta} href="/#contact">
+    <Link className={className ?? s.cta} href="/contact">
       Get My Growth Agent <ArrowUpRight size={17} aria-hidden="true" />
     </Link>
   );
 }
 export const publicNavigation = [
-  ["/#how-it-works", "How it works"],
-  ["/#what-gro-does", "What Gro does"],
-  ["/#why-gro", "Why Gro"],
-  ["/#for-businesses", "For businesses"],
+  ["/how-it-works", "How It Works"],
+  ["/what-gro-does", "What Gro Does"],
+  ["/about", "About"],
+  ["/for-businesses", "For Businesses"],
 ] as const;
 export const publicClientLoginHref = "/login";
 export function PublicHeader() {
@@ -62,8 +62,9 @@ export function PublicHeader() {
               {label}
             </Link>
           ))}
-          <Link href="/#contact">Contact</Link>
+          <Link href="/contact">Contact</Link>
           <Link href={publicClientLoginHref}>Client Login</Link>
+          <GrowthCTA />
         </nav>
       </details>
     </header>
@@ -72,7 +73,7 @@ export function PublicHeader() {
 export function PublicFooter() {
   return (
     <footer className={s.footer}>
-      <div>
+      <div className={s.footerBrand}>
         <Wordmark />
         <p>
           Your AI-powered Growth Agent
@@ -80,14 +81,25 @@ export function PublicFooter() {
           for digital business growth.
         </p>
       </div>
-      <nav aria-label="Footer navigation">
-        <Link href="/#how-it-works">How it works</Link>
-        <Link href="/#what-gro-does">What Gro does</Link>
-        <Link href="/#contact">Contact</Link>
-        <Link href={publicClientLoginHref}>Client Login</Link>
-        <Link href="/privacy">Privacy Policy</Link>
-        <Link href="/terms">Terms</Link>
-      </nav>
+      <div className={s.footerLinks}>
+        <nav aria-label="Explore Gro">
+          <strong>Explore</strong>
+          <Link href="/how-it-works">How It Works</Link>
+          <Link href="/what-gro-does">What Gro Does</Link>
+          <Link href="/for-businesses">For Businesses</Link>
+          <Link href="/about">About</Link>
+        </nav>
+        <nav aria-label="Contact Gro">
+          <strong>Contact</strong>
+          <Link href="/contact">Contact Gro</Link>
+          <Link href={publicClientLoginHref}>Client Login</Link>
+        </nav>
+        <nav aria-label="Legal">
+          <strong>Legal</strong>
+          <Link href="/privacy">Privacy Policy</Link>
+          <Link href="/terms">Terms of Service</Link>
+        </nav>
+      </div>
       <div className={s.footerBottom}>
         <span>A Fusion Ventures service.</span>
         <span>AI-powered. Human-backed.</span>

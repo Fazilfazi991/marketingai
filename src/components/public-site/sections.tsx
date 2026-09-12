@@ -17,9 +17,9 @@ import {
   UserRoundCheck,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { GrowthCTA } from "./chrome";
 import { IndustryChooser, ObserveUnderstandAct } from "./homepage-experience";
-import { publicSite } from "./site-config";
 import s from "./homepage.module.css";
 
 const signalRows = [
@@ -134,15 +134,16 @@ export function BusinessSignals() {
     ["Customer chat", "Questions, intent and unanswered needs"],
     ["Your website", "Traffic patterns and paths to enquiry"],
     ["Google", "Visibility, searches and nearby opportunities"],
+    ["WhatsApp", "Enquiries, recurring questions and handovers"],
     ["Social", "Momentum, responses and content gaps"],
     ["Analytics", "What is changing and where attention is needed"],
   ];
   return (
-    <section className={s.talking}>
+    <section className={`${s.talking} ${s.talkingCompact}`}>
       <div className={s.shell}>
         <div className={s.talkingHeader}>
-          <h2 className={`${s.display} ${s.sectionTitle}`}>Your business is talking all day.</h2>
-          <p className={s.sectionLead}>Every search, question, visit and conversation carries a clue. Gro brings those separate signals into one attentive view.</p>
+          <h2 className={`${s.display} ${s.sectionTitle}`}>Your business is talking all day. <span>Gro pays attention.</span></h2>
+          <div><p className={s.sectionLead}>Every search, question, visit and conversation carries a clue. Gro brings those signals into one attentive view.</p><Link className={s.contextLink} href="/what-gro-does">Explore what Gro does <ArrowUpRight size={16}/></Link></div>
         </div>
         <div className={s.signalField}>
           <div className={s.sourceStreams}>
@@ -161,11 +162,31 @@ export function BusinessSignals() {
 
 export function AgentStory() {
   return (
-    <section className={s.story} id="gro-at-work">
+    <section className={`${s.story} ${s.homeStory}`} id="gro-at-work">
       <div className={s.shell}>
         <div className={s.storyIntro}>
           <h2 className={`${s.display} ${s.sectionTitle}`}>From signal to useful action.</h2>
-          <p className={s.sectionLead}>Gro follows the thread: observe what is happening, understand why it matters, then prepare a practical next move.</p>
+          <div><p className={s.sectionLead}>One repeated question can become a clearer customer experience and a useful growth opportunity.</p><Link className={s.contextLink} href="/how-it-works">See how Gro works <ArrowUpRight size={16}/></Link></div>
+        </div>
+        <div className={s.compactStory}>
+          <article><span>Observe</span><MessageCircle size={22}/><h3>“How much does installation cost?”</h3><p>The same question keeps appearing in customer conversations.</p></article>
+          <ArrowRight className={s.compactStoryArrow} aria-hidden="true"/>
+          <article><span>Understand</span><Sparkles size={22}/><h3>Three signals point to one gap.</h3><p>The question is frequent, the website does not answer it, and related search demand exists.</p></article>
+          <ArrowRight className={s.compactStoryArrow} aria-hidden="true"/>
+          <article><span>Act</span><FileCheck2 size={22}/><h3>Useful work is prepared.</h3><p>FAQ copy, a page recommendation, a chatbot answer and a content idea are ready for review.</p></article>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function DetailedAgentStory() {
+  return (
+    <section className={s.story}>
+      <div className={s.shell}>
+        <div className={s.storyIntro}>
+          <h2 className={`${s.display} ${s.sectionTitle}`}>Observe. Understand. Act.</h2>
+          <p className={s.sectionLead}>Gro follows one connected thread from a customer signal to useful work prepared for review.</p>
         </div>
         <ObserveUnderstandAct />
       </div>
@@ -208,7 +229,7 @@ export function CommandCentre() {
   );
 }
 
-export function ChannelConstellation() {
+export function ChannelConstellation({ id }: { id?: string } = {}) {
   const nodes = [
     [s.nodeWebsite, Globe2, "Website", "High visits, fewer enquiries → path review prepared"],
     [s.nodeGoogle, Search, "Google", "Search opportunity → page improvement prepared"],
@@ -218,7 +239,7 @@ export function ChannelConstellation() {
     [s.nodeChat, MessageCircle, "Customer chat", "Question repeated → FAQ opportunity found"],
   ] as const;
   return (
-    <section className={s.constellation}>
+    <section className={s.constellation} id={id}>
       <div className={s.shell}>
         <h2 className={`${s.display} ${s.sectionTitle}`}>One agent across your digital business.</h2>
         <p className={s.sectionLead}>The value is in the connection: a question can shape a web page, a search opportunity can shape content, and each signal can inform the next action.</p>
@@ -243,11 +264,11 @@ const capabilityStories = [
 
 export function Capabilities() {
   return (
-    <section className={s.capabilities} id="what-gro-does">
+    <section className={`${s.capabilities} ${s.homeCapabilities}`}>
       <div className={s.shell}>
         <div className={s.capabilitiesHeader}>
-          <h2 className={`${s.display} ${s.sectionTitle}`}>A little less to manage. A lot more looked after.</h2>
-          <p className={s.sectionLead}>Gro works around the everyday growth jobs that otherwise compete for your attention.</p>
+          <h2 className={`${s.display} ${s.sectionTitle}`}>What Gro can help with.</h2>
+          <div><p className={s.sectionLead}>Four kinds of work, connected by one attentive Growth Agent.</p><Link className={s.contextLink} href="/what-gro-does">Explore all capabilities <ArrowUpRight size={16}/></Link></div>
         </div>
         <div className={s.capabilityList}>
           {capabilityStories.map(([Icon, title, copy, example]) => (
@@ -265,9 +286,9 @@ export function Capabilities() {
 
 export function HumanBacked() {
   return (
-    <section className={s.human}>
+    <section className={`${s.human} ${s.homeHuman}`}>
       <div className={`${s.shell} ${s.humanGrid}`}>
-        <div><h2 className={`${s.display} ${s.sectionTitle}`}>AI-powered. Human-backed.</h2><p className={s.sectionLead}>Gro can analyse connected evidence, prepare work and recommend what happens next. When judgement or implementation is needed, your Fusion Ventures team is there.</p></div>
+        <div><h2 className={`${s.display} ${s.sectionTitle}`}>AI-powered. Human-backed.</h2><p className={s.sectionLead}>Gro brings speed and attention. The Fusion Ventures team brings judgement, review and implementation.</p><Link className={`${s.contextLink} ${s.contextLinkLight}`} href="/about">Why Gro works this way <ArrowUpRight size={16}/></Link></div>
         <div className={s.humanFlow}>
           <div className={s.humanLayer}><Users size={23}/><div><b>You bring the business.</b><span>Your goals, customers and knowledge set the direction.</span></div></div>
           <div className={s.humanLayer}><span className={s.humanLayerMark}>gro↗</span><div><b>Gro keeps watch.</b><span>Signals are connected and useful work is prepared.</span></div></div>
@@ -312,14 +333,14 @@ export function Industries() {
 
 export function FinalCTA() {
   return (
-    <section className={s.final} id="contact">
+    <section className={s.final}>
       <div className={`${s.shell} ${s.finalGrid}`}>
         <h2 className={`${s.display} ${s.sectionTitle}`}>Give your business someone who’s paying attention.</h2>
         <div>
-          <p className={s.finalText}>Tell us about your business, your channels and the growth work that needs more attention. We’ll show you where Gro can help.</p>
+          <p className={s.finalText}>Website. Customers. Google. WhatsApp. Social. One Growth Agent looking across all of it.</p>
           <div className={s.finalActions}>
-            {publicSite.contactUrl && <a className={s.primaryLink} href={publicSite.contactUrl}>Get My Growth Agent <ArrowUpRight size={17}/></a>}
-            <a className={s.secondaryLink} href="mailto:info@fusionventuresglobal.com?subject=Gro%20Growth%20Agent%20enquiry">Talk to Our Team <ArrowUpRight size={16}/></a>
+            <Link className={s.primaryLink} href="/contact">Get My Growth Agent <ArrowUpRight size={17}/></Link>
+            <Link className={s.secondaryLink} href="/contact">Talk to Our Team <ArrowUpRight size={16}/></Link>
           </div>
           <span className={s.ready}><i /> READY TO LEARN YOUR BUSINESS</span>
         </div>

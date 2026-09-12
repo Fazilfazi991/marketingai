@@ -1,6 +1,6 @@
 ---
-name: Gro Public Homepage
-description: A warm editorial introduction to an attentive, supervised Growth Agent.
+name: Gro Public Website
+description: A warm editorial public site for an attentive, supervised Growth Agent.
 colors:
   paper: "#f4f0e9"
   paper-bright: "#fbf9f5"
@@ -48,7 +48,7 @@ spacing:
   md: "18px"
   lg: "28px"
   xl: "48px"
-  section: "150px"
+  section: "120px"
 components:
   button-primary:
     backgroundColor: "{colors.violet}"
@@ -75,24 +75,24 @@ components:
     padding: "10px 15px"
 ---
 
-# Design System: Gro Public Homepage
+# Design System: Gro Public Website
 
 ## Overview
 
 **Creative North Star: “The Attentive Editorial Desk”**
 
-The public homepage presents Gro as a steady operating presence around a business. Warm paper, expressive editorial headings, fine rules, and generous pacing create a premium service narrative; compact signal rows, timelines, statuses, and connected nodes make the agent’s work concrete. Violet marks intelligence and action, while muted green marks readiness and active attention.
+The Gro public website presents one steady operating presence around a business. Warm paper, expressive editorial headings, fine rules, and measured pacing create a premium service narrative; compact signal rows, timelines, statuses, and connected nodes make the agent’s work concrete. Violet marks intelligence and action, while muted green marks readiness and active attention.
 
-This specification is scoped to the public homepage and shared public chrome implemented in `src/app/page.tsx`, `src/app/layout.tsx`, `src/components/public-site/sections.tsx`, `src/components/public-site/homepage-experience.tsx`, `src/components/public-site/homepage.module.css`, `src/components/public-site/chrome.tsx`, and the public-facing rules in `src/components/public-site/public-site.module.css`. The exact wordmark asset is `public/gro-logo.png`. The root `DESIGN.md` and `.impeccable/design.json` continue to govern the authenticated client workspace; this document does not alter or extend their authority.
+This specification is scoped to the public routes `/`, `/how-it-works`, `/what-gro-does`, `/about`, `/for-businesses`, `/contact`, `/privacy`, `/terms`, and `/login`, plus their shared public chrome. The implementation lives in `src/app`, `src/components/public-site/sections.tsx`, `src/components/public-site/detail-sections.tsx`, `src/components/public-site/business-experience.tsx`, and the public-site CSS modules. The exact wordmark asset is `public/gro-logo.png`. The root `DESIGN.md` and `.impeccable/design.json` continue to govern the authenticated client workspace; this document does not alter or extend their authority.
 
-The story runs from live-looking signals to Gro’s reactions, then Observe → Understand → Act, a dark command centre, a connected channel constellation, editorial capability rows, human oversight, setup, industry examples, and a violet closing invitation. All business signals and outcomes shown on this page are illustrative. Copy and state treatments must continue to distinguish prepared work from completed action and human review from autonomous execution.
+The homepage is the concise six-chapter entry point: agentic hero, compact signal convergence, one Observe → Understand → Act example, four capability previews, AI-powered/human-backed philosophy, and the closing invitation. Detailed process, capabilities, brand philosophy, industry examples, and conversion content live on focused routes. All business signals and outcomes are illustrative. Copy and state treatments must continue to distinguish prepared work from completed action and human review from autonomous execution.
 
 **Key Characteristics:**
 
 - Warm off-white editorial canvas with decisive ink, violet, and deep-plum contrast.
 - Newsreader display typography paired with compact Geist operational text.
 - Agent activity shown as a legible sequence of signals, interpretation, preparation, and review.
-- Alternating light, ink, plum, lavender, and violet fields that shape the long-form narrative.
+- Alternating light, ink, plum, lavender, and violet fields that distinguish concise chapters and routes.
 - Motion that carries meaning and collapses cleanly for reduced-motion users.
 - Exact supplied Gro logo displayed as an image within a dark, clipped tile.
 
@@ -133,7 +133,7 @@ The palette feels warm, literary, and capable. Large surfaces stay quiet; satura
 **Display Font:** Newsreader, supplied through `--font-gro-display`, with Georgia and serif fallbacks.
 **Body Font:** Geist, supplied through `--font-geist-sans`, with sans-serif fallback.
 
-**Character:** Newsreader gives the homepage an editorial, human voice. Geist keeps evidence, states, controls, and operational examples crisp. The contrast between them mirrors the product promise: considered guidance backed by concrete work.
+**Character:** Newsreader gives every public page an editorial, human voice. Geist keeps evidence, states, controls, and operational examples crisp. The same pairing also applies to Privacy, Terms, and Login so the public experience remains one coherent Gro site.
 
 ### Hierarchy
 
@@ -150,9 +150,9 @@ The palette feels warm, literary, and capable. Large surfaces stay quiet; satura
 
 ## Layout
 
-The primary shell is `min(1320px, calc(100% - 96px))`. Desktop sections commonly use two asymmetrical columns with 65–110px gaps, and major sections use 140–150px vertical padding. Fine horizontal rules and large intervals create rhythm without a card grid dominating the page.
+The primary shell is `min(1320px, calc(100% - 96px))`. Desktop sections commonly use two asymmetrical columns with 65–110px gaps, and focused sections generally use about 95–120px vertical padding. Fine horizontal rules and controlled intervals create rhythm without a card grid dominating the page.
 
-The hero fills approximately one viewport beneath the 90px sticky header. Its text column sits beside a minimum 560px agent stage. The signal strip closes the hero as a compact transition into the longer explanation. The Observe → Understand → Act chapter pairs scroll-driven copy with a sticky 560px demonstration panel. The command centre uses a 1.25fr timeline beside a 0.8fr lavender recommendation. The constellation occupies a 900×560 field with the agent at its centre, and capabilities read as full-width editorial rows rather than a grid of equal cards.
+The homepage hero fills approximately one viewport beneath the 90px sticky header, pairing its proposition with the agent stage. The remaining five homepage chapters are deliberately compact. Dedicated pages use distinct hero compositions: process flow on How It Works, connected channels on What Gro Does, consolidation on About, orbiting business context on For Businesses, and one restrained readiness panel on Contact. The command centre belongs to How It Works; the constellation and operational capability rows belong to What Gro Does; the interactive chooser belongs to For Businesses.
 
 At 1050px, the shell inset becomes 32px per side and complex columns tighten. At 780px, the shell inset becomes 20px, paired columns stack, sections use 95px vertical padding, the sticky story becomes three inline mobile cards, and the constellation becomes a readable vertical list with its explanations always visible. At 430px, the shell inset becomes 16px, principal actions stack full width, and industry tabs scroll horizontally. Shared public chrome uses a 78px header and a 112×52 logo tile at 600px and below.
 
@@ -182,7 +182,7 @@ The Gro wordmark always uses the exact supplied raster asset. It appears inside 
 
 ### Public header and footer
 
-The header is a 90px sticky, blurred paper bar with the logo, compact navigation, client login, and an ink CTA that rises 2px and turns violet on hover. Below 850px, navigation moves into a native `details` menu and the login link leaves the action row. The footer returns to a flat paper field with understated links; hover reveals the underline. Keyboard focus throughout the public shell uses a 3px violet outline with a 5px offset. A skip link becomes visible on focus.
+The header is a 90px sticky, blurred paper bar with the logo, four compact exploration links, client login, and an ink CTA to `/contact` that rises 2px and turns violet on hover. Below 850px, navigation moves into a native `details` menu containing the four exploration links, Contact, Client Login, and the primary action. The grouped footer exposes Explore, Contact, and Legal destinations only. Keyboard focus throughout the public shell uses a 3px violet outline with a 5px offset. A skip link becomes visible on focus.
 
 ### Hero agent core
 
@@ -194,31 +194,31 @@ The main action is a violet, white-text link with a 50px minimum height, 12px ra
 
 ### Observe → Understand → Act
 
-On desktop, three tall text steps control one sticky dark panel via intersection observation. Its rail, source statement, Gro thinking state, and outcome update together. The Act state ends with a muted-green “Ready for human review” surface. On mobile, each step carries its own complete dark card so meaning does not depend on sticky behavior.
+The shortened homepage tells one complete customer-question story in three coordinated panels: Observe, Understand, and Act. Each stage remains legible without scroll-controlled state and the Act panel clearly presents prepared work rather than executed work.
 
 ### Command centre
 
-The ink chapter pairs a sequential activity timeline with a lavender next-best-action panel. The timeline distinguishes signal, evidence, opportunity, and prepared work. The recommendation ends with a green readiness dot and explicitly says human review is still required.
+On `/how-it-works`, the ink chapter pairs a sequential activity timeline with a lavender next-best-action panel. The timeline distinguishes signal, evidence, opportunity, and prepared work. The recommendation ends with a green readiness dot and explicitly says human review is still required.
 
 ### Channel constellation
 
-Six circular channel nodes surround a violet Gro core. Hover and keyboard focus enlarge one node, reveal its explanatory tooltip, and strengthen the corresponding line. On mobile the core and nodes become stacked rectangular rows, connector lines disappear, and all explanations remain visible.
+On `/what-gro-does`, six circular channel nodes surround a violet Gro core. Hover and keyboard focus enlarge one node, reveal its explanatory tooltip, and strengthen the corresponding line. On mobile the core and nodes become stacked rectangular rows, connector lines disappear, and all explanations remain visible.
 
 ### Capability rows
 
-Each capability is one editorial row: lavender icon tile, Newsreader title, concise explanation, and bright-paper “Example in motion.” Dividers and whitespace carry the structure. Preserve this narrative hierarchy rather than converting the section into generic equal cards.
+The homepage previews four capabilities in a compact editorial treatment. `/what-gro-does` expands the system into focused operational chapters for Website, Google and SEO, WhatsApp, Website Chat, Social Media, and Analytics, followed by connected Growth Intelligence. Dividers and whitespace carry the hierarchy; avoid a generic feature-card grid.
 
-### Setup journey
+### Dedicated page flow
 
-Four steps sit on a fine connecting rule with violet markers and small lavender artifact labels. Mobile changes the horizontal sequence into a vertical rail. A green pill closes the sequence with “GRO IS ACTIVE.”
+Every detail page ends with a conversion action and a subtle next-page link so exploration never reaches a dead end. `/contact` stays intentionally short, leading with WhatsApp and email and closing with the three-step onboarding expectation.
 
 ### Industry chooser
 
-Business types are 44px-minimum pill tabs with roving keyboard focus and proper tab semantics. Hover and selection invert from transparent to ink. The panel pairs “Signal noticed” with “Gro’s next move,” linked by a violet arrow; mobile stacks the relationship vertically and rotates the arrow.
+On `/for-businesses`, seven business types use 44px-minimum pill tabs with roving keyboard focus and proper tab semantics. Selection updates what Gro watches, what customers may ask, what opportunity may appear, and what Gro may prepare. Mobile stacks the relationship vertically and every example remains explicitly illustrative.
 
 ### Motion
 
-Motion is explanatory: signal and action cycles, the listening stream, the Observe → Understand → Act progression, constellation focus, and small CTA feedback. Under `prefers-reduced-motion: reduce`, animation and transition durations collapse to 0.001ms, duplicate marquee content is removed, the first working verb remains visible, and agent actions settle at full opacity.
+Motion is explanatory and route-specific: signal processing on Home, progressive flow on How It Works, channel activity on What Gro Does, a subtle AI-to-human handoff on About, chooser state on For Businesses, and restrained feedback on Contact. Under `prefers-reduced-motion: reduce`, animation and transition durations collapse to 0.001ms, duplicate marquee content is removed, the first working verb remains visible, and agent actions settle at full opacity.
 
 ## Do's and Don'ts
 
@@ -226,7 +226,7 @@ Motion is explanatory: signal and action cycles, the listening stream, the Obser
 
 - **Do** preserve the public-only scope of this document and the authenticated-only scope of root `DESIGN.md`.
 - **Do** use the exact `public/gro-logo.png` asset in the established dark tile.
-- **Do** keep the public narrative in this order: signals, interpretation, action, connected channels, capabilities, human support, setup, industry relevance, invitation.
+- **Do** keep the homepage to six concise chapters and move detailed explanation to its focused public route.
 - **Do** label examples and simulated operational states as illustrative near the relevant visual.
 - **Do** keep “ready for human review” distinct from executed or completed work.
 - **Do** preserve keyboard behavior, minimum control sizes, focus rings, and reduced-motion behavior.
@@ -237,4 +237,4 @@ Motion is explanatory: signal and action cycles, the listening stream, the Obser
 - **Don't** replace the supplied logo with a text recreation or generic `gro↗` wordmark in public chrome.
 - **Don't** use glowing AI effects, neon gradients, futuristic interface motifs, or chart-first dashboard layouts.
 - **Don't** present illustrative signals, social content preparation, or recommendations as live evidence, autonomous publishing, or guaranteed outcomes.
-- **Don't** flatten the long-form light/dark chapter rhythm into a repetitive grid of cards.
+- **Don't** recreate the full website as one long homepage or repeat the same hero/card composition on every route.

@@ -5,12 +5,8 @@ import {
   Hero,
   BusinessSignals,
   AgentStory,
-  CommandCentre,
-  ChannelConstellation,
   Capabilities,
   HumanBacked,
-  SetupJourney,
-  Industries,
   FinalCTA,
 } from "@/components/public-site/sections";
 import {
@@ -40,12 +36,8 @@ export default async function Home({
         <Hero />
         <BusinessSignals />
         <AgentStory />
-        <CommandCentre />
-        <ChannelConstellation />
         <Capabilities />
         <HumanBacked />
-        <SetupJourney />
-        <Industries />
         <FinalCTA />
       </main>
       <PublicFooter />

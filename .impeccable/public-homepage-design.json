@@ -1,11 +1,22 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-12T00:00:00Z",
-  "title": "Design System: Gro Public Homepage",
+  "generatedAt": "2026-09-12T20:30:00Z",
+  "title": "Design System: Gro Public Website",
   "extensions": {
     "scope": {
-      "surface": "public-homepage",
+      "surface": "public-website",
       "document": "docs/public-homepage-design.md",
+      "routes": [
+        "/",
+        "/how-it-works",
+        "/what-gro-does",
+        "/about",
+        "/for-businesses",
+        "/contact",
+        "/privacy",
+        "/terms",
+        "/login"
+      ],
       "excludes": [
         "authenticated client workspace",
         "admin surfaces",
@@ -138,11 +149,11 @@
   },
   "components": [
     {
-      "name": "Primary homepage action",
+      "name": "Primary public action",
       "kind": "button",
       "refersTo": "button-primary",
       "description": "The main enquiry action on warm paper; reversed to white on the violet final section.",
-      "html": "<a class=\"ds-primary-action\" href=\"#contact\">Get My Growth Agent <svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M7 17 17 7\"/><path d=\"M7 7h10v10\"/></svg></a>",
+      "html": "<a class=\"ds-primary-action\" href=\"/contact\">Get My Growth Agent <svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M7 17 17 7\"/><path d=\"M7 7h10v10\"/></svg></a>",
       "css": ".ds-primary-action{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:14px 20px;border-radius:12px;background:#7554e8;color:#fff;text-decoration:none;font:700 .84rem Geist,sans-serif;box-shadow:0 14px 32px rgba(72,48,150,.22);transition:transform .25s cubic-bezier(.2,.8,.2,1),background .25s}.ds-primary-action:hover{transform:translateY(-2px);background:#6542df}.ds-primary-action:focus-visible{outline:3px solid #9076cd;outline-offset:5px}@media(prefers-reduced-motion:reduce){.ds-primary-action{transition-duration:.001ms}}"
     },
     {
@@ -186,13 +197,14 @@
   ],
   "narrative": {
     "northStar": "The Attentive Editorial Desk",
-    "overview": "The Gro public homepage combines a warm editorial service narrative with concrete operational scenes. Newsreader headings, Geist evidence, warm paper, deep ink chapters, violet intelligence, lavender recommendations, and green readiness states show an agent that observes, understands, prepares, and stays accountable to people. This public specification is separate from the authenticated Client Dossier system.",
+    "overview": "The Gro public website combines a concise six-chapter homepage with focused pages for process, capabilities, brand philosophy, business use cases, and contact. Newsreader headings, Geist evidence, warm paper, deep ink chapters, violet intelligence, lavender recommendations, and green readiness states show an agent that observes, understands, prepares, and stays accountable to people. This public specification is separate from the authenticated Client Dossier system.",
     "keyCharacteristics": [
       "Warm editorial paper and strong light-dark chapter contrast.",
       "Agent activity shown as signals, interpretation, preparation, and review.",
       "Violet traces Gro through the experience; green marks attentive readiness.",
       "Exact supplied logo in a clipped dark tile.",
-      "Meaningful motion with complete reduced-motion handling."
+      "Meaningful route-specific motion with complete reduced-motion handling.",
+      "Distinct flow, operations, editorial, interactive, and conversion page personalities."
     ],
     "rules": [
       {
@@ -212,8 +224,9 @@
       }
     ],
     "dos": [
-      "Do preserve this document's public-homepage scope and the root design system's authenticated scope.",
+      "Do preserve this document's public-website scope and the root design system's authenticated scope.",
       "Do use the exact public/gro-logo.png asset in the established dark tile.",
+      "Do keep the homepage to six concise chapters and move detail to the relevant public route.",
       "Do label example signals and simulated operating states as illustrative.",
       "Do keep ready for human review distinct from executed or completed work.",
       "Do preserve focus, minimum target size, keyboard, responsive, and reduced-motion behavior."
@@ -223,7 +236,7 @@
       "Don't redraw the public wordmark as text.",
       "Don't use neon AI effects, futuristic motifs, or chart-first dashboard layouts.",
       "Don't present illustrative content as live evidence, autonomous publishing, or guaranteed outcomes.",
-      "Don't replace the chapter rhythm with a repetitive card grid."
+      "Don't recreate the full website as one long homepage or repeat one hero composition on every route."
     ]
   }
 }
