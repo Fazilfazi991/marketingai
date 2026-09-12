@@ -47,3 +47,6 @@ next-env.d.ts
 # Local design decisions runtime and QA captures (keep design documentation)
 /.impeccable/questions/
 /.impeccable/review/
+
+# Local provider documentation research cache
+/.firecrawl/

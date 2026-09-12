@@ -3,104 +3,62 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { matchesWebhookSecret } from "@/lib/webhook-auth";
 import { syncGoogleClient } from "@/lib/google/sync";
+import { uuidPattern } from "@/lib/agent-workflow";
 
 export const runtime = "nodejs";
-const json = (body: Record<string, unknown>, status = 200) =>
-  Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
+const json = (body: Record<string, unknown>, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 const isoDay = (date: Date) => date.toISOString().slice(0, 10);
 
-async function isAuthorized(request: NextRequest) {
-  if (
-    matchesWebhookSecret(
-      request.headers.get("x-growth1000-key"),
-      process.env.N8N_WEBHOOK_SECRET,
-    )
-  )
-    return true;
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return false;
-    const { data: membership } = await supabase
-      .from("organization_members")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .eq("status", "active")
-      .limit(1)
-      .maybeSingle();
-    return Boolean(membership);
-  } catch {
-    return false;
+async function authorizedScope(request: NextRequest) {
+  const webhook = request.headers.get("x-growth1000-key");
+  if (webhook !== null) {
+    // A global webhook secret is not global tenant authorization.
+    const org = process.env.GOOGLE_SYNC_ORGANIZATION_ID;
+    if (!matchesWebhookSecret(webhook, process.env.N8N_WEBHOOK_SECRET) || !org || !uuidPattern.test(org)) return null;
+    return { db: createAdminClient(), organizations: [org] };
   }
+  if (request.headers.get("origin") !== request.nextUrl.origin) return null;
+  const db = await createClient();
+  const { data: { user }, error } = await db.auth.getUser();
+  if (error || !user) return null;
+  const membership = await db.from("organization_members").select("organization_id").eq("user_id", user.id).eq("role", "admin").eq("status", "active").limit(101);
+  if (membership.error || !membership.data?.length || membership.data.length > 100) return null;
+  // Session RLS remains active for all admin reads/writes, not service-role bypass.
+  return { db, organizations: membership.data.map(row => String(row.organization_id)) };
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await isAuthorized(request))) return json({ error: "Unauthorized" }, 401);
-  let body: unknown = {};
   try {
-    body = await request.json();
-  } catch {
-    return json({ error: "Invalid JSON" }, 400);
-  }
-  const input =
-    body && typeof body === "object" && !Array.isArray(body)
-      ? (body as Record<string, unknown>)
-      : {};
-  const requested =
-    typeof input.client_id === "string" ? input.client_id : null;
-  const to =
-    typeof input.to === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input.to)
-      ? input.to
-      : isoDay(new Date(Date.now() - 86400000));
-  const from =
-    typeof input.from === "string" && /^\d{4}-\d{2}-\d{2}$/.test(input.from)
-      ? input.from
-      : isoDay(new Date(Date.now() - 31 * 86400000));
-  if (from > to) return json({ error: "from must be on or before to" }, 400);
-  const supabase = createAdminClient();
-  let ids: string[] = [];
-  if (requested) {
-    if (!/^[0-9a-f-]{36}$/i.test(requested))
-      return json({ error: "client_id must be a UUID" }, 400);
-    ids = [requested];
-  } else {
-    const { data, error } = await supabase
-      .from("clients")
-      .select("id")
-      .eq("is_demo", false)
-      .eq("lifecycle_status", "active")
-      .is("deleted_at", null);
-    if (error) return json({ error: "Unable to list active clients" }, 500);
-    ids = (data ?? []).map((row) => String(row.id));
-  }
-  const output = [] as Array<Record<string, unknown>>;
-  for (const clientId of ids) {
+    const scope = await authorizedScope(request);
+    if (!scope) return json({ error: "Unauthorized" }, 401);
+    let input: Record<string, unknown>;
     try {
-      output.push({
-        client_id: clientId,
-        status: "succeeded",
-        sources: await syncGoogleClient(supabase, clientId, { from, to }),
-      });
-    } catch (error) {
-      output.push({
-        client_id: clientId,
-        status: "failed",
-        error: error instanceof Error ? error.message : "Sync failed",
-      });
+      const raw = await request.text();
+      if (raw.length > 2000) return json({ error: "Request too large" }, 413);
+      input = JSON.parse(raw);
+      if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).some(k => !["client_id", "from", "to"].includes(k))) throw new Error();
+    } catch { return json({ error: "Invalid request" }, 400); }
+    if (input.client_id !== undefined && (typeof input.client_id !== "string" || !uuidPattern.test(input.client_id))) return json({ error: "client_id must be a UUID" }, 400);
+    const to = input.to ?? isoDay(new Date(Date.now() - 86400000));
+    const from = input.from ?? isoDay(new Date(Date.now() - 90 * 86400000));
+    const validDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v + "T00:00:00Z")) && isoDay(new Date(v + "T00:00:00Z")) === v;
+    if (!validDay(from) || !validDay(to) || from > to || to >= isoDay(new Date()) || (Date.parse(to) - Date.parse(from)) / 86400000 >= 90) return json({ error: "Choose at most 90 completed days" }, 400);
+    let query = scope.db.from("clients").select("id,organization_id").in("organization_id", scope.organizations).eq("is_demo", false).eq("lifecycle_status", "active").is("deleted_at", null).order("id").limit(201);
+    if (input.client_id) query = query.eq("id", input.client_id);
+    const { data: clients, error } = await query;
+    if (error) return json({ error: "Unable to resolve authorized clients" }, 503);
+    if (input.client_id && clients?.length !== 1) return json({ error: "Client unavailable or unauthorized" }, 403);
+    if ((clients?.length ?? 0) > 200) return json({ error: "Select an individual client" }, 413);
+    const output = [];
+    for (const client of clients ?? []) {
+      try {
+        const sources = await syncGoogleClient(scope.db, client.id, { from, to }, process.env, client.organization_id);
+        output.push({ client_id: client.id, status: "succeeded", sources });
+      } catch {
+        output.push({ client_id: client.id, status: "failed", error: "Google sync failed. Review server-side integration status." });
+      }
     }
-  }
-  return json(
-    {
-      from,
-      to,
-      clients: output,
-      status: output.some((item) => item.status === "failed")
-        ? "completed_with_errors"
-        : "succeeded",
-    },
-    output.some((item) => item.status === "failed") ? 207 : 200,
-  );
+    const failed = output.some(row => row.status === "failed");
+    return json({ from, to, clients: output, status: failed ? "completed_with_errors" : "succeeded" }, failed ? 207 : 200);
+  } catch { return json({ error: "Unable to authorize or complete sync" }, 503); }
 }

@@ -9,7 +9,6 @@ import {
   saveBusinessKnowledge,
   saveClientAccess,
   saveClientDetails,
-  saveGoogleIntegrations,
   saveServiceScope,
 } from "@/app/admin/clients/actions";
 import type { AdminClientWorkspaceData } from "@/lib/admin-data";
@@ -21,6 +20,7 @@ const tabs = [
   "overview",
   "business",
   "access",
+  "integrations",
   "scope",
   "social",
   "blogs",
@@ -128,7 +128,7 @@ export function ClientWorkspace({
       lifecycle: initial?.lifecycle ?? "Active",
       health: initial?.health ?? "Healthy",
     });
-  const [google, setGoogle] = useState(
+  const [google] = useState(
     initial?.integrations ?? {
       ga4PropertyId: "",
       ga4Status: "not_connected",
@@ -210,14 +210,6 @@ export function ClientWorkspace({
     } else setNotice("Client details updated in local demo mode.");
     setSaved(true);
     setEditingClient(false);
-  };
-  const saveGoogle = async () => {
-    if (!live) return;
-    const result = await saveGoogleIntegrations(slug, google);
-    setNotice(
-      result.ok ? "Google property configuration saved." : result.error,
-    );
-    setSaved(true);
   };
   const provision = async () => {
     if (!live) return;
@@ -514,47 +506,11 @@ export function ClientWorkspace({
         </Panel>
         <Panel
           title="Google data connections"
-          meta="The Growth1000 service identity must have Viewer access"
+          meta="Managed account connection and explicit client property selection"
         >
           <div className="panel-body form-grid">
-            <Field
-              label="GA4 property ID"
-              value={google.ga4PropertyId}
-              onChange={(ga4PropertyId) =>
-                setGoogle({ ...google, ga4PropertyId })
-              }
-            />
-            <label className="field">
-              <span>GA4 status</span>
-              <select
-                value={google.ga4Status}
-                onChange={(e) =>
-                  setGoogle({ ...google, ga4Status: e.target.value })
-                }
-              >
-                <option value="not_connected">Not connected</option>
-                <option value="connected">Connected</option>
-              </select>
-            </label>
-            <Field
-              label="Search Console property"
-              value={google.searchConsoleSiteUrl}
-              onChange={(searchConsoleSiteUrl) =>
-                setGoogle({ ...google, searchConsoleSiteUrl })
-              }
-            />
-            <label className="field">
-              <span>Search Console status</span>
-              <select
-                value={google.searchStatus}
-                onChange={(e) =>
-                  setGoogle({ ...google, searchStatus: e.target.value })
-                }
-              >
-                <option value="not_connected">Not connected</option>
-                <option value="connected">Connected</option>
-              </select>
-            </label>
+            <div className="field"><span>Stored Analytics property</span><p>{google.ga4PropertyId || 'Not selected'}</p></div>
+            <div className="field"><span>Stored Search Console property</span><p>{google.searchConsoleSiteUrl || 'Not selected'}</p></div>
             {google.syncIssue && (
               <div className="field full">
                 <Status tone="warn">Needs Attention</Status>
@@ -568,9 +524,7 @@ export function ClientWorkspace({
               </p>
             </div>
             <div className="field full save-row">
-              <button className="button" onClick={saveGoogle}>
-                Save Google properties
-              </button>
+              <Link className="button" href={`/admin/clients/${slug}/integrations`}>Manage Google connection</Link>
             </div>
           </div>
         </Panel>

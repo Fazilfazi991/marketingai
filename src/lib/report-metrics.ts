@@ -2,15 +2,19 @@ export type MetricRow = { metrics: unknown };
 export type LeadRow = { source: string; lead_quality: string; status: string };
 
 export function sumMetric(rows: MetricRow[] | null, ...keys: string[]) {
-  return (rows ?? []).reduce((sum, row) => {
+  if (!rows?.length) return null;
+  let sum = 0;
+  for (const row of rows) {
     const metrics = (row.metrics ?? {}) as Record<string, unknown>;
-    const value = keys.map(key => Number(metrics[key]) || 0).find(Boolean) ?? 0;
-    return sum + value;
-  }, 0);
+    const value = keys.map(key => metrics[key]).find(value => typeof value === "number" && Number.isFinite(value) && value >= 0);
+    if (typeof value !== "number") return null;
+    sum += value;
+  }
+  return sum;
 }
 
-export function percentChange(current: number, previous: number) {
-  if (!previous) return current ? 100 : 0;
+export function percentChange(current: number | null, previous: number | null) {
+  if (current === null || previous === null || previous === 0) return null;
   return Math.round(((current - previous) / previous) * 100);
 }
 

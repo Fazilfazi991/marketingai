@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { GroundedAgentProvider } from "./growth-agent/contracts";
 
 /** Future model adapters receive a vetted context, not raw integration credentials.
  * Requests are always human-supervised, regardless of model/provider. */
@@ -16,6 +17,8 @@ export type AgentBusinessContext = {
   goals?: string[]; // Not structured in the current business schema; Phase 7 gap.
 };
 export interface AgentProvider {
+  /** Optional capability: legacy supervised providers remain valid and unchanged. */
+  generateGroundedAnswer?: GroundedAgentProvider["generateGroundedAnswer"];
   answer(input: {
     message: string;
     context: AgentBusinessContext;

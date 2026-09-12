@@ -190,7 +190,7 @@ export async function loadAdminGrowth(): Promise<AdminGrowthData> {
     supabase
       .from("website_inventory_runs")
       .select("client_id,status,finished_at")
-      .order("created_at", { ascending: false }),
+      .order("started_at", { ascending: false }),
     supabase
       .from("seo_reviews")
       .select("client_id,created_at")

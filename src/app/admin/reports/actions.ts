@@ -21,6 +21,10 @@ export async function publishReport(id: string, clientId: string): Promise<Resul
   if (!/^[0-9a-f-]{36}$/i.test(id)) return { ok: false, error: "Invalid report." };
   try {
     const { supabase } = await adminContext(clientId);
+    const { data: report, error: readError } = await supabase.from("reports").select("summary,analytics_summary,work_completed").eq("id", id).eq("client_id", clientId).maybeSingle();
+    const metrics = (report?.analytics_summary ?? {}) as Record<string, unknown>;
+    const meaningful = metrics.observations_verified === true || ["users", "clicks", "leads", "social_posts", "blogs"].some(key => typeof metrics[key] === "number" && Number(metrics[key]) > 0) || (Array.isArray(report?.work_completed) && report.work_completed.some(item => typeof item === "string" && item.trim()));
+    if (readError || !report?.summary?.trim() || !meaningful) return { ok: false, error: "Report requires verified observations or delivered work before publishing." };
     const { error } = await supabase.from("reports").update({ status: "published" }).eq("id", id).eq("client_id", clientId);
     if (error) return { ok: false, error: error.message };
     revalidatePath("/admin/reports");
@@ -69,14 +73,15 @@ export async function regenerateReport(clientId: string, month: string): Promise
     const obligations = (((period as { delivery_obligations?: unknown } | null)?.delivery_obligations ?? []) as Array<{ label: string; delivered_quantity: number }>);
     const work = obligations.filter(item => item.delivered_quantity > 0).map(item => `${item.delivered_quantity} ${item.label.toLowerCase()} delivered`);
     const sourceSentence = topSource ? ` ${sourceLabel(topSource.source)} was the largest source with ${topSource.count}.` : "";
-    const summary = `${client.name} generated ${leads.toLocaleString()} tracked ${leads === 1 ? "enquiry" : "enquiries"} this month, ${qualifiedLeads.toLocaleString()} qualified.${sourceSentence} The website recorded ${users.toLocaleString()} users and ${clicks.toLocaleString()} organic search clicks.`;
+    if (users === null && clicks === null && !leads && !posts && !work.length) return { ok: false, error: "No observations or delivered work available for this report." };
+    const summary = `${client.name} has ${leads.toLocaleString()} recorded enquiries this month, ${qualifiedLeads.toLocaleString()} qualified.${sourceSentence} ${users === null ? "Website user data is unavailable." : `Recorded user observations total ${users.toLocaleString()}.`} ${clicks === null ? "Organic search click data is unavailable." : `Recorded organic search clicks total ${clicks.toLocaleString()}.`}`;
     const nextFocus = topSource ? `Build on ${sourceLabel(topSource.source)}, review lead quality and follow-up outcomes, and prioritize the search and content work most likely to increase qualified enquiries.` : "Strengthen lead capture and tracking, then prioritize the search and content work most likely to increase qualified enquiries.";
     const { error } = await supabase.from("reports").upsert({
       client_id: clientId,
       month: start,
       summary,
       work_completed: work,
-      analytics_summary: { leads, lead_change: percentChange(leads, priorLeads.length), qualified_leads: qualifiedLeads, users, user_change: percentChange(users, previousUsers), clicks, click_change: percentChange(clicks, previousClicks), social_posts: posts },
+      analytics_summary: { observations_verified: users !== null || clicks !== null, leads, lead_change: percentChange(leads, priorLeads.length), qualified_leads: qualifiedLeads, users, user_change: percentChange(users, previousUsers), clicks, click_change: percentChange(clicks, previousClicks), social_posts: posts },
       next_month_focus: nextFocus,
       status: "needs_review",
     }, { onConflict: "client_id,month" });
