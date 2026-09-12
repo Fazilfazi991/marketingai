@@ -45,6 +45,17 @@ describe("Gro public domain configuration", () => {
     ).toThrow();
   });
 
+  it("uses an explicit non-production APP_URL without enabling indexing", () => {
+    const preview = getPublicSite({
+      APP_URL: "https://preview.example",
+      VERCEL_ENV: "preview",
+    });
+
+    expect(preview.origin).toBe("https://preview.example");
+    expect(preview.homepageUrl).toBe("https://preview.example/");
+    expect(preview.indexable).toBe(false);
+  });
+
   it("keeps Preview noindex even if it receives the production APP_URL", () => {
     const preview = configuredSite({
       APP_URL: PRODUCTION_ORIGIN,
